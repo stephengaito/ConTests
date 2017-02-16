@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# This bash script installs the ConTests module to the user's
+# local .texlive repositories
+
+LOCAL_TEXLIVE=$HOME/.texlive/texmf
+
+mkdir -p $LOCAL_TEXLIVE/tex/context/third
+mkdir -p $LOCAL_TEXLIVE/doc/context/third
+
+cp -R t-contests $LOCAL_TEXLIVE
