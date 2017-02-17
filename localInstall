@@ -8,4 +8,4 @@ LOCAL_TEXLIVE=$HOME/.texlive/texmf
 mkdir -p $LOCAL_TEXLIVE/tex/context/third
 mkdir -p $LOCAL_TEXLIVE/doc/context/third
 
-cp -R t-contests $LOCAL_TEXLIVE
+cp -R t-contests/* $LOCAL_TEXLIVE
