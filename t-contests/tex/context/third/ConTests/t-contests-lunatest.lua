@@ -37,6 +37,7 @@
 -- Commit: 5529e17a757877b8e3b157a5902917ba4a6a8a26
 -- Modifications performed to allow use inside luaTeX/ConTeXt
 --   os.exit changed to error to allow luaTeX to capture errors
+--   altered all assert_xxxx into assert.xxx
 --
 ------------
 -- Module --
@@ -206,7 +207,8 @@ end
 
 -- @module lunatest
 local lunatest = {}
-lunatest.VERSION = 0.95
+lunatest.assert = {}
+lunatest.VERSION = '0.95.contests'
 
 ---Fail a test.
 -- @param no_exit Unless set to true, the presence of any failures
@@ -228,24 +230,24 @@ function lunatest.skip(msg) error(Skip { msg=msg }) end
 ---got == true.
 -- (Named "assert_true" to not conflict with standard assert.)
 -- @param msg Message to display with the result.
-function lunatest.assert_true(got, msg)
+function lunatest.assert.isTrue(got, msg)
    wraptest(got, msg, { reason=fmt("Expected success, got %s.", TS(got)) })
 end
 
 ---got == false.
-function lunatest.assert_false(got, msg)
+function lunatest.assert.isFalse(got, msg)
    wraptest(not got, msg,
             { reason=fmt("Expected false, got %s", TS(got)) })
 end
 
 --got == nil
-function lunatest.assert_nil(got, msg)
+function lunatest.assert.isNil(got, msg)
    wraptest(got == nil, msg,
             { reason=fmt("Expected nil, got %s", TS(got)) })
 end
 
 --got ~= nil
-function lunatest.assert_not_nil(got, msg)
+function lunatest.assert.isNotNil(got, msg)
    wraptest(got ~= nil, msg,
             { reason=fmt("Expected non-nil value, got %s", TS(got)) })
 end
@@ -260,7 +262,7 @@ end
 
 
 ---exp == got.
-function lunatest.assert_equal(exp, got, tol, msg)
+function lunatest.assert.isEqual(exp, got, tol, msg)
    tol, msg = tol_or_msg(tol, msg)
    if type(exp) == "number" and type(got) == "number" then
       wraptest(math.abs(exp - got) <= tol, msg,
@@ -273,54 +275,54 @@ function lunatest.assert_equal(exp, got, tol, msg)
 end
 
 ---exp ~= got.
-function lunatest.assert_not_equal(exp, got, msg)
+function lunatest.assert.isNotEqual(exp, got, msg)
    wraptest(exp ~= got, msg,
             { reason="Expected something other than " .. TS(exp) })
 end
 
 ---val > lim.
-function lunatest.assert_gt(lim, val, msg)
+function lunatest.assert.isGT(lim, val, msg)
    wraptest(val > lim, msg,
             { reason=fmt("Expected a value > %s, got %s",
                          TS(lim), TS(val)) })
 end
 
 ---val >= lim.
-function lunatest.assert_gte(lim, val, msg)
+function lunatest.assert.isGTE(lim, val, msg)
    wraptest(val >= lim, msg,
             { reason=fmt("Expected a value >= %s, got %s",
                          TS(lim), TS(val)) })
 end
 
 ---val < lim.
-function lunatest.assert_lt(lim, val, msg)
+function lunatest.assert.isLT(lim, val, msg)
    wraptest(val < lim, msg,
             { reason=fmt("Expected a value < %s, got %s",
                          TS(lim), TS(val)) })
 end
 
 ---val <= lim.
-function lunatest.assert_lte(lim, val, msg)
+function lunatest.assert.isLTE(lim, val, msg)
    wraptest(val <= lim, msg,
             { reason=fmt("Expected a value <= %s, got %s",
                          TS(lim), TS(val)) })
 end
 
 ---#val == len.
-function lunatest.assert_len(len, val, msg)
+function lunatest.assert.isLen(len, val, msg)
    wraptest(#val == len, msg,
             { reason=fmt("Expected #val == %d, was %d",
                          len, #val) })
 end
 
 ---#val ~= len.
-function lunatest.assert_not_len(len, val, msg)
+function lunatest.assert.isNotLen(len, val, msg)
    wraptest(#val ~= len, msg,
             { reason=fmt("Expected length other than %d", len) })
 end
 
 ---Test that the string s matches the pattern exp.
-function lunatest.assert_match(pat, s, msg)
+function lunatest.assert.matches(pat, s, msg)
    s = tostring(s)
    wraptest(type(s) == "string" and s:match(pat), msg,
             { reason=fmt("Expected string to match pattern %s, was %s",
@@ -329,111 +331,111 @@ function lunatest.assert_match(pat, s, msg)
 end
 
 ---Test that the string s doesn't match the pattern exp.
-function lunatest.assert_not_match(pat, s, msg)
+function lunatest.assert.doesNotMatch(pat, s, msg)
    wraptest(type(s) ~= "string" or not s:match(pat), msg,
             { reason=fmt("Should not match pattern %s", pat) })
 end
 
 ---Test that val is a boolean.
-function lunatest.assert_boolean(val, msg)
+function lunatest.assert.isBoolean(val, msg)
    wraptest(type(val) == "boolean", msg,
             { reason=fmt("Expected type boolean but got %s",
                          type(val)) })
 end
 
 ---Test that val is not a boolean.
-function lunatest.assert_not_boolean(val, msg)
+function lunatest.assert.isNotBoolean(val, msg)
    wraptest(type(val) ~= "boolean", msg,
             { reason=fmt("Expected type other than boolean but got %s",
                          type(val)) })
 end
 
 ---Test that val is a number.
-function lunatest.assert_number(val, msg)
+function lunatest.assert.isNumber(val, msg)
    wraptest(type(val) == "number", msg,
             { reason=fmt("Expected type number but got %s",
                          type(val)) })
 end
 
 ---Test that val is not a number.
-function lunatest.assert_not_number(val, msg)
+function lunatest.assert.isNotNumber(val, msg)
    wraptest(type(val) ~= "number", msg,
             { reason=fmt("Expected type other than number but got %s",
                          type(val)) })
 end
 
 ---Test that val is a string.
-function lunatest.assert_string(val, msg)
+function lunatest.assert.isString(val, msg)
    wraptest(type(val) == "string", msg,
             { reason=fmt("Expected type string but got %s",
                          type(val)) })
 end
 
 ---Test that val is not a string.
-function lunatest.assert_not_string(val, msg)
+function lunatest.assert.isNotString(val, msg)
    wraptest(type(val) ~= "string", msg,
             { reason=fmt("Expected type other than string but got %s",
                          type(val)) })
 end
 
 ---Test that val is a table.
-function lunatest.assert_table(val, msg)
+function lunatest.assert.isTable(val, msg)
    wraptest(type(val) == "table", msg,
             { reason=fmt("Expected type table but got %s",
                          type(val)) })
 end
 
 ---Test that val is not a table.
-function lunatest.assert_not_table(val, msg)
+function lunatest.assert.isNotTable(val, msg)
    wraptest(type(val) ~= "table", msg,
             { reason=fmt("Expected type other than table but got %s",
                          type(val)) })
 end
 
 ---Test that val is a function.
-function lunatest.assert_function(val, msg)
+function lunatest.assert.isFunction(val, msg)
    wraptest(type(val) == "function", msg,
             { reason=fmt("Expected type function but got %s",
                          type(val)) })
 end
 
 ---Test that val is not a function.
-function lunatest.assert_not_function(val, msg)
+function lunatest.assert.isNotFunction(val, msg)
    wraptest(type(val) ~= "function", msg,
             { reason=fmt("Expected type other than function but got %s",
                          type(val)) })
 end
 
 ---Test that val is a thread (coroutine).
-function lunatest.assert_thread(val, msg)
+function lunatest.assert.isThread(val, msg)
    wraptest(type(val) == "thread", msg,
             { reason=fmt("Expected type thread but got %s",
                          type(val)) })
 end
 
 ---Test that val is not a thread (coroutine).
-function lunatest.assert_not_thread(val, msg)
+function lunatest.assert.isNotThread(val, msg)
    wraptest(type(val) ~= "thread", msg,
             { reason=fmt("Expected type other than thread but got %s",
                          type(val)) })
 end
 
 ---Test that val is a userdata (light or heavy).
-function lunatest.assert_userdata(val, msg)
+function lunatest.assert.isUserdata(val, msg)
    wraptest(type(val) == "userdata", msg,
             { reason=fmt("Expected type userdata but got %s",
                          type(val)) })
 end
 
 ---Test that val is not a userdata (light or heavy).
-function lunatest.assert_not_userdata(val, msg)
+function lunatest.assert.isNotUserdata(val, msg)
    wraptest(type(val) ~= "userdata", msg,
             { reason=fmt("Expected type other than userdata but got %s",
                          type(val)) })
 end
 
 ---Test that a value has the expected metatable.
-function lunatest.assert_metatable(exp, val, msg)
+function lunatest.assert.isMetatable(exp, val, msg)
    local mt = getmetatable(val)
    wraptest(mt == exp, msg,
             { reason=fmt("Expected metatable %s but got %s",
@@ -441,7 +443,7 @@ function lunatest.assert_metatable(exp, val, msg)
 end
 
 ---Test that a value does not have a given metatable.
-function lunatest.assert_not_metatable(exp, val, msg)
+function lunatest.assert.isNotMetatable(exp, val, msg)
    local mt = getmetatable(val)
    wraptest(mt ~= exp, msg,
             { reason=fmt("Expected metatable other than %s",
@@ -449,7 +451,7 @@ function lunatest.assert_not_metatable(exp, val, msg)
 end
 
 ---Test that the function raises an error when called.
-function lunatest.assert_error(f, msg)
+function lunatest.assert.isError(f, msg)
    local ok, err = pcall(f)
    local got = ok or err
    wraptest(not ok, msg,
@@ -552,8 +554,10 @@ setmetatable(verbose_hooks, {__index = default_hooks })
 -- # Registration #
 -- ################
 
-local suites = {}
-local failed_suites = {}
+lunatest.suites = {}
+local suites = lunatest.suites
+lunatest.failed_suites = {}
+local failed_suites = lunatest.failed_suites
 
 ---Check if a function name should be considered a test key.
 -- Defaults to functions starting or ending with "test"
@@ -589,12 +593,12 @@ function lunatest.suite(modname)
    local ok, err = pcall(
       function()
          local mod, r_err = require(modname)
-         table.insert(suites, {name = modname, tests = get_tests(mod)})
+         table.insert(lunatest.suites, {name = modname, tests = get_tests(mod)})
       end)
    if not ok then
       print(fmt(" * Error loading test suite %q:\n%s",
                 modname, tostring(err)))
-      failed_suites[#failed_suites+1] = modname
+      lunatest.failed_suites[#failed_suites+1] = modname
    end
 end
 
@@ -751,12 +755,12 @@ function lunatest.run(hooks, opts)
    local env = getenv(3)
    if env then
       local main_suite = {name = "main", tests = get_tests(env)}
-      table.insert(suites, main_suite)
+      table.insert(lunatest.suites, main_suite)
    end
 
-   if hooks.begin then hooks.begin(results, suites) end
+   if hooks.begin then hooks.begin(results, lunatest.suites) end
 
-   for _,suite in ipairs(suites) do
+   for _,suite in ipairs(lunatest.suites) do
       run_suite(hooks, opts, results, suite.name, suite.tests)
    end
    results.t_post = now()

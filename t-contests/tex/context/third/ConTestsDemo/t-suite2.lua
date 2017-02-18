@@ -3,8 +3,7 @@ texio.write("hello from suite-2\n")
 -- @module suite1
 local suite2 = {}
 
-local lunatest = thirddata.contests.tests
-local assert_true = lunatest.assert_true
+local assert = thirddata.contests.tests.assert
 
 function suite2.suite_setup()
    print "\n\n-- running suite-2 setup hook"
