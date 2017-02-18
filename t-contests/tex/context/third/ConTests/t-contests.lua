@@ -1,4 +1,4 @@
-if not modules then modules = { } end modules ['t-joylol'] = {
+if not modules then modules = { } end modules ['t-contests'] = {
     version   = 1.000,
     comment   = "ConTests",
     author    = "PerceptiSys Ltd (Stephen Gaito)",
@@ -9,14 +9,10 @@ if not modules then modules = { } end modules ['t-joylol'] = {
 thirddata          = thirddata        or {}
 thirddata.contests = thirddata.contests or {}
 
--- local tests        = require('t-contests-lunatest')
 local contests     = thirddata.contests
+contests.tests     = require('t-contests-lunatest')
+local pp           = require('pl.pretty')
 
 texio.write("loaded ConTests\n")
-local ok, result = pcall(error, "silly")
-if ok then
-  texio.write("xpcall OK\n")
-else
-  texio.write("xpcall NOT OK\n")
-end
-texio.write("just passed assert false\n")
+
+texio.write(pp.write(contests.tests))

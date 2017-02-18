@@ -1,1 +1,4 @@
 *.luac
+*.log
+*.pdf
+*.tuc

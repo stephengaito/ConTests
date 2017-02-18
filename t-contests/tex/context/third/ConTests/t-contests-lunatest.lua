@@ -36,6 +36,7 @@
 --   https://github.com/silentbicycle/lunatest/blob/master/lunatest.lua
 -- Commit: 5529e17a757877b8e3b157a5902917ba4a6a8a26
 -- Modifications performed to allow use inside luaTeX/ConTeXt
+--   os.exit changed to error to allow luaTeX to capture errors
 --
 ------------
 -- Module --
@@ -47,12 +48,12 @@ local debug, io, math, os, string, table =
 
 -- required core global functions
 local assert, error, ipairs, pairs, pcall, print, setmetatable, tonumber =
-   assert, error, ipairs, pairs, pcall, print, setmetatable, tonumber
+   assert, error, ipairs, pairs, pcall, texio.write, setmetatable, tonumber
 local fmt, tostring, type = string.format, tostring, type
 local unpack = table.unpack or unpack
 local getmetatable, rawget, setmetatable, xpcall =
    getmetatable, rawget, setmetatable, xpcall
-local exit, next, require = os.exit, next, require
+local next, require = next, require
 
 -- Get containing env, using 5.1's getfenv or emulating it in 5.2
 local getenv = getfenv or function(level)
@@ -642,7 +643,7 @@ local function run_test(name, test, suite, hooks, setup, teardown)
                       print "\n==============================================="
                       local msg = fmt("ERROR in teardown handler: %s", info)
                       print(msg)
-                      os.exit(1)
+                      error(msg) -- was os.exit(-1) -- will this result in an infinite loop?
                    end)
          end
       end
@@ -762,8 +763,14 @@ function lunatest.run(hooks, opts)
    if hooks.done then hooks.done(results) end
 
    local failures = failure_or_error_count(results)
-   if failures > 0 then os.exit(failures) end
-   if #failed_suites > 0 then os.exit(#failed_suites) end
+   if failures > 0 then
+     local msg = fmt("ConTests failures: %d", failures)
+     error(msg)
+   end
+   if #failed_suites > 0 then
+     local msg = fmt("ConTests failed suites: %d", #failed_suites)
+     error(msg)
+   end
 end
 
 
