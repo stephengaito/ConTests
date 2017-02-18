@@ -1,6 +1,7 @@
 -----------------------------------------------------------------------
 --
--- Copyright (c) 2009-12 Scott Vokes <vokes.s@gmail.com>
+-- Original Copyright (c) 2009-12 Scott Vokes <vokes.s@gmail.com>
+-- Modifications Copyright (c) 2017 Stephen Gaito <stephen@perceptisys.co.uk>
 --
 -- Permission is hereby granted, free of charge, to any person
 -- obtaining a copy of this software and associated documentation
@@ -26,10 +27,16 @@
 ------------------------------------------------------------------------
 --
 -- This is a library for randomized testing with Lua.
--- For usage and examples, see README and the test suite.
+-- For usage and examples, see README and the test suite in the 
+-- original project: https://github.com/silentbicycle/lunatest
 --
 ------------------------------------------------------------------------
-
+-- 
+-- Original taken from: 
+--   https://github.com/silentbicycle/lunatest/blob/master/lunatest.lua
+-- Commit: 5529e17a757877b8e3b157a5902917ba4a6a8a26
+-- Modifications performed to allow use inside luaTeX/ConTeXt
+--
 ------------
 -- Module --
 ------------
