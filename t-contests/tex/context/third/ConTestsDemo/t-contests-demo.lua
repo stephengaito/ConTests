@@ -15,5 +15,5 @@ local pp    = require('pl.pretty')
 
 texio.write("loaded ConTestsDemo\n")
 
-cts.suite('t-suite1')
-cts.suite('t-suite2')
+cts.loadSuite('t-suite1')
+cts.loadSuite('t-suite2')
