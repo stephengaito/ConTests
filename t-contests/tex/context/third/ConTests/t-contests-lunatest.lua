@@ -589,7 +589,7 @@ end
 -- @param modname The module to load as a suite. The file is
 -- interpreted in the same manner as require "modname".
 -- Which functions are tests is determined by is_test_key(name). 
-function lunatest.suite(modname)
+function lunatest.loadSuite(modname)
    local ok, err = pcall(
       function()
          local mod, r_err = require(modname)
@@ -598,10 +598,26 @@ function lunatest.suite(modname)
    if not ok then
       print(fmt(" * Error loading test suite %q:\n%s",
                 modname, tostring(err)))
-      lunatest.failed_suites[#failed_suites+1] = modname
+      failed_suites[#failed_suites+1] = modname
    end
 end
 
+---Add a table as a test suite.
+-- @param aTable The table to load as a suite.
+function lunatest.addSuite(aTable)
+  if type(aTable) == 'table' then
+    if aTable['suiteName'] ~= nil then
+      local suiteName = aTable['suiteName']
+      table.insert(lunatest.suites, {name = suiteName, tests = get_tests(aTable)})
+    else
+      print(fmt(" * Error adding test suite: no suiteName provided\n"))
+      failed_suites[#failed_suites+1] = 'noName'
+    end
+  else
+    print(fmt(" * Error adding test suite: no table provided\n"))
+    failed_suites[#failed_suites+1] = 'noTable'
+  end
+end
 
 -- ###########
 -- # Running #
