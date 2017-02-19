@@ -49,7 +49,7 @@ local debug, io, math, os, string, table =
 
 -- required core global functions
 local assert, error, ipairs, pairs, pcall, print, setmetatable, tonumber =
-   assert, error, ipairs, pairs, pcall, texio.write, setmetatable, tonumber
+   assert, error, ipairs, pairs, pcall, texio.write_nl, setmetatable, tonumber
 local fmt, tostring, type = string.format, tostring, type
 local unpack = table.unpack or unpack
 local getmetatable, rawget, setmetatable, xpcall =

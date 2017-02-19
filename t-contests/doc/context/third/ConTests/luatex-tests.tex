@@ -1,5 +1,19 @@
 % A LuaTeX document
 
-% This is a test of the ConTests module
+This is a test of the ConTests module
+
+\input{t-contests.tex}
+
+\loadSuite{t-contests-lunatest-tests}
+
+\runConTests\
+
+%\begingroup
+%\endlinechar=10
+%\directlua{
+%  local pp = require('pl.pretty')
+%  texio.write_nl(pp.write(thirddata.contests.lunatest))
+%}
+%\endgroup
 
 \end

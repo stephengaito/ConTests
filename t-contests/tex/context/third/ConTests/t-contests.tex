@@ -1,0 +1,13 @@
+% A collection of LuaTeX macros
+
+\directlua{require('t-contests.lua')}
+
+%\protect
+
+\def\loadSuite#1{\directlua{thirddata.contests.lunatest.loadSuite('#1.lua')}}
+\def\runConTests{\directlua{thirddata.contests.lunatest.run()}}
+
+%\unprotect
+
+\message{Loaded ConTests LuaTeX macros}
+\endinput

@@ -10,9 +10,6 @@ thirddata          = thirddata        or {}
 thirddata.contests = thirddata.contests or {}
 
 local contests     = thirddata.contests
-contests.tests     = require('t-contests-lunatest')
-local pp           = require('pl.pretty')
+contests.lunatest  = require('t-contests-lunatest')
 
-texio.write("loaded ConTests\n")
-
-texio.write(pp.write(contests.tests))
+texio.write_nl("loaded ConTests\n")

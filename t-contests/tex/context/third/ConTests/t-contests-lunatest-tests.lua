@@ -1,7 +1,7 @@
 -- @module basicTests
 local basicTests = {}
 
-local assert = thirddata.contests.tests.assert
+local assert = thirddata.contests.lunatest.assert
 
 function basicTests.suite_setup()
    print "\n\n-- running basic tests setup hook"
@@ -12,7 +12,7 @@ function basicTests.suite_teardown()
 end
 
 function basicTests.test_ok()
-   assert.true(true)
+   assert.isTrue(true)
 end
 
 return basicTests
