@@ -3,7 +3,7 @@
 # This bash script installs the ConTests module to the user's
 # local .texlive repositories
 
-LOCAL_TEXLIVE=$HOME/.texlive/texmf
+LOCAL_TEXLIVE=`kpsewhich -var-value TEXMFHOME`
 
 mkdir -p $LOCAL_TEXLIVE/tex/context/third
 mkdir -p $LOCAL_TEXLIVE/doc/context/third
