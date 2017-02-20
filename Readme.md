@@ -100,5 +100,9 @@ Taken from mtx-modules.lua:
 * a grep of contributed modules shows that %S and %I are never used. 
 
 * a grep of the official modules shows that only ppchtex.mkii and 
-ppchtex.mkiv use either %I or %S (at the begining of lines) 
+ppchtex.mkiv use either %I or %S (at the beginning of lines) 
+
+* [Wolfgang Schuster's t-fancybreak 
+module](https://www.ctan.org/pkg/context-fancybreak) provides an excellent 
+example of module documentation. 
 
