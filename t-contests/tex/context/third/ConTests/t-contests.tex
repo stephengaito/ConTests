@@ -1,8 +1,47 @@
 % A collection of LuaTeX macros
+%D \module
+%D   [     file=t-contests,
+%D      version=2017.02.21,
+%D        title=\CONTEXT\ User Module,
+%D     subtitle=ConTests,
+%D       author=Stephen Gaito,
+%D         date=\currentdate,
+%D    copyright=Stephen Gaito,
+%D        email=stephen@perceptisys.co.uk,
+%D      license=MIT License]
+
+%C Copyright (C) 2017 Stephen Gaito
+%C
+%C Permission is hereby granted, free of charge, to any person obtaining a copy 
+%C of this software and associated documentation files (the "Software"), to deal 
+%C in the Software without restriction, including without limitation the rights 
+%C to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+%C copies of the Software, and to permit persons to whom the Software is 
+%C furnished to do so, subject to the following conditions: 
+%C
+%C The above copyright notice and this permission notice shall be included in 
+%C all copies or substantial portions of the Software. 
+%C
+%C THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+%C IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+%C FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+%C AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+%C LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+%C OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+%C SOFTWARE. 
+
+%M \usemodule[contests]
+%M \loadsetups[t-contests.xml]
+
+%D \subject{Implementation}
 
 \directlua{require('t-contests.lua')}
 
 %\protect
+
+%D \macros{loadSuite}
+%D
+%D \showsetup{loadSuite}
 
 \def\loadSuite#1{\directlua{thirddata.contests.lunatest.loadSuite('#1.lua')}}
 \def\runConTests{\directlua{thirddata.contests.lunatest.run()}}
