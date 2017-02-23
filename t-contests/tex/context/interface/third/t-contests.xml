@@ -5,7 +5,7 @@
 
 <cd:interface xmlns:cd="http://www.pragma-ade.com/commands" name="context" language="en" version="2010.06.21">
 
-<cd:command name="loadSuite" generated="yes" file="t-contests.tex">
+<cd:command name="loadSuite" generated="yes" file="t-contests.mkiv">
   <cd:sequence>
     <cd:string value="loadSuite"?> 
   </cd:sequence>

@@ -38,11 +38,22 @@
 %
 % end info
 
+%M \usemodule[contests]
+%M \loadsetups[t-contests.xml]
+
 \writestatus{loading}{ConTeXt User Module / ConTests}
+
+%D \subject{Implementation}
 
 \unprotect
 
 \ctxloadluafile{t-contests}
+
+%D \macros{loadSuite}
+%D
+%D \showsetup{loadSuite}
+
+\def\loadSuite#1{\directlua{thirddata.contests.lunatest.loadSuite('#1.lua')}}
 
 \protect \endinput
 
