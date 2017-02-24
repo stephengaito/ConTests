@@ -1,3 +1,4 @@
+% A ConTeXt MKiv module 
 %D \module
 %D   [     file=t-contests,
 %D      version=2017.02.16,
@@ -49,11 +50,33 @@
 
 \ctxloadluafile{t-contests}
 
+\installnamespace{testsuite}
+\installnamespace{testcase}
+
+\installcommandhandler \????testsuite {testsuite} \????testsuite
+\installcommandhandler \????testcase  {testcase}  \????testcase
+
+\appendtoks
+  \setuevalue{\e!start testsuite}{\start_test_suite}%
+  \setuevalue{\e!stop  testsuite}{\stop_test_suite}%
+\to \everydefinetestsuite
+
+\def\start_test_suite\writestatus{TestSuite}{started test suite}
+\def\stop_test_suite\writestatus{TestSuite}{stopped test suite}
+
+\definetestsuite
+
 %D \macros{loadSuite}
 %D
 %D \showsetup{loadSuite}
 
 \def\loadSuite#1{\directlua{thirddata.contests.lunatest.loadSuite('#1.lua')}}
+
+%D \macros{runConTests}
+%D
+%D \showsetup{runConTests}
+
+\def\runConTests{\directlua{thirddata.contests.lunatest.run()}}
 
 \protect \endinput
 

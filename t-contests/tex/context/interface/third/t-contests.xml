@@ -5,7 +5,7 @@
 
 <cd:interface xmlns:cd="http://www.pragma-ade.com/commands" name="context" language="en" version="2010.06.21">
 
-<cd:command name="loadSuite" generated="yes" file="t-contests.mkiv">
+<cd:command name="loadSuite" generated="yes" file="t-contests.tex">
   <cd:sequence>
     <cd:string value="loadSuite"?> 
   </cd:sequence>
@@ -13,5 +13,14 @@
     <cd:content n="1" optional="no"/>
   </cd:arguments>
 </cd:command>
-  
+
+<cd:command name="runConTests" generated="yes" file="t-contests.tex">
+  <cd:sequence>
+    <cd:string value="runConTests"?> 
+  </cd:sequence>
+  <cd:arguments>
+    <!-- No arguments -->
+  </cd:arguments>
+</cd:command>
+
 </cd:interface>
