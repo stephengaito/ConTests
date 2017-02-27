@@ -26,8 +26,16 @@ local helpinfo = [[
   <category>
    <title>Example</title>
    <subcategory>
-    <example><command>mtxrun --script xrefs --build</command></example>
-    <example><command>mtxrun --script xrefs --verbose --build</command></example>
+    <example><command>mtxrun --script xrefs --build [xrefsHtmlDirectory]</command></example>
+    <example><command>mtxrun --script xrefs --verbose --build [xrefsHtmlDirectory]</command></example>
+   </subcategory>
+   <subcategory>
+    <example><command>The parameter xrefsHtmlDirectory is optional.</command></example>
+    <example><command>If xrefsHtmlDirecotry is not provided it defaults</command></example>
+    <example><command>to the top-level 'xrefs' subdirectory</command></example>
+    <example><command>of the context installation.</command></example>
+    <example><command>In either case the xrefsHtmlDirectory</command></example>
+    <example><command>must allready exist and be writable by the user.</command></example>
    </subcategory>
   </category>
  </examples>
@@ -47,6 +55,30 @@ local pp     = require('pl.pretty') -- for use while debugging
 scripts               = scripts or { }
 scripts.xrefs         = scripts.xrefs or { }
 scripts.xrefs.verbose = false
+
+function scripts.xrefs.writeHtmlHeader(htmlFile)
+  htmlFile:write('<html><head></head><body>\n')
+end
+
+function scripts.xrefs.writeHtmlFooter(htmlFile)
+  htmlFile:write('</body></html>\b')
+end
+
+function scripts.xrefs.writeFilesHtml(htmlFile, indent, filesTable)
+  local keys = { }
+  for aKey in pairs(filesTable) do keys[#keys + 1] = aKey end
+  table.sort(keys)
+  local newIndent = indent..' '
+  htmlFile:write(indent..'<ul>\n')
+  for i, aKey in ipairs(keys) do
+    htmlFile:write(newIndent..'<li> '..aKey..'\n')
+    if type(filesTable[aKey]) == 'table' then
+      scripts.xrefs.writeFilesHtml(htmlFile, newIndent..' ', filesTable[aKey])
+    end
+    htmlFile:write(newIndent..'</li>\n')
+  end
+  htmlFile:write(indent..'</ul>\n')
+end
 
 -- The parseXmlArgs and parseXmlTags functions have been adapted from
 -- Roberto Ierusalimschy's Classic Lua-only XML parser
@@ -101,47 +133,94 @@ function scripts.xrefs.parseXmlTags(s)
   return stack[1]
 end
 
-function scripts.xrefs.walkDirDoing(aDir, aMethod)
-  if scripts.xrefs.verbose then report('walking ['..aDir..']') end
+function scripts.xrefs.walkDirDoing(parentDir, subDir, parentFilesTable, aMethod)
+  parentFilesTable[subDir] = { }
+  local curFilesTable = parentFilesTable[subDir]
+  local curDir = parentDir..'/'..subDir
+  if scripts.xrefs.verbose then report('walking ['..curDir..']') end
   local oldDir = lfs.currentdir()
-  lfs.chdir(aDir)
+  lfs.chdir(curDir)
   for aFile in lfs.dir('.') do
     if aFile:match('^%.+$') then
       -- ignore 
     elseif lfs.isfile(aFile) then
-      aMethod(aFile)
+      aMethod(curFilesTable, aFile)
     elseif lfs.isdir(aFile) then
-      scripts.xrefs.walkDirDoing(aDir..'/'..aFile, aMethod)
+      scripts.xrefs.walkDirDoing(curDir, aFile, curFilesTable, aMethod)
     end
   end
+  if next(curFilesTable) == nil then parentFilesTable[subDir] = nil end
   lfs.chdir(oldDir)
 end
 
-function scripts.xrefs.findInterfacesNamespaces(aFile)
+function scripts.xrefs.findInterfacesNamespaces(parentFilesTable, aFile)
   if aFile:match('%.xml$') then
-    report('interface '..aFile)
+    parentFilesTable[aFile] = 'interface'
+    if scripts.xrefs.verbose then report('interface '..aFile) end
   elseif aFile:match('%.mkiv') or aFile:match('%.mkvi') then
-    report('definition '..aFile)
+    parentFilesTable[aFile] = 'definition'
+    if scripts.xrefs.verbose then report('definition '..aFile) end
   end
 end
 
 local countDefs = 0
-function scripts.xrefs.loadDefinitions(aFile)
+function scripts.xrefs.loadDefinitions(parentFilesTable, aFile)
   if aFile:match('%.mkiv$') or aFile:match('%.mkvi$') then
     countDefs = countDefs + 1
     report(aFile)
   end
 end
 
-function scripts.xrefs.loadExamples(aFile)
+function scripts.xrefs.loadExamples(parentFilesTable, aFile)
   if aFile:match('%.tex$') then
     report(aFile)
   end
 end
 
 function scripts.xrefs.build()
-  scripts.xrefs.htmlDir = environment.files
-  scripts.xrefs.walkDirDoing(os.getenv('SELFAUTOPARENT'), scripts.xrefs.findInterfacesNamespaces)
+  --
+  -- determine the htmlDir
+  --
+  local contextDir = os.getenv('SELFAUTOPARENT')
+  local subDir = contextDir:match('[^/]+$')
+  contextDir = contextDir:gsub('/[^%/]+$', '')
+  local htmlDir    = environment.files[1]
+  if htmlDir == nil then
+    htmlDir = contextDir..'/xrefs'
+  end
+  --
+  -- prove that we can write into the htmlDir
+  --
+  local testFileName = htmlDir..'/mtx-xrefs-tmp-'..tostring(os.time())
+  local testFile, errorStr = io.open(testFileName, 'w')
+  if testFile then
+    io.close(testFile)
+    os.remove(testFileName)
+  else
+    if scripts.xrefs.verbose then report(errorStr) end
+    report('You are not permitted to write into')
+    report(htmlDir)
+    report('Please ensure this directory exists')
+    report('and is writeable by you.\n')
+    os.exit(-1)
+  end
+  scripts.xrefs.htmlDir = htmlDir
+  report('Building xrefs into: ['..scripts.xrefs.htmlDir..']')
+  --
+  -- Now do the work
+  --
+  
+  scripts.xrefs.files = { }
+  scripts.xrefs.walkDirDoing(
+    contextDir, subDir, scripts.xrefs.files, scripts.xrefs.findInterfacesNamespaces)
+  local filesHtmlFileName = htmlDir..'/files.html'
+  local filesHtmlFile = io.open(filesHtmlFileName, 'w')
+  if filesHtmlFile then
+    scripts.xrefs.writeHtmlHeader(filesHtmlFile)
+    scripts.xrefs.writeFilesHtml(filesHtmlFile, ' ', scripts.xrefs.files)
+    scripts.xrefs.writeHtmlFooter(filesHtmlFile)
+    filesHtmlFile:close()
+  end
 end
 
 if environment.argument("verbose") then
