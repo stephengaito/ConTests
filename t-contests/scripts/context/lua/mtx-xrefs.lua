@@ -56,84 +56,11 @@ scripts               = scripts or { }
 scripts.xrefs         = scripts.xrefs or { }
 scripts.xrefs.verbose = false
 
-function scripts.xrefs.writeHtmlHeader(htmlFile)
-  htmlFile:write('<html><head></head><body>\n')
-end
+local mtxDir = os.getenv('SELFAUTOPARENT')..'/texmf-context/scripts/context/lua'
+dofile(mtxDir..'/mtx-xrefs-html.lua')
+--print(pp.write(xml))
 
-function scripts.xrefs.writeHtmlFooter(htmlFile)
-  htmlFile:write('</body></html>\b')
-end
-
-function scripts.xrefs.writeFilesHtml(htmlFile, indent, filesTable)
-  local keys = { }
-  for aKey in pairs(filesTable) do keys[#keys + 1] = aKey end
-  table.sort(keys)
-  local newIndent = indent..' '
-  htmlFile:write(indent..'<ul>\n')
-  for i, aKey in ipairs(keys) do
-    htmlFile:write(newIndent..'<li> '..aKey..'\n')
-    if type(filesTable[aKey]) == 'table' then
-      scripts.xrefs.writeFilesHtml(htmlFile, newIndent..' ', filesTable[aKey])
-    end
-    htmlFile:write(newIndent..'</li>\n')
-  end
-  htmlFile:write(indent..'</ul>\n')
-end
-
--- The parseXmlArgs and parseXmlTags functions have been adapted from
--- Roberto Ierusalimschy's Classic Lua-only XML parser
--- see: http://lua-users.org/wiki/LuaXml 
-
-function scripts.xrefs.parseXmlArgs(s)
-  local arg = {}
-  string.gsub(s, "([%-%w]+)=([\"'])(.-)%2", function (w, _, a)
-    arg[w] = a
-  end)
-  return arg
-end
-    
-function scripts.xrefs.parseXmlTags(s)
-  local stack = {}
-  local top = {}
-  table.insert(stack, top)
-  local ni,c,label,xarg, empty
-  local i, j = 1, 1
-  while true do
-    ni,j,c,label,xarg, empty = string.find(s, "<(%/?)([%w:]+)(.-)(%/?)>", i)
-    if not ni then break end
-    local text = string.sub(s, i, ni-1)
-    if not string.find(text, "^%s*$") then
-      table.insert(top, text)
-    end
-    if empty == "/" then  -- empty element tag
-      table.insert(top, {label=label, xarg=scripts.xrefs.parseXmlArgs(xarg), empty=1})
-    elseif c == "" then   -- start tag
-      top = {label=label, xarg=scripts.xrefs.parseXmlArgs(xarg)}
-      table.insert(stack, top)   -- new level
-    else  -- end tag
-      local toclose = table.remove(stack)  -- remove top
-      top = stack[#stack]
-      if #stack < 1 then
-        error("nothing to close with "..label)
-      end
-      if toclose.label ~= label then
-        error("trying to close "..toclose.label.." with "..label)
-      end
-      table.insert(top, toclose)
-    end
-    i = j+1
-  end
-  local text = string.sub(s, i)
-  if not string.find(text, "^%s*$") then
-    table.insert(stack[#stack], text)
-  end
-  if #stack > 1 then
-    error("unclosed "..stack[#stack].label)
-  end
-  return stack[1]
-end
-
-function scripts.xrefs.walkDirDoing(parentDir, subDir, parentFilesTable, aMethod)
+function scripts.xrefs.walkDirDoing(parentDir, subDir, parentFilesTable, filesMethod, dirMethod)
   parentFilesTable[subDir] = { }
   local curFilesTable = parentFilesTable[subDir]
   local curDir = parentDir..'/'..subDir
@@ -144,9 +71,10 @@ function scripts.xrefs.walkDirDoing(parentDir, subDir, parentFilesTable, aMethod
     if aFile:match('^%.+$') then
       -- ignore 
     elseif lfs.isfile(aFile) then
-      aMethod(curFilesTable, aFile)
+      if type(filesMethod) == 'function' then filesMethod(curFilesTable, aFile) end
     elseif lfs.isdir(aFile) then
-      scripts.xrefs.walkDirDoing(curDir, aFile, curFilesTable, aMethod)
+      scripts.xrefs.walkDirDoing(curDir, aFile, curFilesTable, filesMethod, dirMethod)
+      if type(dirMethod) == 'function' then dirMethod(curFileTable, aFile) end
     end
   end
   if next(curFilesTable) == nil then parentFilesTable[subDir] = nil end
@@ -157,6 +85,11 @@ function scripts.xrefs.findInterfacesNamespaces(parentFilesTable, aFile)
   if aFile:match('%.xml$') then
     parentFilesTable[aFile] = 'interface'
     if scripts.xrefs.verbose then report('interface '..aFile) end
+    local interfaceFile = io.open(aFile, 'r'):read('*a')
+    print(interfaceFile)
+    local interfaceXml  = xml.convert(interfaceFile)
+    print(pp.write(interfaceXml))
+    os.exit(-1)
   elseif aFile:match('%.mkiv') or aFile:match('%.mkvi') then
     parentFilesTable[aFile] = 'definition'
     if scripts.xrefs.verbose then report('definition '..aFile) end
@@ -199,7 +132,7 @@ function scripts.xrefs.build()
   else
     if scripts.xrefs.verbose then report(errorStr) end
     report('You are not permitted to write into')
-    report(htmlDir)
+    report('  '..htmlDir)
     report('Please ensure this directory exists')
     report('and is writeable by you.\n')
     os.exit(-1)
@@ -212,7 +145,8 @@ function scripts.xrefs.build()
   
   scripts.xrefs.files = { }
   scripts.xrefs.walkDirDoing(
-    contextDir, subDir, scripts.xrefs.files, scripts.xrefs.findInterfacesNamespaces)
+    contextDir, subDir, scripts.xrefs.files,
+    scripts.xrefs.findInterfacesNamespaces, function() end)
   local filesHtmlFileName = htmlDir..'/files.html'
   local filesHtmlFile = io.open(filesHtmlFileName, 'w')
   if filesHtmlFile then
