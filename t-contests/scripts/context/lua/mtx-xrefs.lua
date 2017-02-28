@@ -81,15 +81,34 @@ function scripts.xrefs.walkDirDoing(parentDir, subDir, parentFilesTable, filesMe
   lfs.chdir(oldDir)
 end
 
+local function buildInterfaceSyntax(interfaceSyntax, someXml)
+  local tag = (someXml['ns']..':' or '')..someXml['tg']
+  interfaceSyntax[tag] = { }
+  local dt = someXml['dt']
+  for i, value in ipairs(dt) do
+    if type(value) == 'table' and value['special'] == nil then
+      buildInterfaceSyntax(interfaceSyntax[tag], value)
+    end
+  end
+end
+
 function scripts.xrefs.findInterfacesNamespaces(parentFilesTable, aFile)
   if aFile:match('%.xml$') then
     parentFilesTable[aFile] = 'interface'
     if scripts.xrefs.verbose then report('interface '..aFile) end
-    local interfaceFile = io.open(aFile, 'r'):read('*a')
-    print(interfaceFile)
-    local interfaceXml  = xml.convert(interfaceFile)
-    print(pp.write(interfaceXml))
-    os.exit(-1)
+    local interfaceFile = io.open(aFile, 'r')
+    local interfaceStr  = interfaceFile:read('*all')
+    interfaceFile:close()
+    if interfaceStr:match('%<cd%:interface') then
+      -- we only care about interface definitions
+      --print(interfaceStr)
+      print(aFile)
+      local interfaceXml  = xml.convert(interfaceStr)
+      --print(pp.write(interfaceXml))
+      buildInterfaceSyntax(scripts.xrefs.interfaceSyntax, interfaceXml)
+      --print(pp.write(scripts.xrefs.interfaceSyntax))
+      --os.exit(-1)
+    end
   elseif aFile:match('%.mkiv') or aFile:match('%.mkvi') then
     parentFilesTable[aFile] = 'definition'
     if scripts.xrefs.verbose then report('definition '..aFile) end
@@ -144,9 +163,11 @@ function scripts.xrefs.build()
   --
   
   scripts.xrefs.files = { }
+  scripts.xrefs.interfaceSyntax = { }
   scripts.xrefs.walkDirDoing(
     contextDir, subDir, scripts.xrefs.files,
     scripts.xrefs.findInterfacesNamespaces, function() end)
+  print(pp.write(scripts.xrefs.interfaceSyntax))
   local filesHtmlFileName = htmlDir..'/files.html'
   local filesHtmlFile = io.open(filesHtmlFileName, 'w')
   if filesHtmlFile then
