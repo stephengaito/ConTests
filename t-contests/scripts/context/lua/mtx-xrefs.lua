@@ -66,64 +66,87 @@ function scripts.xrefs.walkDirDoing(parentDir, subDir, parentFilesTable, filesMe
   local curDir = parentDir..'/'..subDir
   if scripts.xrefs.verbose then report('walking ['..curDir..']') end
   local oldDir = lfs.currentdir()
-  lfs.chdir(curDir)
+  lfs.chdir(subDir)
   for aFile in lfs.dir('.') do
     if aFile:match('^%.+$') then
       -- ignore 
     elseif lfs.isfile(aFile) then
-      if type(filesMethod) == 'function' then filesMethod(curFilesTable, aFile) end
+      if type(filesMethod) == 'function' then filesMethod(curFilesTable, curDir, aFile) end
     elseif lfs.isdir(aFile) then
       scripts.xrefs.walkDirDoing(curDir, aFile, curFilesTable, filesMethod, dirMethod)
-      if type(dirMethod) == 'function' then dirMethod(curFileTable, aFile) end
+      if type(dirMethod) == 'function' then dirMethod(curFileTable, curDir, aFile) end
     end
   end
   if next(curFilesTable) == nil then parentFilesTable[subDir] = nil end
   lfs.chdir(oldDir)
 end
 
-local function buildInterfaceSyntax(interfaceSyntax, someXml)
+local function buildInterfaceSyntax(interfaceSyntax, someXml, curDir, aFile)
+  if aFile:match('pe.xml$') then return end
   local tag = (someXml['ns']..':' or '')..someXml['tg']
-  interfaceSyntax[tag] = { }
+  interfaceSyntax[tag] = interfaceSyntax[tag] or { }
+  local tagSyntax = interfaceSyntax[tag]
   local dt = someXml['dt']
+  local foundChildren = false
   for i, value in ipairs(dt) do
     if type(value) == 'table' and value['special'] == nil then
-      buildInterfaceSyntax(interfaceSyntax[tag], value)
+      foundChildren = true
+      buildInterfaceSyntax(tagSyntax, value, curDir, aFile)
+    end
+  end
+  if not foundChildren then
+    tagSyntax['examples'] = tagSyntax['examples'] or { }
+    tagSyntax['examples'][aFile] = curDir
+  end
+  if someXml['at'] ~= nil then
+    local at = someXml['at']
+    local foundAttributes = false
+    local atSyntax = tagSyntax['attributes'] or { }
+    for key, value in pairs(at) do
+      if key ~= nil and value ~= nil then
+        foundAttributes = true
+        atSyntax[key] = atSyntax[key] or { }
+        atSyntax[key][value] = atSyntax[key][value] or { }
+        atSyntax[key][value][aFile] = curDir
+      end
+    end
+    if foundAttributes then
+      tagSyntax['attributes'] = tagSyntax['attributes'] or { }
+      tagSyntax['attributes'] = atSyntax
     end
   end
 end
 
-function scripts.xrefs.findInterfacesNamespaces(parentFilesTable, aFile)
+function scripts.xrefs.findInterfacesNamespaces(parentFilesTable, curDir, aFile)
   if aFile:match('%.xml$') then
-    parentFilesTable[aFile] = 'interface'
     if scripts.xrefs.verbose then report('interface '..aFile) end
     local interfaceFile = io.open(aFile, 'r')
     local interfaceStr  = interfaceFile:read('*all')
     interfaceFile:close()
     if interfaceStr:match('%<cd%:interface') then
       -- we only care about interface definitions
-      --print(interfaceStr)
-      print(aFile)
+      parentFilesTable[aFile] = curDir..'/'..aFile
       local interfaceXml  = xml.convert(interfaceStr)
-      --print(pp.write(interfaceXml))
-      buildInterfaceSyntax(scripts.xrefs.interfaceSyntax, interfaceXml)
-      --print(pp.write(scripts.xrefs.interfaceSyntax))
-      --os.exit(-1)
+      if interfaceXml['statistics']['errormessage'] ~= nil then
+        report('non-valid xml in '..aFile)
+      end
+      buildInterfaceSyntax(scripts.xrefs.interfaceSyntax, interfaceXml, curDir, aFile)
     end
   elseif aFile:match('%.mkiv') or aFile:match('%.mkvi') then
-    parentFilesTable[aFile] = 'definition'
+    parentFilesTable[aFile] = curDir..'/'..aFile
     if scripts.xrefs.verbose then report('definition '..aFile) end
   end
 end
 
 local countDefs = 0
-function scripts.xrefs.loadDefinitions(parentFilesTable, aFile)
+function scripts.xrefs.loadDefinitions(parentFilesTable, curDir, aFile)
   if aFile:match('%.mkiv$') or aFile:match('%.mkvi$') then
     countDefs = countDefs + 1
     report(aFile)
   end
 end
 
-function scripts.xrefs.loadExamples(parentFilesTable, aFile)
+function scripts.xrefs.loadExamples(parentFilesTable, curDir, aFile)
   if aFile:match('%.tex$') then
     report(aFile)
   end
@@ -136,6 +159,7 @@ function scripts.xrefs.build()
   local contextDir = os.getenv('SELFAUTOPARENT')
   local subDir = contextDir:match('[^/]+$')
   contextDir = contextDir:gsub('/[^%/]+$', '')
+  scripts.xrefs.contextDir = contextDir
   local htmlDir    = environment.files[1]
   if htmlDir == nil then
     htmlDir = contextDir..'/xrefs'
@@ -164,18 +188,17 @@ function scripts.xrefs.build()
   
   scripts.xrefs.files = { }
   scripts.xrefs.interfaceSyntax = { }
+  lfs.chdir(contextDir)
   scripts.xrefs.walkDirDoing(
-    contextDir, subDir, scripts.xrefs.files,
+    '.', subDir, scripts.xrefs.files,
     scripts.xrefs.findInterfacesNamespaces, function() end)
-  print(pp.write(scripts.xrefs.interfaceSyntax))
-  local filesHtmlFileName = htmlDir..'/files.html'
-  local filesHtmlFile = io.open(filesHtmlFileName, 'w')
-  if filesHtmlFile then
-    scripts.xrefs.writeHtmlHeader(filesHtmlFile)
-    scripts.xrefs.writeFilesHtml(filesHtmlFile, ' ', scripts.xrefs.files)
-    scripts.xrefs.writeHtmlFooter(filesHtmlFile)
-    filesHtmlFile:close()
-  end
+  scripts.xrefs.interfaceSyntax = scripts.xrefs.interfaceSyntax[':@rt@']
+  --print(pp.write(scripts.xrefs.files))
+  --print(pp.write(scripts.xrefs.interfaceSyntax))
+  os.execute('rm -rf '..htmlDir..'/*')
+  scripts.xrefs.createFileHtml(htmlDir)
+  scripts.xrefs.createInterfaceSyntaxHtml(htmlDir)
+  scripts.xrefs.createRootIndexHtml(htmlDir)
 end
 
 if environment.argument("verbose") then
