@@ -1,18 +1,36 @@
+local function writeMainMenuHtml(htmlFile)
+  htmlFile:write('  <div>\n')
+  htmlFile:write('    <a href="/files/index.html">files</a>\n')
+  htmlFile:write('    <a href="/syntax/index.html">syntax</a>\n')
+  htmlFile:write('    <a href="/documents">docs</a>\n')
+  htmlFile:write('  </div>\n')
+end
+
+local function writeBreadCrumbsHtml(htmlFile, breadCrumbs)
+  local foundAttributes = false
+  htmlFile:write('  <div>\n')
+  for i, aCrumb in ipairs(breadCrumbs) do
+    htmlFile:write('    <a href="'..aCrumb['url']..'">'..aCrumb['tag']..'</a>\n')
+    if foundAttributes then
+      htmlFile:write('    =\n')
+      foundAttributes = false
+    end
+    if aCrumb['tag'] == 'attributes' then 
+      htmlFile:write('    :\n')
+      foundAttributes = true
+    end
+  end
+  htmlFile:write('  </div>\n')
+end
+
 local function writeHtmlHeader(htmlFile, breadCrumbs)
   htmlFile:write('<html><head>\n')
   htmlFile:write('  <title>ConTeXt xrefs</title>\n')
   htmlFile:write('</head><body>\n')
-  htmlFile:write('  <div>\n')
-  htmlFile:write('    <a href="/files/index.html">files</a>\n')
-  htmlFile:write('    <a href="/syntax/index.html">syntax</a>\n')
-  htmlFile:write('  </div>\n')
+  writeMainMenuHtml(htmlFile)
   htmlFile:write('  <hr/>\n')
   if 0 < #breadCrumbs then
-    htmlFile:write('  <div>\n')
-    for i, aCrumb in ipairs(breadCrumbs) do
-      htmlFile:write('    <a href="'..aCrumb['url']..'">'..aCrumb['tag']..'</a>\n')
-    end
-    htmlFile:write('  </div>\n')
+    writeBreadCrumbsHtml(htmlFile, breadCrumbs)
     htmlFile:write('  <hr/>\n')
   end
 end
@@ -20,17 +38,10 @@ end
 local function writeHtmlFooter(htmlFile, breadCrumbs)
   if 0 < #breadCrumbs then
     htmlFile:write('  <hr/>\n')
-    htmlFile:write('  <div>\n')
-    for i, aCrumb in ipairs(breadCrumbs) do
-      htmlFile:write('    <a href="/'..aCrumb['url']..'">'..aCrumb['tag']..'</a>\n')
-    end
-    htmlFile:write('  </div>\n')
+    writeBreadCrumbsHtml(htmlFile, breadCrumbs)
   end
   htmlFile:write('  <hr/>\n')
-  htmlFile:write('  <div>\n')
-  htmlFile:write('    <a href="/files/index.html">files</a>\n')
-  htmlFile:write('    <a href="/syntax/index.html">syntax</a>\n')
-  htmlFile:write('  </div>\n')
+  writeMainMenuHtml(htmlFile)
   htmlFile:write('</body></html>\b')
 end
 
@@ -160,7 +171,7 @@ local function writeInterfaceSyntaxHtml(syntaxTable, aPath, aTag, breadCrumbs)
   local fsKeys = { }
   for aKey in pairs(syntaxTable) do
     keys[#keys+1] = aKey
-    fsKeys[aKey] = aKey:gsub('[%.%;% %:%+%/%"]', '-')
+    fsKeys[aKey] = aKey:gsub('[%.%;% %:%+%/%"]', '-'):gsub('^%-', '')
   end
   table.sort(keys)
   --
