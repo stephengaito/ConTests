@@ -61,8 +61,8 @@
   \setuevalue{\e!stop  testsuite}{\stop_test_suite}%
 \to \everydefinetestsuite
 
-\def\start_test_suite\writestatus{TestSuite}{started test suite}
-\def\stop_test_suite\writestatus{TestSuite}{stopped test suite}
+\def\start_test_suite{\writestatus{TestSuite}{started test suite}}
+\def\stop_test_suite{\writestatus{TestSuite}{stopped test suite}}
 
 \definetestsuite[silly][something=somethingelse]
 
@@ -77,6 +77,34 @@
 %D \showsetup{runConTests}
 
 \def\runConTests{\directlua{thirddata.contests.lunatest.run()}}
+
+%D \section{ConTests display}
+
+%D \subsection{Implementation}
+
+\let\mock=\def
+
+\definetextbackground[CTFrame]
+\setuptextbackground%
+  [CTFrame]%
+  [location=text, background=color, backgroundcolor=gray]
+
+\definetyping[ConTestSuite]
+\setuptyping%
+  [ConTestSuite]%
+  [numbering=line, before={\noindent\startCTFrame}, after=\stopCTFrame]
+
+\let\oldStopConTestSuite=\stopConTestSuite
+\def\stopConTestSuite{%
+  \oldStopConTestSuite%
+  \clf_getbuffer{_typing_}
+}
+
+\definebuffer[ConTestLua]
+
+\def\stopConTestLua{%
+  \directlua{thirddata.contests.runSuite('\thedefinedbuffer{ConTestLua}')}
+}
 
 \protect \endinput
 

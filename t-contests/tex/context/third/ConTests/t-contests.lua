@@ -11,5 +11,10 @@ thirddata.contests = thirddata.contests or {}
 
 local contests     = thirddata.contests
 contests.lunatest  = require('t-contests-lunatest')
+local assert       = contests.lunatest.assert
 
-texio.write_nl("loaded ConTests\n")
+function contests.runSuite(bufferName)
+  texio.write_nl(bufferName)
+end
+
+texio.write_nl("loaded ConTests lua code\n")
