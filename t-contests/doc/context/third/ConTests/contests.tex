@@ -1,2 +1,51 @@
 % A ConTeXt document
 
+\usemodule[t-literate-modules]
+\usemodule[t-contests]
+
+\setupinteraction[
+  state=start,
+  color=green,
+  stype=bold
+]
+\placebookmarks[chapter, section, subsection][chapter, section]
+\setupinteractionscreen[option=bookmark]
+
+\setuppapersize[A4]
+
+\setupindenting[medium,yes]
+
+% do not indent after itemize
+\setupitemgroup[itemize][indentnext=no]
+
+% indent the paragraphs after all sectioning heads 
+\setupheads[indentnext=yes] 
+
+% indent paragraphs after formulas if there is a blank space in between
+\setupformulas[indentnext=auto] 
+
+\usebtxdataset[contestsBib.lua]
+\usebtxdefinitions[apa]
+\setupbtxlist[apa][
+  alternative=paragraph,
+  width=fit,
+  distance=.5em,
+  margin=3em % hanging list
+]
+
+\startproduct
+
+\startdocument[title=ConTests  \ConTeXt\ modules]
+
+\component overview
+
+\component luaTests
+
+\startbackmatter
+  \startchapter[title=Bibliography]
+    \placelistofpublications
+  \stopchapter
+\stopbackmatter
+
+\stopdocument
+\stopproduct

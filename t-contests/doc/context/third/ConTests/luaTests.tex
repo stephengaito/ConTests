@@ -1,0 +1,295 @@
+% A ConTeXt document [master document: contests.tex]
+
+\startchapter[title=Lua Tests]
+
+We make extensive use of ideas in the design of the LunaTest Lua unit 
+testing framework which is in turn inspired by the LUnit assertion 
+interface. We tailor these ideas for use \emph{inside} \ConTeXt. 
+
+\def\startTestSuite{\subsection}
+\def\stopTestSuite{\relax}
+\def\startTestCase{\subsubsection}
+\def\stopTestCase{\relax}
+\definetyping[LuaTest]
+\setuptyping[LuaTest][option=lua]
+
+\section[title=Assertions]
+
+\startLuaCode
+
+local fmt = string.format
+
+function reportAssertion(theCondition, aMessage, theReason)
+  -- we do not need to do anything unless theCondition if false!
+  if not theCondition then
+    local test     = { }
+    test.message   = aMessage
+    test.reason    = theReason
+    test.condition = theCondition
+    local info     = debug.getinfo(2,'l')
+    test.line      = info.currentline
+    error(test, 0) -- throw an error to be captured by an error_handler
+  end
+end
+
+function runTest(bufferName)
+
+\stopLuaCode
+
+\startTestSuite[title=assert_isError]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNotError]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_fail]
+
+\startLuaCode
+
+function assert_fail(aMessage)
+  return buildAssertion(
+    false,
+    aMessage,
+    "(Failed)"
+  )
+end
+
+\stopLuaCode
+
+\startTestCase[title=should fail]
+
+\startLuaTest
+  something
+\stopLuaTest
+
+\stopTestCase
+\stopTestSuite
+
+\startTestSuite[title=assert_isBoolean]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNotBoolean]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isTrue]
+
+\startLuaCode
+
+function assert_isTrue(aBoolean, aMessage)
+  return buildAssertion(
+    aBoolean,
+    aMessage,
+    fmt("Expected true, got %s.", TS(aBoolean))
+  )
+end
+
+\stopLuaCode
+
+\startTestCase[title=should succeed]
+
+\startLuaTest
+  something else
+\stopLuaTest
+
+\stopTestCase
+\stopTestSuite
+
+\startTestSuite[title=assert_isFalse]
+
+\startLuaCode
+function assert_isFalse(aBoolean, aMessage)
+  return buildAssertion(
+    not aBoolean,
+    aMessage,
+    fmt("Expected false, got %s.", TS(aBoolean))
+  )
+end
+\stopLuaCode
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNil]
+
+\startLuaCode
+function assert_isNil(anObj, aMessage)
+  return buildAssertion(
+    anObj == nil,
+    aMessage,
+    fmt("Expected nil, got %s.", TS(anObj))
+  )
+end
+\stopLuaCode
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNotNil]
+
+\startLuaCode
+function assert_isNotNil(anObj, aMessage)
+  return buildAssertion(
+    anObj ~= nil,
+    aMessage,
+    fmt("Expected non-nil, got %s.", TS(anObj))
+  )
+\stopLuaCode
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isEqual]
+
+\startLuaCode
+function assert_isEqual(anObj, expected, aMessage)
+  return buildAssertion(
+    anObj == expected,
+    aMessage,
+    fmt("Expected %s to equal %s.", TS(expected), TS(anObj))
+  )
+end
+\stopLuaCode
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isEqualWithIn]
+
+\startLuaCode
+function assert_isEqualWithIn(anObj, expected, tolerance, aMessage)
+  return buildAssertion(
+    ????,
+    aMessage,
+    fmt("Expected %s to equal %s with tolerance %s.",
+      TS(anObj), TS(expected), TS(tolerance))
+  )
+end
+\stopLuaCode
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNotEqual]
+
+\startLuaCode
+function assert_isNotEqual(anObj, expected, aMessage)
+  return buildAssertion(
+    anObj ~= expected,
+    aMessage,
+    fmt("Expected %s to not equal %s.", TS(expected), TS(anObj))
+  )
+end
+\stopLuaCode
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNotEqualWithIn]
+\startLuaCode
+function assert_isNotEqualWithIn(anObj, expected, tolerance, aMessage)
+  return buildAssertion(
+    ????,
+    aMessage,
+    fmt("Expected %s to not equal %s with tolerance %s.",
+      TS(anObj), TS(expected), TS(tolerance))
+  )
+end
+\stopLuaCode
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNumber]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isGT]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isGTE]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isLT]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isLTE]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNotNumber]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isString]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_matches]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_doesNotMatch]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_length]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNotLength]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNotString]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isTable]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_hasKey]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_doesNotHaveKey]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNotTable]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isFunction]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNotFunction]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isUserData]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNotUserData]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isMetaTable]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNotMetaTable]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isThread]
+
+\stopTestSuite
+
+\startTestSuite[title=assert_isNotThread]
+
+\stopTestSuite
+
+\stopchapter
