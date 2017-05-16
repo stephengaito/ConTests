@@ -1,4 +1,4 @@
-% A ConTeXt document [master document: contestoStr.tex]
+% A ConTeXt document [master document: contests.tex]
 
 \startchapter[title=Lua Unit Testing]
 
@@ -7,11 +7,6 @@ testing framework which is in turn inspired by the LUnit assertion
 interface. We tailor these ideas for use \emph{inside} \ConTeXt. 
 
 \section[title=Test cases]
-
-% temporarily include this in the main document
-% until the actual module files stabilize
-%\definetyping[LuaTest]
-%\setuptyping[LuaTest][option=lua]
 
 \startMkIVCode
 
@@ -92,7 +87,7 @@ local toStr = tostring
 
 Having defined both the \type{reportLuaAssertion} and the \type{fmt} 
 functions, we now work through each assertion in turn. For each assertion, 
-we begin by defining the lua code which implementoStr the assertion, and then 
+we begin by defining the lua code which implements the assertion, and then 
 the test cases which verify the assertion is working correctly. Typically 
 there will be two test cases for each assertion, we need to test both the 
 positive and negative conditions. 
@@ -100,9 +95,18 @@ positive and negative conditions.
 \startTestSuite[assert.throwsError]
 
 In order to test if a lua function throws an error, we need to wrap the 
-actual function call (together with itoStr argumentoStr) in a lua \type{pcall}. 
+actual function call (together with its arguments) in a lua \type{pcall}. 
 The return value of this \type{pcall} is then checked to see if an error 
 was thrown. 
+
+It is critical to point out that since lua passes all parameters by 
+\emph{value}, the \type{assert.throwsError} parameters consist of the 
+\emph{function} to be tested, any message you want reported if the 
+function \emph{does not throw} any errors, as well as (and these are the 
+\quote{\type{...}}) any arguments. \emph{If} you pass the \emph{result} of 
+calling the function on its arguments as the first parameter of this 
+assertion, then any error that this function throws will be thrown 
+\emph{before} the assertion can catch the error. 
 
 \startLuaCode
 function assert.throwsError(aFunction, aMessage, ...)
@@ -120,11 +124,25 @@ There are two cases we need to test.
 \startTestCase[should succeed if error thrown]
 
 In this first test case, we want to make sure if the tested function 
-throws an error then the assertion succeeds. 
+throws an error then the assertion succeeds.
+
+Note that the function being tested: 
+
+\starttyping[option=lua]
+function()
+  error("this 'inner' function throws an error!")
+end
+\stoptyping
+
+\noindent does \emph{not} accept any arguments. However it is important to 
+notice that it is the \emph{function} that is being passed into the 
+\type{assert.throwsError} and not the \emph{value} of calling this 
+function. The actual function call is delayed and happens \emph{inside} 
+the assertion. 
 
 \startLuaTest
   assert.throwsError(function()
-    error('this should throw an error!')
+    error("this 'inner' function throws an error!")
   end)
 \stopLuaTest
 \stopTestCase
@@ -133,6 +151,22 @@ throws an error then the assertion succeeds.
 
 In this second test case, we want to make sure the assertion \emph{fails} 
 if the tested function \emph{does not} throw an error.
+
+For this test case, we are \emph{using} the \type{assert.throwsError} 
+function to \emph{test} itself. This means that we \emph{must} pass the 
+assertion function, \type{assert.throwsError} as the first argument. We 
+must then pass a message (in this case an empty string), together with the 
+argument to the \quote{inner} \type{assert.throwsError} function which is 
+the \quote{null-function}: 
+
+\starttyping[option=lua]
+function() end
+\stoptyping
+
+\noindent We do this to ensure that the \quote{outer} 
+\type{assert.throwsError} function can capture the error that the 
+\quote{inner} \type{assert.throwsError} will throw since the most 
+\quote{inner} nested function itself throws no error. 
 
 \startLuaTest
   assert.throwsError(assert.throwsError, "", function() end)
@@ -476,10 +510,10 @@ end
 
 \stopTestSuite
 
-\startTestSuite[assert.isNotoStrtring]
+\startTestSuite[assert.isNotString]
 
 \startLuaCode
-function assert.isNotoStrtring(anObj, aMessage)
+function assert.isNotString(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'string',
     aMessage,
