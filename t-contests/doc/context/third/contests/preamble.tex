@@ -73,10 +73,12 @@ if not modules then modules = { } end modules ['t-contests'] = {
 thirddata          = thirddata          or {}
 thirddata.contests = thirddata.contests or {}
 
-local contests = thirddata.contests
-contests.tests = {}
-local tests    = contests.tests
-tests.suites   = {}
+local contests  = thirddata.contests
+contests.tests  = {}
+local tests     = contests.tests
+tests.suites    = {}
+contests.assert = {}
+local assert    = contests.assert
 
 local pp = require('pl/pretty')
 local table_insert = table.insert

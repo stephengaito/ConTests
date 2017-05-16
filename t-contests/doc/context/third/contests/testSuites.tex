@@ -2,28 +2,6 @@
 
 \startchapter[title=Unit Test Suites]
 
-% temporarily include this in the main document
-% until the actual module files stabilize
-\def\startTestSuite[#1]{%
-  \startsubsection[title=#1]
-  %\directlua{thirddata.contests.startTestSuite('#1')}
-}
-
-\def\stopTestSuite{%
-  \stopsubsection%
-  %\directlua{thirddata.contests.collectTestSuite()}
-}
-
-\def\startTestCase[#1]{%
-  \startsubsubsection[title=#1]
-  %\directlua{thirddata.contests.startTestCase('#1')}
-}
-
-\def\stopTestCase{%
-  \stopsubsubsection%
-  %\directlua{thirddata.contests.collectTestCase()}
-}
-
 \startMkIVCode
 
 \def\startTestSuite[#1]{%
@@ -51,8 +29,9 @@
 \startLuaCode
 
 function contests.startTestSuite(aDesc)
-  tests.curSuite      = {}
-  tests.curSuite.desc = aDesc
+  tests.curSuite       = {}
+  tests.curSuite.cases = {}
+  tests.curSuite.desc  = aDesc
 end
 
 function contests.collectTestSuite()
@@ -67,7 +46,7 @@ function contests.startTestCase(aDesc)
 end
 
 function contests.collectTestCase()
-  runCurLuaTestCase()
+  contests.runCurLuaTestCase()
   local suite = tests.curSuite
   table_insert(suite.cases, suite.curCase)
   suite.curCase = {}

@@ -1,4 +1,4 @@
-% A ConTeXt document [master document: contests.tex]
+% A ConTeXt document [master document: contestoStr.tex]
 
 \startchapter[title=Lua Unit Testing]
 
@@ -10,8 +10,8 @@ interface. We tailor these ideas for use \emph{inside} \ConTeXt.
 
 % temporarily include this in the main document
 % until the actual module files stabilize
-\definetyping[LuaTest]
-\setuptyping[LuaTest][option=lua]
+%\definetyping[LuaTest]
+%\setuptyping[LuaTest][option=lua]
 
 \startMkIVCode
 
@@ -41,10 +41,13 @@ function contests.runCurLuaTestCase()
   local case     = suite.curCase
   local luaChunk = table_concat(case.lua, '\n')
   if not luaChunk:match('^%s*$') then
+    luaChunk = [=[
+    local assert = thirddata.contests.assert
+    ]=]..luaChunk
     -- consider using PCall here
     local luaFunc, errMessage = load(luaChunk)
     if luaFunc then
-      local result = luaFunc()
+      --local result = luaFunc()
     end
   end
 end
@@ -78,83 +81,87 @@ end
 
 Since all of the assertions will use the standard lua \type{string.format} 
 function to format the various reasons using information specific to each 
-assertion, we make \type{string.format} local with a shorter name. 
+assertion, we make \type{string.format} local with a shorter name. For 
+efficiency we also make the lua global \type{tostring} a local with the 
+shorter name \type{toStr}. 
 
 \startLuaCode
-local fmt = string.format
+local fmt   = string.format
+local toStr = tostring
 \stopLuaCode
 
 Having defined both the \type{reportLuaAssertion} and the \type{fmt} 
 functions, we now work through each assertion in turn. For each assertion, 
-we begin by defining the lua code which implements the assertion, and then 
+we begin by defining the lua code which implementoStr the assertion, and then 
 the test cases which verify the assertion is working correctly. Typically 
 there will be two test cases for each assertion, we need to test both the 
 positive and negative conditions. 
 
-\startTestSuite[assert_throwsError]
+\startTestSuite[assert.throwsError]
 
 In order to test if a lua function throws an error, we need to wrap the 
-actual function call (together with its arguments) in a lua \type{pcall}. 
+actual function call (together with itoStr argumentoStr) in a lua \type{pcall}. 
 The return value of this \type{pcall} is then checked to see if an error 
 was thrown. 
 
 \startLuaCode
-function contests.assert_throwsError(aFunction, aMessage, ...)
+function assert.throwsError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
   return reportLuaAssertion(
-    ok,
+    not ok,
     aMessage,
-    fmt("Expected %s to throw an error.", TS(aFunction))
+    fmt("Expected %s to throw an error.", toStr(aFunction))
   )
 end
 \stopLuaCode
 
 There are two cases we need to test.
 
-\startTestCase[should \succeed\ if error thrown]
+\startTestCase[should succeed if error thrown]
 
 In this first test case, we want to make sure if the tested function 
 throws an error then the assertion succeeds. 
 
 \startLuaTest
-  assert_throwsError(function()
+  assert.throwsError(function()
     error('this should throw an error!')
   end)
 \stopLuaTest
 \stopTestCase
 
-\startTestCase[should \fail\ if no error thrown]
+\startTestCase[should fail if no error thrown]
 
 In this second test case, we want to make sure the assertion \emph{fails} 
 if the tested function \emph{does not} throw an error.
 
 \startLuaTest
-  assert_throwsError(assert_throwsError(function() end))
+  assert.throwsError(assert.throwsError, "", function() end)
 \stopLuaTest
 \stopTestCase
 
 \stopTestSuite
 
 
-\startTestSuite[assert_throwsNoError]
+\startTestSuite[assert.throwsNoError]
 
 \startLuaCode
-function contests.assert_throwsNoError(aFunction, aMessage, ...)
+function assert.throwsNoError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
   return reportLuaAssertion(
-    not ok,
+    ok,
     aMessage,
-    fmt("Expected %s not to throw an error (%s).", TS(aFunction), TS(err))
+    fmt("Expected %s not to throw an error (%s).",
+      toStr(aFunction), toStr(err))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_fail]
+\startTestSuite[assert.fail]
 
 \startLuaCode
-function contests.assert_fail(aMessage)
+function assert.fail(aMessage)
   return reportLuaAssertion(
     false,
     aMessage,
@@ -163,129 +170,117 @@ function contests.assert_fail(aMessage)
 end
 \stopLuaCode
 
-\startTestCase[should fail]
-
-\startLuaTest
-  something
-\stopLuaTest
-
-\stopTestCase
 \stopTestSuite
 
-\startTestSuite[assert_isBoolean]
+\startTestSuite[assert.isBoolean]
 
 \startLuaCode
-function contests.assert_isBoolean(anObj, aMessage)
+function assert.isBoolean(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'boolean',
     aMessage,
-    fmt("Expected %s to be a boolean.", TS(anObj))
+    fmt("Expected %s to be a boolean.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isNotBoolean]
+\startTestSuite[assert.isNotBoolean]
 
 \startLuaCode
-function contests.assert_isNotBoolean(anObj, aMessage)
+function assert.isNotBoolean(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'boolean',
     aMessage,
-    fmt("Expected %s to not be a boolean.", TS(anObj))
+    fmt("Expected %s to not be a boolean.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isTrue]
+\startTestSuite[assert.isTrue]
 
 \startLuaCode
-function contests.assert_isTrue(aBoolean, aMessage)
+function assert.isTrue(aBoolean, aMessage)
   return reportLuaAssertion(
     aBoolean,
     aMessage,
-    fmt("Expected true, got %s.", TS(aBoolean))
+    fmt("Expected true, got %s.", toStr(aBoolean))
   )
 end
 \stopLuaCode
 
-\startTestCase[should succeed]
-
-\startLuaTest
-  something else
-\stopLuaTest
-
-\stopTestCase
 \stopTestSuite
 
-\startTestSuite[assert_isFalse]
+\startTestSuite[assert.isFalse]
 
 \startLuaCode
-function contests.assert_isFalse(aBoolean, aMessage)
+function assert.isFalse(aBoolean, aMessage)
   return reportLuaAssertion(
     not aBoolean,
     aMessage,
-    fmt("Expected false, got %s.", TS(aBoolean))
+    fmt("Expected false, got %s.", toStr(aBoolean))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isNil]
+\startTestSuite[assert.isNil]
 
 \startLuaCode
-function contests.assert_isNil(anObj, aMessage)
+function assert.isNil(anObj, aMessage)
   return reportLuaAssertion(
     anObj == nil,
     aMessage,
-    fmt("Expected nil, got %s.", TS(anObj))
+    fmt("Expected nil, got %s.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isNotNil]
+\startTestSuite[assert.isNotNil]
 
 \startLuaCode
-function contests.assert_isNotNil(anObj, aMessage)
+function assert.isNotNil(anObj, aMessage)
   return reportLuaAssertion(
     anObj ~= nil,
     aMessage,
-    fmt("Expected non-nil, got %s.", TS(anObj))
+    fmt("Expected non-nil, got %s.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isEqual]
+\startTestSuite[assert.isEqual]
 
 \startLuaCode
-function contests.assert_isEqual(anObj, expected, aMessage)
+function assert.isEqual(anObj, expected, aMessage)
   return reportLuaAssertion(
     anObj == expected,
     aMessage,
-    fmt("Expected %s to equal %s.", TS(expected), TS(anObj))
+    fmt("Expected %s to equal %s.",
+      toStr(expected), toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isEqualWithIn]
+\startTestSuite[assert.isEqualWithIn]
 
 \startLuaCode
-function contests.assert_isEqualWithIn(anObj, expected, tolerance, aMessage)
+function assert.isEqualWithIn(anObj, expected,
+  tolerance, aMessage)
   return reportLuaAssertion(
     true, --????,
     aMessage,
     fmt("Expected %s to equal %s with tolerance %s.",
-      TS(anObj), TS(expected), TS(tolerance))
+      toStr(anObj), toStr(expected), toStr(tolerance))
   )
 end
 \stopLuaCode
@@ -295,95 +290,97 @@ end
 \startTestSuite[ssert_isNotEqual]
 
 \startLuaCode
-function contests.assert_isNotEqual(anObj, expected, aMessage)
+function assert.isNotEqual(anObj, expected, aMessage)
   return reportLuaAssertion(
     anObj ~= expected,
     aMessage,
-    fmt("Expected %s to not equal %s.", TS(expected), TS(anObj))
+    fmt("Expected %s to not equal %s.",
+      toStr(expected), toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isNotEqualWithIn]
+\startTestSuite[assert.isNotEqualWithIn]
 \startLuaCode
-function contests.assert_isNotEqualWithIn(anObj, expected, tolerance, aMessage)
+function assert.isNotEqualWithIn(anObj, expected,
+  tolerance, aMessage)
   return reportLuaAssertion(
     true, --????,
     aMessage,
     fmt("Expected %s to not equal %s with tolerance %s.",
-      TS(anObj), TS(expected), TS(tolerance))
+      toStr(anObj), toStr(expected), toStr(tolerance))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isNumber]
+\startTestSuite[assert.isNumber]
 
 \startLuaCode
-function contests.assert_isNumber(anObj, aMessage)
+function assert.isNumber(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'number',
     aMessage,
-    fmt("Expected %s to be a number.", TS(anObj))
+    fmt("Expected %s to be a number.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isGT]
+\startTestSuite[assert.isGT]
 
 \startLuaCode
-function contests.assert_isGT(objA, objB, aMessage)
+function assert.isGT(objA, objB, aMessage)
   return reportLuaAssertion(
     objA > objB,
     aMessage,
-    fmt("Expected %s > %s.", TS(objA), TS(objB))
+    fmt("Expected %s > %s.", toStr(objA), toStr(objB))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isGTE]
+\startTestSuite[assert.isGTE]
 
 \startLuaCode
-function contests.assert_isGTE(objA, objB, aMessage)
+function assert.isGTE(objA, objB, aMessage)
   return reportLuaAssertion(
     objA >= objB,
     aMessage,
-    fmt("Expected %s >= %s.", TS(objA), TS(objB))
+    fmt("Expected %s >= %s.", toStr(objA), toStr(objB))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isLT]
+\startTestSuite[assert.isLT]
 
 \startLuaCode
-function contests.assert_isLT(objA, objB, aMessage)
+function assert.isLT(objA, objB, aMessage)
   return reportLuaAssertion(
     objA < objB,
     aMessage,
-    fmt("Expected %s < %s.", TS(objA), TS(objB))
+    fmt("Expected %s < %s.", toStr(objA), toStr(objB))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isLTE]
+\startTestSuite[assert.isLTE]
 
 \startLuaCode
-function contests.assert_isLTE(objA, objB, aMessage)
+function assert.isLTE(objA, objB, aMessage)
   return reportLuaAssertion(
     objA <= objB,
     aMessage,
-    fmt("Expected %s <= %s.", TS(objA), TS(objB))
+    fmt("Expected %s <= %s.", toStr(objA), toStr(objB))
   )
 end
 \stopLuaCode
@@ -391,294 +388,301 @@ end
 
 \stopTestSuite
 
-\startTestSuite[assert_isNotNumber]
+\startTestSuite[assert.isNotNumber]
 
 \startLuaCode
-function contests.assert_isNotNumber(anObj, aMessage)
+function assert.isNotNumber(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'number',
     aMessage,
-    fmt("Expected %s to be a number.", TS(anObj))
+    fmt("Expected %s to be a number.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isString]
+\startTestSuite[assert.isString]
 
 \startLuaCode
-function contests.assert_isString(anObj, aMessage)
+function assert.isString(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'string',
     aMessage,
-    fmt("Expected [%s] to be a string.", TS(anObj))
+    fmt("Expected [%s] to be a string.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_matches]
+\startTestSuite[assert.matches]
 
 \startLuaCode
-function contests.assert_matches(anObj, aPattern, aMessage)
+function assert.matches(anObj, aPattern, aMessage)
   return reportLuaAssertion(
     anObj:matches(aPattern),
     aMessage,
-    ftm("Expected [%s] to match [%s].", TS(anObj), TS(aPattern))
+    ftm("Expected [%s] to match [%s].",
+      toStr(anObj), toStr(aPattern))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_doesNotMatch]
+\startTestSuite[assert.doesNotMatch]
 
 \startLuaCode
-function contests.assert_doesNotMatch(anObj, aPattern, aMessage)
+function assert.doesNotMatch(anObj, aPattern, aMessage)
   return reportLuaAssertion(
     not anObj:matches(aPattern),
     aMessage,
-    fmt("Expected [%s] to not match [%s].", TS(anObj), TS(aPattern))
+    fmt("Expected [%s] to not match [%s].",
+      toStr(anObj), toStr(aPattern))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_length]
+\startTestSuite[assert.length]
 
 \startLuaCode
-function contests.assert_length(anObj, aLength, aMessage)
+function assert.length(anObj, aLength, aMessage)
   return reportLuaAssertion(
     #anObj == aLength,
     aMessage,
-    fmt("Expected %s to have length %s.", TS(anObj), TS(aMessage))
+    fmt("Expected %s to have length %s.",
+      toStr(anObj), toStr(aMessage))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isNotLength]
+\startTestSuite[assert.isNotLength]
 
 \startLuaCode
-function contests.assert_isNotLength(anObj, aLength, aMessage)
+function assert.isNotLength(anObj, aLength, aMessage)
   return reportLuaAssertion(
     #anObj ~= aLength,
     aMessage,
-    fmt("Expected %s to not have length %s.", TS(anObj), TS(aMessage))
+    fmt("Expected %s to not have length %s.",
+      toStr(anObj), toStr(aMessage))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isNotString]
+\startTestSuite[assert.isNotoStrtring]
 
 \startLuaCode
-function contests.assert_isNotString(anObj, aMessage)
+function assert.isNotoStrtring(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'string',
     aMessage,
-    fmt("Expected [%s] to not be a string.", TS(anObj))
+    fmt("Expected [%s] to not be a string.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isTable]
+\startTestSuite[assert.isTable]
 
 \startLuaCode
-function contests.assert_isTable(anObj, aMessage)
+function assert.isTable(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'table',
     aMessage,
-    fmt("Expected %s to be a table.", TS(anObj))
+    fmt("Expected %s to be a table.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_hasKey]
+\startTestSuite[assert.hasKey]
 
 \startLuaCode
-function contests.assert_hasKey(anObj, aKey, aMessage)
+function assert.hasKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
     anObj[aKey] ~= nil,
     aMessage,
-    fmt("Expected %s to have the key %s.", TS(anObj), TS(aKey))
+    fmt("Expected %s to have the key %s.",
+      toStr(anObj), toStr(aKey))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_doesNotHaveKey]
+\startTestSuite[assert.doesNotHaveKey]
 
 \startLuaCode
-function contests.assert_doesNotHaveKey(anObj, aKey, aMessage)
+function assert.doesNotHaveKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
     anObj[aKey] == nil,
     aMessage,
-    fmt("Expected %s to not have the key %s.", TS(anObj), TS(aKey))
+    fmt("Expected %s to not have the key %s.",
+      toStr(anObj), toStr(aKey))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isNotTable]
+\startTestSuite[assert.isNotTable]
 
 \startLuaCode
-function contests.assert_isNotTable(anObj, aMessage)
+function assert.isNotTable(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'table',
     aMessage,
-    fmt("Expected %s to not be a table.", TS(anObj))
+    fmt("Expected %s to not be a table.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isFunction]
+\startTestSuite[assert.isFunction]
 
 \startLuaCode
-function contests.assert_isFunction(anObj, aMessage)
+function assert.isFunction(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'function',
     aMessage,
-    fmt("Expected %s to be a function.", TS(anObj))
+    fmt("Expected %s to be a function.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isNotFunction]
+\startTestSuite[assert.isNotFunction]
 
 \startLuaCode
-function contests.assert_isNotFunction(anObj, aMessage)
+function assert.isNotFunction(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'function',
     aMessage,
-    fmt("Expected %s to not be a function.", TS(anObj))
+    fmt("Expected %s to not be a function.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isUserData]
+\startTestSuite[assert.isUserData]
 
 \startLuaCode
-function contests.assert_isUserData(anObj, aMessage)
+function assert.isUserData(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'userdata',
     aMessage,
-    fmt("Expected %s to be user data.", TS(anObj))
+    fmt("Expected %s to be user data.", toStr(anObj))
   )
 end
 \stopLuaCode
-
 \stopTestSuite
 
-\startTestSuite[assert_isNotUserData]
+\startTestSuite[assert.isNotUserData]
 
 \startLuaCode
-function contests.assert_isNotUserData(anObj, aMessage)
+function assert.isNotUserData(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'userdata',
     aMessage,
-    fmt("Expected %s to not be user data.", TS(anObj))
+    fmt("Expected %s to not be user data.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_hasMetaTable]
+\startTestSuite[assert.hasMetaTable]
 
 \startLuaCode
-function contests.assert_hasMetaTable(anObj, aMessage)
+function assert.hasMetaTable(anObj, aMessage)
   return reportLuaAssertion(
     getMetaTable(anObj) ~= nil,
     aMessage,
-    fmt("Expected %s to have a meta table.", TS(anObj))
+    fmt("Expected %s to have a meta table.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_metaTableEquals]
+\startTestSuite[assert.metaTableEquals]
 
 \startLuaCode
-function contests.assert_metaTableEqual(anObj, aMetaTable, aMessage)
+function assert.metaTableEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
     getMetaTable(anObj) == aMetaTable,
     aMessage,
-    fmt("Expected %s to have the meta table %s.", TS(anObj), TS(aMetaTable))
+    fmt("Expected %s to have the meta table %s.",
+      toStr(anObj), toStr(aMetaTable))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_metaTableNotEqual]
+\startTestSuite[assert.metaTableNotEqual]
 
 \startLuaCode
-function contests.assert_metaTableNotEqual(anObj, aMetaTable, aMessage)
+function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
     getMetaTable(anObj) ~= aMetaTable,
     aMessage,
-    fmt("Expected %s to not have the meta table %s.", TS(anObj), TS(aMetaTable))
+    fmt("Expected %s to not have the meta table %s.",
+      toStr(anObj), toStr(aMetaTable))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_doesNotHaveMetaTable]
+\startTestSuite[assert.doesNotHaveMetaTable]
 
 \startLuaCode
-function contests.assert_hasMetaTable(anObj, aMessage)
+function assert.hasMetaTable(anObj, aMessage)
   return reportLuaAssertion(
     getMetaTable(anObj) == nil,
     aMessage,
-    fmt("Expected %s to not have a meta table.", TS(anObj))
+    fmt("Expected %s to not have a meta table.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isThread]
+\startTestSuite[assert.isThread]
 
 \startLuaCode
-function contests.assert_isThread(anObj, aMessage)
+function assert.isThread(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'thread',
     aMessage,
-    fmt("Expected %s to be a thread.", TS(anObj))
+    fmt("Expected %s to be a thread.", toStr(anObj))
   )
 end
 \stopLuaCode
 
 \stopTestSuite
 
-\startTestSuite[assert_isNotThread]
+\startTestSuite[assert.isNotThread]
 
 \startLuaCode
-function contests.assert_isNotThread(anObj, aMessage)
+function assert.isNotThread(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'thread',
     aMessage,
-    fmt("Expected %s to not be a thread.", TS(anObj))
+    fmt("Expected %s to not be a thread.", toStr(anObj))
   )
 end
 \stopLuaCode

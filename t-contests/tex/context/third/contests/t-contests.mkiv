@@ -1,9 +1,9 @@
-% A ConTeXt MKiv module 
+% ConTeXt MkIV module
 %D \module
 %D   [     file=t-contests,
-%D      version=2017.02.16,
+%D      version=2017.05.10,
 %D        title=\CONTEXT\ User module,
-%D     subtitle=ConTests: unit testing for ConTeXt,
+%D     subtitle=Unit testing for \ConTeXt\,
 %D       author=Stephen Gaito,
 %D         date=\currentdate,
 %D    copyright=PerceptiSys Ltd (Stephen Gaito),
@@ -12,99 +12,71 @@
 
 %C Copyright (C) 2017 PerceptiSys Ltd (Stephen Gaito)
 %C
-%C Permission is hereby granted, free of charge, to any person obtaining a 
-%C copy of this software and associated documentation files (the 
-%C "Software"), to deal in the Software without restriction, including 
-%C without limitation the rights to use, copy, modify, merge, publish, 
-%C distribute, sublicense, and/or sell copies of the Software, and to 
-%C permit persons to whom the Software is furnished to do so, subject to 
+%C Permission is hereby granted, free of charge, to any person obtaining a
+%C copy of this software and associated documentation files (the
+%C "Software"), to deal in the Software without restriction, including
+%C without limitation the rights to use, copy, modify, merge, publish,
+%C distribute, sublicense, and/or sell copies of the Software, and to
+%C permit persons to whom the Software is furnished to do so, subject to
 %C the following conditions:
 %C
-%C The above copyright notice and this permission notice shall be included 
+%C The above copyright notice and this permission notice shall be included
 %C in all copies or substantial portions of the Software.
 %C
-%C THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
-%C OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
-%C MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-%C IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
-%C CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
-%C TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+%C THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+%C OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+%C MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+%C IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+%C CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+%C TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 %C SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 % begin info
 %
-% title   : ConTests: Unit testing for \CONTEXT\
-% comment : Unit testing for \CONTEXT\ using LunaTest
+% title   : JoyLoL CoAlgebra definitions
+% comment : Provides structured document and code generation
 % status  : under development, mkiv only
 %
 % end info
 
+%M \usemodule[literate-modules]
 %M \usemodule[contests]
-%M \loadsetups[t-contests.xml]
 
-\writestatus{loading}{ConTeXt User Module / ConTests}
-
-%D \subject{Implementation}
+\usemodule[literate-modules]
+\usemodule[t-contests]
 
 \unprotect
 
 \ctxloadluafile{t-contests}
+\ctxloadluafile{t-contests-templates}
 
-\installnamespace{testsuite}
-\installnamespace{testcase}
-
-\installcommandhandler \????testsuite {testsuite} \????testsuite
-\installcommandhandler \????testcase  {testcase}  \????testcase
-
-\appendtoks
-  \setuevalue{\e!start testsuite}{\start_test_suite}%
-  \setuevalue{\e!stop  testsuite}{\stop_test_suite}%
-\to \everydefinetestsuite
-
-\def\start_test_suite{\writestatus{TestSuite}{started test suite}}
-\def\stop_test_suite{\writestatus{TestSuite}{stopped test suite}}
-
-\definetestsuite[silly][something=somethingelse]
-
-%D \macros{loadSuite}
-%D
-%D \showsetup{loadSuite}
-
-\def\loadSuite#1{\directlua{thirddata.contests.lunatest.loadSuite('#1.lua')}}
-
-%D \macros{runConTests}
-%D
-%D \showsetup{runConTests}
-
-\def\runConTests{\directlua{thirddata.contests.lunatest.run()}}
-
-%D \section{ConTests display}
-
-%D \subsection{Implementation}
-
-\let\mock=\def
-
-\definetextbackground[CTFrame]
-\setuptextbackground%
-  [CTFrame]%
-  [location=text, background=color, backgroundcolor=gray]
-
-\definetyping[ConTestSuite]
-\setuptyping%
-  [ConTestSuite]%
-  [numbering=line, before={\noindent\startCTFrame}, after=\stopCTFrame]
-
-\let\oldStopConTestSuite=\stopConTestSuite
-\def\stopConTestSuite{%
-  \oldStopConTestSuite%
-  \clf_getbuffer{_typing_}
+\def\startTestSuite[#1]{%
+  \startsubsection[title=#1]
+  \directlua{thirddata.contests.startTestSuite('#1')}
 }
 
-\definebuffer[ConTestLua]
+\def\stopTestSuite{%
+  \stopsubsection%
+  \directlua{thirddata.contests.collectTestSuite()}
+}
 
-\def\stopConTestLua{%
-  \directlua{thirddata.contests.runSuite('\thedefinedbuffer{ConTestLua}')}
+\def\startTestCase[#1]{%
+  \startsubsubsection[title=#1]
+  \directlua{thirddata.contests.startTestCase('#1')}
+}
+
+\def\stopTestCase{%
+  \stopsubsubsection%
+  \directlua{thirddata.contests.collectTestCase()}
+}
+
+\definetyping[LuaTest]
+\setuptyping[LuaTest][option=lua]
+
+\let\oldStopLuaTest=\stopLuaTest
+\def\stopLuaTest{%
+  \oldStopLuaTest%
+  \directlua{thirddata.contests.addLuaTest('_typing_')}
 }
 
 \protect \endinput
-
