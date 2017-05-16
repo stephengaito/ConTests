@@ -233,7 +233,7 @@ end
 \startLuaCode
 function contests.assert_isEqualWithIn(anObj, expected, tolerance, aMessage)
   return reportLuaAssertion(
-    ????,
+    true, --????,
     aMessage,
     fmt("Expected %s to equal %s with tolerance %s.",
       TS(anObj), TS(expected), TS(tolerance))
@@ -261,7 +261,7 @@ end
 \startLuaCode
 function contests.assert_isNotEqualWithIn(anObj, expected, tolerance, aMessage)
   return reportLuaAssertion(
-    ????,
+    true, --????,
     aMessage,
     fmt("Expected %s to not equal %s with tolerance %s.",
       TS(anObj), TS(expected), TS(tolerance))
