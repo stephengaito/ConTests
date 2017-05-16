@@ -74,7 +74,9 @@ thirddata          = thirddata          or {}
 thirddata.contests = thirddata.contests or {}
 
 local contests = thirddata.contests
-contests.code  = {}
+contests.tests = {}
+local tests    = contests.tests
+tests.suites   = {}
 
 local pp = require('pl/pretty')
 local table_insert = table.insert
