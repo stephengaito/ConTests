@@ -62,21 +62,16 @@ function contests.runCurLuaTestCase()
     luaChunk = [=[
     local assert = thirddata.contests.assert
     ]=]..luaChunk
-    texio.write_nl(pp.write(luaChunk))
     -- consider using PCall here
     local luaFunc, errMessage = load(luaChunk)
     if luaFunc then
-      local result = luaFunc()
+      --local result = luaFunc()
     end
   end
 end
 
 function reportLuaAssertion(theCondition, aMessage, theReason)
   -- we do not need to do anything unless theCondition if false!
-  texio.write_nl('reportLuaAssertion')
-  if theCondition then texio.write_nl('true') else texio.write_nl('false') end
-  if aMessage then texio.write_nl(aMessage) else texio.write_nl('no message') end
-  texio.write_nl(theReason)
   if not theCondition then
     local test     = { }
     test.message   = aMessage
@@ -93,9 +88,6 @@ local toStr = tostring
 
 function assert.throwsError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
-  texio.write_nl('assert.throwsError')
-  if ok then texio.write_nl('true') else texio.write_nl('false') end
-  texio.write_nl(pp.write(err))
   return reportLuaAssertion(
     not ok,
     aMessage,
@@ -299,7 +291,7 @@ function assert.isNotLength(anObj, aLength, aMessage)
   )
 end
 
-function assert.isNotoStrtring(anObj, aMessage)
+function assert.isNotString(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'string',
     aMessage,

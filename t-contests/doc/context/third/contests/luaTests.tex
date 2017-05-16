@@ -178,6 +178,17 @@ function() end
 
 \startTestSuite[assert.throwsNoError]
 
+The assertion \type{assert.throwsError}, detailed above, asserts that the 
+tested function throws an error. We also need the ability to assert that a 
+given function \emph{does not} throw an error. That is the purpose of the 
+\type{assert.throwsNoError} assertion. Like the \type{assert.throwsError} 
+assertion, the \type{assert.throwsNoError} assertion, wraps the function 
+call to be tested in a lua \type{pcall}. This means that the 
+\type{assert.throwsNoError} assertion's first parameter is the function to 
+be tested, followed by any message to be used if the function \emph{does} 
+throw an error, followed in turn by any arguments required by the function 
+to be tested. 
+
 \startLuaCode
 function assert.throwsNoError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
@@ -190,9 +201,43 @@ function assert.throwsNoError(aFunction, aMessage, ...)
 end
 \stopLuaCode
 
+Again we have two cases we need to test.
+
+\startTestCase[should succeed if no error thrown]
+
+In this test case, we pass in a function which throws no error and expect 
+the assertion to succeed. 
+
+\startLuaTest
+  assert.throwsNoError(function() end)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if an error is thrown]
+
+As above, we use the \type{assert.throwsError} assertion to \emph{test} 
+the \type{assert.throwsNoError} function. This means we must pass in the 
+\type{assert.throwsNoError} function as the first parameter to the 
+\quote{outer} \type{assert.throwsError} function, followed by an (in this 
+case) empty message, followed by the function which is going to be tested 
+by the \type{assert.throwsNoError} function. Note that the 
+\quote{inner-most} function \emph{does} throw an error. 
+
+\startLuaTest
+  assert.throwsError(assert.throwsNoError, "", function()
+    error("this 'inner-most' function throws an error!")
+  )
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.fail]
+
+The \type{assert.fail} assertion always fails, and hence stops all further 
+testing of a given test case. This can be useful while developing complex 
+test cases. The whole test case can be sketched out, but only the 
+assertions up to the \type{assert.fail} assertion will be tested. 
 
 \startLuaCode
 function assert.fail(aMessage)
@@ -204,9 +249,21 @@ function assert.fail(aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should always fail]
+
+There is only one test case, this assertion should always fail.
+
+\startLuaTest
+  assert.throwsError(assert.fail, "")
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isBoolean]
+
+The \type{assert.isBoolean} assertion tests an lua object to confirm that 
+it is a boolean. 
 
 \startLuaCode
 function assert.isBoolean(anObj, aMessage)
@@ -218,9 +275,42 @@ function assert.isBoolean(anObj, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if an object is a boolean]
+
+The \type{assert.isBoolean} assertion should succeed if an object is a 
+boolean. The boolean should be able to be passed in either directly or 
+inside a variable reference. 
+
+\startLuaTest
+  assert.isBoolean(true)
+  assert.isBoolean(false)
+  local aBoolean = true
+  assert.isBoolean(aBoolean)
+  aBoolean = false
+  assert.isBoolean(aBoolean)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if an object is not a boolean]
+
+We use the \type{assert.throwsError} assertion to test the failure of the 
+\type{assert.isBoolean} assertion. To do this we pass in various different 
+lua objects, none of which are booleans. 
+
+\startLuaTest
+  assert.throwsError(assert.isBoolean, "", "aString")
+  assert.throwsError(assert.isBoolean, "", { "a table" })
+  assert.throwsError(assert.isBoolean, "", 10 )
+  assert.throwsError(assert.isBoolean, "", function() end)
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isNotBoolean]
+
+The \type{assert.isNotBoolean} assertion tests a lua object to confirm 
+that it is \emph{not} a boolean. 
 
 \startLuaCode
 function assert.isNotBoolean(anObj, aMessage)
@@ -231,6 +321,34 @@ function assert.isNotBoolean(anObj, aMessage)
   )
 end
 \stopLuaCode
+
+\startTestCase[should succeed if an object is not a boolean]
+
+We assert directly that various non-boolean objects are not booleans. 
+
+\startLuaTest
+  assert.isBoolean("aString")
+  assert.isBoolean({ "a table" })
+  assert.isBoolean(10 )
+  assert.isBoolean(function() end)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if an object is a boolean]
+
+We use \type{assert.throwsError} to test the \type{assert.isBoolean} 
+assertion, by passing in various booleans both directly and via variable 
+references. 
+
+\startLuaTest
+  assert.throwsError(assert.isBoolean, "", true)
+  assert.throwsError(assert.isBoolean, "", false)
+  local aBoolean = true
+  assert.throwsError(assert.isBoolean, "", aBoolean)
+  aBoolean = false
+  assert.throwsError(assert.isBoolean, "", aBoolean)
+\stopLuaTest
+\stopTestCase
 
 \stopTestSuite
 
