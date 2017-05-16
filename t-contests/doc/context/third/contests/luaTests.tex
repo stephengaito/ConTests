@@ -53,10 +53,15 @@ end
 
 \section[title=Assertions]
 
+We start by defining a helper function to capture the repetitive code in 
+one place. Every assertion will contain a condition, a message and some 
+reason for failing the assertion. The \type{reportLuaAssertion} function 
+captures these three values and builds an assertion result \emph{if} the 
+condition is false. If the condition is true, the 
+\type{reportLuaAssertion} function quietly does nothing but update the 
+test statistics. 
+
 \startLuaCode
-
-local fmt = string.format
-
 function reportLuaAssertion(theCondition, aMessage, theReason)
   -- we do not need to do anything unless theCondition if false!
   if not theCondition then
@@ -69,10 +74,29 @@ function reportLuaAssertion(theCondition, aMessage, theReason)
     error(test, 0) -- throw an error to be captured by an error_handler
   end
 end
-
 \stopLuaCode
 
+Since all of the assertions will use the standard lua \type{string.format} 
+function to format the various reasons using information specific to each 
+assertion, we make \type{string.format} local with a shorter name. 
+
+\startLuaCode
+local fmt = string.format
+\stopLuaCode
+
+Having defined both the \type{reportLuaAssertion} and the \type{fmt} 
+functions, we now work through each assertion in turn. For each assertion, 
+we begin by defining the lua code which implements the assertion, and then 
+the test cases which verify the assertion is working correctly. Typically 
+there will be two test cases for each assertion, we need to test both the 
+positive and negative conditions. 
+
 \startTestSuite[assert_throwsError]
+
+In order to test if a lua function throws an error, we need to wrap the 
+actual function call (together with its arguments) in a lua \type{pcall}. 
+The return value of this \type{pcall} is then checked to see if an error 
+was thrown. 
 
 \startLuaCode
 function contests.assert_throwsError(aFunction, aMessage, ...)
@@ -80,12 +104,37 @@ function contests.assert_throwsError(aFunction, aMessage, ...)
   return reportLuaAssertion(
     ok,
     aMessage,
-    fmt("Expected %s to throw an error.", TS(aFunction), TS(err))
+    fmt("Expected %s to throw an error.", TS(aFunction))
   )
 end
 \stopLuaCode
 
+There are two cases we need to test.
+
+\startTestCase[should \succeed\ if error thrown]
+
+In this first test case, we want to make sure if the tested function 
+throws an error then the assertion succeeds. 
+
+\startLuaTest
+  assert_throwsError(function()
+    error('this should throw an error!')
+  end)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should \fail\ if no error thrown]
+
+In this second test case, we want to make sure the assertion \emph{fails} 
+if the tested function \emph{does not} throw an error.
+
+\startLuaTest
+  assert_throwsError(assert_throwsError(function() end))
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
+
 
 \startTestSuite[assert_throwsNoError]
 
