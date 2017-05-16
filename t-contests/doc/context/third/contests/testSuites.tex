@@ -1,0 +1,21 @@
+% A ConTeXt document [master document: contests.tex]
+
+\startchapter[title=Unit Test Suites]
+
+% temporarily include this in the main document
+% until the actual module files stabilize
+\def\startTestSuite{\subsection}
+\def\stopTestSuite{\relax}
+\def\startTestCase{\subsubsection}
+\def\stopTestCase{\relax}
+
+\startMkIVCode
+
+\def\startTestSuite{\subsection}
+\def\stopTestSuite{\relax}
+\def\startTestCase{\subsubsection}
+\def\stopTestCase{\relax}
+
+\stopMkIVCode
+
+\stopchapter

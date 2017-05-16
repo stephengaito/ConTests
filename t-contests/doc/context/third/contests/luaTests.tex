@@ -1,17 +1,24 @@
 % A ConTeXt document [master document: contests.tex]
 
-\startchapter[title=Lua Tests]
+\startchapter[title=Lua Unit Testing]
 
 We make extensive use of ideas in the design of the LunaTest Lua unit 
 testing framework which is in turn inspired by the LUnit assertion 
 interface. We tailor these ideas for use \emph{inside} \ConTeXt. 
 
-\def\startTestSuite{\subsection}
-\def\stopTestSuite{\relax}
-\def\startTestCase{\subsubsection}
-\def\stopTestCase{\relax}
+\section[title=Test cases]
+
+% temporarily include this in the main document
+% until the actual module files stabilize
 \definetyping[LuaTest]
 \setuptyping[LuaTest][option=lua]
+
+\startMkIVCode
+
+\definetyping[LuaTest]
+\setuptyping[LuaTest][option=lua]
+
+\stopMkIVCode
 
 \section[title=Assertions]
 
@@ -175,6 +182,7 @@ function assert_isNotNil(anObj, aMessage)
     aMessage,
     fmt("Expected non-nil, got %s.", TS(anObj))
   )
+end
 \stopLuaCode
 
 \stopTestSuite
@@ -517,7 +525,7 @@ end
 
 \stopTestSuite
 
-\startTestSuite(title=assert_hasMetaTable)
+\startTestSuite[title=assert_hasMetaTable]
 
 \startLuaCode
 function assert_hasMetaTable(anObj, aMessage)
@@ -559,7 +567,7 @@ end
 
 \stopTestSuite
 
-\startTestSuite(title=assert_doesNotHaveMetaTable)
+\startTestSuite[title=assert_doesNotHaveMetaTable]
 
 \startLuaCode
 function assert_hasMetaTable(anObj, aMessage)
