@@ -1446,6 +1446,9 @@ We consider various tables.
 
 \startTestSuite[assert.isFunction]
 
+The \type{assert.isFunction} assertion confirms that an object is a lua 
+function. 
+
 \startLuaCode
 function assert.isFunction(anObj, aMessage)
   return reportLuaAssertion(
@@ -1456,9 +1459,32 @@ function assert.isFunction(anObj, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if the object is a funciton]
+
+We test a lua function.
+
+\startLuaTest
+  assert.isFunction(function() end)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is not a function]
+
+We test various objects which are not lua functions.
+
+\startLuaTest
+  assert.throwsError(assert.isFunction, "", 42)
+  assert.throwsError(assert.isFunction, "", "aString")
+  assert.throwsError(assert.isFunction, "", { "aTable" })
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isNotFunction]
+
+The \type{assert.isNotFunciton} assertion confirms that an object is not a 
+lua function. 
 
 \startLuaCode
 function assert.isNotFunction(anObj, aMessage)
@@ -1470,9 +1496,261 @@ function assert.isNotFunction(anObj, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if the object is not a function]
+
+We test various objects which are not lua functions.
+
+\startLuaTest
+  assert.isNotFunction(42)
+  assert.isNotFunction("aString")
+  assert.isNotFunction({ "aTable" })
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is a function]
+
+We test a function.
+
+\startLuaTest
+  assert.throwsError(assert.isNotFunction, "", function() end)
+\stopLuaTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[assert.hasMetaTable]
+
+The \type{assert.hasMetaTable} assertion confirms that a lua object has an 
+associated meta-table. In lua meta-tables act as object classes, providing 
+class level methods for any object with a given meta-table. 
+
+\startLuaCode
+function assert.hasMetaTable(anObj, aMessage)
+  return reportLuaAssertion(
+    getMetaTable(anObj) ~= nil,
+    aMessage,
+    fmt("Expected %s to have a meta table.", toStr(anObj))
+  )
+end
+\stopLuaCode
+
+\startTestCase[should succeed if the object has a meta-table]
+
+Since strings have meta-tables, we test this assertion with strings.
+
+\startLuaTest
+  assert.hasMetaTable("aString")
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object does not have a meta-table]
+
+Since integers do not have meta-tables, we test the failure of this 
+assertion with integers. 
+
+\startLuaTest
+  assert.throwsError(assert.hasMetaTable, "", 42)
+\stopLuaTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[assert.metaTableEquals]
+
+The \type{assert.metaTableEquals} assertion confirms that an object has a 
+given meta-table. 
+
+\startLuaCode
+function assert.metaTableEqual(anObj, aMetaTable, aMessage)
+  return reportLuaAssertion(
+    getmetatable(anObj) == aMetaTable,
+    aMessage,
+    fmt("Expected %s to have the meta table %s.",
+      toStr(anObj), toStr(aMetaTable))
+  )
+end
+\stopLuaCode
+
+\startTestCase[should succeed if the object's meta-table is that provided]
+
+Since strings have meta-tables, we get the meta-table and test a string 
+with that meta-table. 
+
+\startLuaTest
+  local aMetaTable = getmetatable("aString")
+  assert.metaTableEqual("aString", aMetaTable)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object's meta-table is not provided]
+
+Since any table can be made into a meta-table for some object, we will 
+test with strings and a simple table. 
+
+\startLuaTest
+  assert.throwsError(assert.metaTableEqual, "",
+    "aString", { "aTable" })
+\stopLuaTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[assert.metaTableNotEqual]
+
+The \type{assert.metaTableNotEqual} assertion confirms that an object's 
+meta-table is not equal to the one provided. 
+
+\startLuaCode
+function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
+  return reportLuaAssertion(
+    getMetaTable(anObj) ~= aMetaTable,
+    aMessage,
+    fmt("Expected %s to not have the meta table %s.",
+      toStr(anObj), toStr(aMetaTable))
+  )
+end
+\stopLuaCode
+
+\startTestCase[should succeed if the objects's meta-table is not the one provided]
+
+We test with a string and a simple table.
+
+\startLuaTest
+  assert.metaTableNotEqual("aString", { "aTable" })
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object's meta-table is that provided]
+
+We will test with a string's meta-table.
+
+\startLuaTest
+  local aMetaTable = getmetatable("aString")
+  assert.throwsError(assert.metaTableNotEqual, "",
+    "aString", aMetaTable)
+\stopLuaTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[assert.doesNotHaveMetaTable]
+
+The \type{assert.doesNotHaveMetaTable} assertion confirms that an object 
+does not have a meta-table. 
+
+\startLuaCode
+function assert.doesNotHaveMetaTable(anObj, aMessage)
+  return reportLuaAssertion(
+    getMetaTable(anObj) == nil,
+    aMessage,
+    fmt("Expected %s to not have a meta table.", toStr(anObj))
+  )
+end
+\stopLuaCode
+
+\startTestCase[should succeed if the object does not have a meta-table]
+
+Since integer's do not have meta-tables, we test with an integer.
+
+\startLuaTest
+  assert.doesNotHaveMetaTable(42)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object has a meta-table]
+
+We use a string to test the failure of this assertion. 
+
+\startLuaTest
+  assert.throwsError(assert.doesNotHaveMetaTable, "", "aString")
+\stopLuaTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[assert.isThread]
+
+The \type{assert.isThread} assertion confirms that the object is a lua 
+thread. 
+
+\startLuaCode
+function assert.isThread(anObj, aMessage)
+  return reportLuaAssertion(
+    type(anObj) == 'thread',
+    aMessage,
+    fmt("Expected %s to be a thread.", toStr(anObj))
+  )
+end
+\stopLuaCode
+
+\startTestCase[should succeed if the object is a thread]
+
+We build a thread and test it. Note that the \type{coroutine.create} 
+creates but does not start a thread on a particular lua function. 
+
+\startLuaTest
+  assert.isThread(coroutine.create(function() end))
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is not a thread]
+
+We test various objects which are not threads.
+
+\startLuaTest
+  assert.throwsError(assert.isThread, "", 42)
+  assert.throwsError(assert.isThread, "", "aString")
+  assert.throwsError(assert.isThread, "", { "aTable" })
+  assert.throwsError(assert.isThread, "", function() end)
+\stopLuaTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[assert.isNotThread]
+
+The \type{assert.isNotThread} assertion confirms that an object is not a 
+thread. 
+
+\startLuaCode
+function assert.isNotThread(anObj, aMessage)
+  return reportLuaAssertion(
+    type(anObj) ~= 'thread',
+    aMessage,
+    fmt("Expected %s to not be a thread.", toStr(anObj))
+  )
+end
+\stopLuaCode
+
+\startTestCase[should succeed if the object is not a thread]
+
+We test using various objects that are not threads. 
+
+\startLuaTest
+  assert.isNotThread(42)
+  assert.isNotThread("aString")
+  assert.isNotThread({ "aTable" })
+  assert.isNotThread(function() end)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is a thread]
+
+We build a thread and test it.
+
+\startLuaTest
+  assert.throwsError(assert.isNotThread, "",
+    coroutine.create(function() end))
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isUserData]
+
+The \type{assert.isUserData} assertion confirms an object is a lua 
+\quote{userData} object. Note that typically lua \quote{userData} objects 
+are opaque handles to non-lua objects. 
 
 \startLuaCode
 function assert.isUserData(anObj, aMessage)
@@ -1483,7 +1761,27 @@ function assert.isUserData(anObj, aMessage)
   )
 end
 \stopLuaCode
+
+Note that at the moment we do not provide any \quote{successful} tests for 
+the \type{assert.isUserData} assertion, since we would need to compile and 
+link an shared library written in some non-lua language such as ANSI-C. 
+
+\startTestCase[should fail if the object is not a userData]
+
+We test various objects which are not \quote{userData}.
+
+\startLuaTest
+  assert.throwsError(assert.isUserData, "", 42)
+  assert.throwsError(assert.isUserData, "", "aString")
+  assert.throwsError(assert.isUserData, "", { "aTable" })
+  assert.throwsError(assert.isUserData, "", function() end)
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
+
+The \type{assert.isNotUserData} assertion confirms that an object is not a 
+lua \quote{userData}. 
 
 \startTestSuite[assert.isNotUserData]
 
@@ -1497,92 +1795,24 @@ function assert.isNotUserData(anObj, aMessage)
 end
 \stopLuaCode
 
-\stopTestSuite
+\startTestCase[should succeed if the object is not userData]
 
-\startTestSuite[assert.hasMetaTable]
+We test various objects which are not \quote{userData}.
 
-\startLuaCode
-function assert.hasMetaTable(anObj, aMessage)
-  return reportLuaAssertion(
-    getMetaTable(anObj) ~= nil,
-    aMessage,
-    fmt("Expected %s to have a meta table.", toStr(anObj))
-  )
-end
-\stopLuaCode
+\startLuaTest
+  assert.isNotUserData(42)
+  assert.isNotUserData("aString")
+  assert.isNotUserData({ "aTable" })
+  assert.isNotUserData(function() end)
+\stopLuaTest
+\stopTestCase
 
-\stopTestSuite
-
-\startTestSuite[assert.metaTableEquals]
-
-\startLuaCode
-function assert.metaTableEqual(anObj, aMetaTable, aMessage)
-  return reportLuaAssertion(
-    getMetaTable(anObj) == aMetaTable,
-    aMessage,
-    fmt("Expected %s to have the meta table %s.",
-      toStr(anObj), toStr(aMetaTable))
-  )
-end
-\stopLuaCode
+Note that at the moment we do not provide any \quote{failure} tests for 
+the \type{assert.isNotUserData} assertion, since we would need to compile 
+and link an shared library written in some non-lua language such as 
+ANSI-C. 
 
 \stopTestSuite
 
-\startTestSuite[assert.metaTableNotEqual]
-
-\startLuaCode
-function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
-  return reportLuaAssertion(
-    getMetaTable(anObj) ~= aMetaTable,
-    aMessage,
-    fmt("Expected %s to not have the meta table %s.",
-      toStr(anObj), toStr(aMetaTable))
-  )
-end
-\stopLuaCode
-
-\stopTestSuite
-
-\startTestSuite[assert.doesNotHaveMetaTable]
-
-\startLuaCode
-function assert.hasMetaTable(anObj, aMessage)
-  return reportLuaAssertion(
-    getMetaTable(anObj) == nil,
-    aMessage,
-    fmt("Expected %s to not have a meta table.", toStr(anObj))
-  )
-end
-\stopLuaCode
-
-\stopTestSuite
-
-\startTestSuite[assert.isThread]
-
-\startLuaCode
-function assert.isThread(anObj, aMessage)
-  return reportLuaAssertion(
-    type(anObj) == 'thread',
-    aMessage,
-    fmt("Expected %s to be a thread.", toStr(anObj))
-  )
-end
-\stopLuaCode
-
-\stopTestSuite
-
-\startTestSuite[assert.isNotThread]
-
-\startLuaCode
-function assert.isNotThread(anObj, aMessage)
-  return reportLuaAssertion(
-    type(anObj) ~= 'thread',
-    aMessage,
-    fmt("Expected %s to not be a thread.", toStr(anObj))
-  )
-end
-\stopLuaCode
-
-\stopTestSuite
 
 \stopchapter
