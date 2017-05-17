@@ -514,12 +514,12 @@ The \type{assert.isEqual} assertion tests two lua objects to confirm that
 they are equal (\type{==}) as far as lua is concerned. 
 
 \startLuaCode
-function assert.isEqual(anObj, expected, aMessage)
+function assert.isEqual(objA, objB, aMessage)
   return reportLuaAssertion(
-    anObj == expected,
+    objA == objB,
     aMessage,
     fmt("Expected %s to equal %s.",
-      toStr(expected), toStr(anObj))
+      toStr(objA), toStr(objB))
   )
 end
 \stopLuaCode
@@ -554,51 +554,156 @@ We test various pairs of objects to show that they are not equal.
 
 \startTestSuite[assert.isEqualWithIn]
 
+The \type{assert.isEqualWithIn} assertion only applies to numbers.
+
 \startLuaCode
-function assert.isEqualWithIn(anObj, expected,
+function assert.isEqualWithIn(numA, numB,
   tolerance, aMessage)
   return reportLuaAssertion(
-    true, --????,
+    type(numA) == 'number' and type(numB) == 'number'
+    and math.abs(numA - numB) <= tolerance,
     aMessage,
     fmt("Expected %s to equal %s with tolerance %s.",
-      toStr(anObj), toStr(expected), toStr(tolerance))
+      toStr(numA), toStr(numB), toStr(tolerance))
   )
 end
 \stopLuaCode
+
+\startTestCase[should succeed if numA and numB are within tolerance]
+
+We test various pairs of number all closer than tolerance. 
+
+\startLuaTest
+  assert.isEqualWithIn(42, 41, 2)
+  assert.isEqualWithIn(42, 41, 1)
+  assert.isEqualWithIn(0.5, 0.4, 0.2)
+  assert.isEqualWithIn(41, 42, 2)
+  assert.isEqualWithIn(0.4, 0.5, 0.2)
+  assert.isEqualWithIn(0.4, 0.4, 0.1)
+  assert.isEqualWithIn(0.3, 0.3, 0.0)
+  assert.isEqualWithIn(-41, -42, 2)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if numA or numB are not numbers]
+
+We confirm that \type{assert.isEqualWithIn} throws an error if either 
+\type{numA} nor \type{numB} are \emph{not} numbers.
+
+\startLuaTest
+  assert.throwsError(assert.isEqualWithIn, "", "aString", 42, 10)
+  assert.throwsError(assert.isEqualWithIn, "", 42, "aString", 10)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if numA and numB are not closer than tolerance]
+
+We confirm that \type{assert.isEqualWithIn} throws an error if \type{numA} 
+and \type{numB} are two numbers which are not closer than 
+\type{tolerance}. 
+
+\startLuaTest
+  assert.throwsError(assert.isEqualWithIn, "", 42, 45, 1)
+  assert.throwsError(assert.isEqualWithIn, "", 0.4, 0.9, 0.2)
+\stopLuaTest
+\stopTestCase
 
 \stopTestSuite
 
-\startTestSuite[ssert_isNotEqual]
+\startTestSuite[assert_isNotEqual]
+
+The \type{assert.isNotEqual} assertion tests two lua objects to confirm 
+that they are not equal (\type{~=}) as far as lua is concerned. 
 
 \startLuaCode
-function assert.isNotEqual(anObj, expected, aMessage)
+function assert.isNotEqual(objA, objB, aMessage)
   return reportLuaAssertion(
-    anObj ~= expected,
+    objA ~= objB,
     aMessage,
     fmt("Expected %s to not equal %s.",
-      toStr(expected), toStr(anObj))
+      toStr(objA), toStr(objB))
   )
 end
 \stopLuaCode
+
+\startTestCase[should succeed if the two objects are not equal]
+
+We test using various pairs of unequal objects.
+
+\startLuaTest
+  assert.isNotEqual(42, 41)
+  assert.isNotEqual("aString", "anotherString")
+  assert.isNotEqual({ "aTable" }, { "aDifferentTable"})
+  assert.isNotEqual(42, "aString")
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the two objects are equal]
+
+We test using various pairs of equal objects.
+
+\startLuaTest
+  assert.throwsError(assert.isNotEqual, "", 42, 42)
+  assert.throwsError(assert.isNotEqual, "", "aString", "aString")
+\stopLuaTest
+\stopTestCase
 
 \stopTestSuite
 
 \startTestSuite[assert.isNotEqualWithIn]
+
+The \type{assert.isNotEqualWithIn} assertion confirms that two objects are 
+either neither numbers, or they are further apart then the given 
+\type{tolerance}. 
+
 \startLuaCode
-function assert.isNotEqualWithIn(anObj, expected,
-  tolerance, aMessage)
+function assert.isNotEqualWithIn(numA, numB, tolerance, aMessage)
   return reportLuaAssertion(
-    true, --????,
+    type(numA) ~= 'number' or type(numB) ~= 'number'
+    or tolerance < math.abs(numA - numB), 
     aMessage,
     fmt("Expected %s to not equal %s with tolerance %s.",
-      toStr(anObj), toStr(expected), toStr(tolerance))
+      toStr(numA), toStr(numB), toStr(tolerance))
   )
 end
 \stopLuaCode
 
+\startTestCase[should succeed if either object is not a number]
+
+We test using various pairs of objects of which at least one is not a 
+number. 
+
+\startLuaTest
+  assert.isNotEqualWithIn("aString", "aString", 10)
+  assert.isNotEqualWithIn("aString", 42, 10)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should succeed if the two numbers are far apart]
+
+We test using two numbers which are further than \type{tolerance} apart. 
+
+\startLuaTest
+  assert.isNotEqualWithIn(42, 45, 2)
+  assert.isNotEqualWithIn(-42, -45, 2)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the two numbers are with in tolerance]
+
+We test using two numbers which are closer than \type{tolerance}. 
+
+\startLuaTest
+  assert.throwsError(assert.isNotEqualWithIn, "", 42, 41, 2)
+  assert.throwsError(assert.isNotEqualWithIn, "", -41, -42, 2)
+  assert.throwsError(assert.isNotEqualWithIn, "", 0.5, 0.4, 0.3)
+\stopLuaTest
 \stopTestSuite
 
 \startTestSuite[assert.isNumber]
+
+The \type{assert.isNumber} assertion confirms that the lua object is a 
+number. 
 
 \startLuaCode
 function assert.isNumber(anObj, aMessage)
@@ -610,9 +715,33 @@ function assert.isNumber(anObj, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if the object is a number]
+
+We test using various numbers.
+
+\startLuaTest
+  assert.isNumber(42)
+  assert.isNumber(4.2)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is not a number]
+
+We test using various objects which are not numbers. 
+
+\startLuaTest
+  assert.throwsError(assert.isNumber, "", "aString")
+  assert.throwsError(assert.isNumber, "", { "aTable" })
+  assert.throwsError(assert.isNumber, "", function() end)
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isGT]
+
+The \type{assert.isGT} assertion confirms that \type{objA} is greater than 
+\type{objB}. 
 
 \startLuaCode
 function assert.isGT(objA, objB, aMessage)
@@ -624,9 +753,56 @@ function assert.isGT(objA, objB, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[when both objects are numbers]
+
+We test various pairs of objects which are both numbers.
+
+We start by considering pairs for which \type{objA} is greater than 
+\type{objB}. 
+
+\startLuaTest
+  assert.isGT(42, 41)
+  assert.isGT(0.3, 0.2)
+  assert.isGt(5, -3)
+\stopLuaTest
+
+We now consider pairs for which \type{objA} is less than or equal to 
+\type{objB}. 
+
+\startLuaTest
+  assert.throwsError(assert.isGT, "", 41, 42)
+  assert.throwsError(assert.isGT, "", 42, 42)
+  assert.throwsError(assert.isGT, "", 0.4, 0.9)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[when both objects are strings]
+
+We test various pairs of strings.
+
+We start by considering pairs for which \type{objA} is lexically greater 
+than \type{objB}. 
+
+\startLuaTest
+  assert.isGT("aString02", "aString01")
+  assert.isGT("222", "211")
+\stopLuaTest
+
+We now consider pairs for which \type{objA} is lexically less than or 
+equal to \type{objB}. 
+
+\startLuaTest
+  assert.throwsError(assert.isGT, "", "aString", "aString")
+  assert.throwsError(assert.isGT, "", "211", "222")
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isGTE]
+
+The \type{assert.isGTE} assertion confirms that \type{objA} is greater 
+than or equal to \type{objB}. 
 
 \startLuaCode
 function assert.isGTE(objA, objB, aMessage)
@@ -638,9 +814,36 @@ function assert.isGTE(objA, objB, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[when both objects are numbers]
+
+We consider the case when both objects are numbers.
+
+We start by considering the case when \type{objA} is greater than or equal 
+to \type{objB}. 
+
+\startLuaTest
+  assert.isGTE(42, 42)
+  assert.isGTE(43, 42)
+  assert.isGTE(0.3, 0.3)
+  assert.isGTE(0.3, 0.2)
+  assert.isGTE(0.3, -0.2)
+\stopLuaTest
+
+Now we consider the case when \type{objA} is less than \type{objB}. 
+
+\startLuaTest
+  assert.throwsError(assert.isGTE, "", 42, 43)
+  assert.throwsError(assert.isGTE, "", 0.2, 0.3)
+  assert.throwsError(assert.isGTE, "", -0.2, 0.3)
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isLT]
+
+The \type{assert.isLT} assertion confirms that \type{objA} is less than 
+\type{objB}. 
 
 \startLuaCode
 function assert.isLT(objA, objB, aMessage)
@@ -652,9 +855,58 @@ function assert.isLT(objA, objB, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[when both objects are numbers]
+
+We consider the case when both objects are numbers.
+
+We test various pairs of numbers for which \type{objA} is less than 
+\type{objB}. 
+
+\startLuaTest
+  assert.isLT(42, 45)
+  assert.isLT(0.2, 0.3)
+  assert.isLT(42, 42.5)
+  assert.isLT(-42, 42)
+\stopLuaTest
+
+Now we test various pairs of numbers for which \type{objA} is greater than 
+or equal to \type{objB}. 
+
+\startLuaTest
+  assert.throwsError(assert.isLT, "", 45, 42)
+  assert.throwsError(assert.isLT, "", 42, 42)
+  assert.throwsError(assert.isLT, "", 0.3, 0.2)
+  assert.throwsError(assert.isLT, "", 0.3, 0.3)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[when both objects are strings]
+
+We consider the case when both objects are strings. 
+
+We start by testing various pairs of strings where \type{objA} is 
+lexically less than \type{objB}. 
+
+\startLuaTest
+  assert.isLT("aStringA", "aStringB")
+  assert.isLT("211", "222")
+\stopLuaTest
+
+Now we considers pairs where \type{objA} is lexically greater than or 
+equal to \type{objB}. 
+
+\startLuaTest
+  assert.throwsError(assert.isLT, "", "aString", "aString")
+  assert.throwsError(assert.isLT, "", "aStringB", "aStringA")
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isLTE]
+
+The \type{assert.isLTE} assertion confirms that type{objA} is less than or 
+equal to \type{objB}. 
 
 \startLuaCode
 function assert.isLTE(objA, objB, aMessage)
@@ -667,9 +919,55 @@ end
 \stopLuaCode
 
 
+\startTestCase[when both objects are numbers]
+
+We consider the case when both objects are numbers. 
+
+We start by testing various pairs where \type{objA} is less than or equal 
+to \type{objB}. 
+
+\startLuaTest
+  assert.isLTE(42, 42)
+  assert.isLTE(41, 42)
+  assert.isLTE(0.3, 0.3)
+  assert.isLTE(0.2, 0.3)
+\stopLuaTest
+
+Now we consider pairs where \type{objA} is greater than \type{objB}. 
+
+\startLuaTest
+  assert.throwsError(assert.isLTE, "", 43, 42)
+  assert.throwsError(assert.isLTE, "", 0.3, 0.2)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[when both objects are strings]
+
+We consider the case when both objects are strings.
+
+We start by testing various pairs where \type{objA} is lexically less than 
+or equal to \type{objB}. 
+
+\startLuaTest
+  assert.isLTE("aString", "aString")
+  assert.isLTE("aStringA", "aStringB")
+\stopLuaTest
+
+Now we consider pairs where \type{objA} is lexically greater than 
+\type{objB}. 
+
+\startLuaTest
+  assert.throwsError(assert.isLTE, "", "aStringB", "aStringA")
+\stopLuaTest
+
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isNotNumber]
+
+The \type{assert.isNotNumber} assertions confirms that a lua object is not 
+a number. 
 
 \startLuaCode
 function assert.isNotNumber(anObj, aMessage)
@@ -680,6 +978,27 @@ function assert.isNotNumber(anObj, aMessage)
   )
 end
 \stopLuaCode
+
+\startTestCase[should succeed if the object is not a number]
+
+We test using various objects which are not numbers. 
+
+\startLuaTest
+  assert.isNotNumber("aString")
+  assert.isNotNumber({ "aTable" })
+  assert.isNotNumber(function() end)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is a number]
+
+We test using various numbers.
+
+\startLuaTest
+  assert.throwsError(assert.isNotNumber, "", 42)
+  assert.throwsError(assert.isNotNumber, "", 4.2)
+\stopLuaTest
+\stopTestCase
 
 \stopTestSuite
 
