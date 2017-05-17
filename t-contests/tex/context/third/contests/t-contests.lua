@@ -161,41 +161,42 @@ function assert.isNotNil(anObj, aMessage)
   )
 end
 
-function assert.isEqual(anObj, expected, aMessage)
+function assert.isEqual(objA, objB, aMessage)
   return reportLuaAssertion(
-    anObj == expected,
+    objA == objB,
     aMessage,
     fmt("Expected %s to equal %s.",
-      toStr(expected), toStr(anObj))
+      toStr(objA), toStr(objB))
   )
 end
 
-function assert.isEqualWithIn(anObj, expected,
+function assert.isEqualWithIn(numA, numB,
   tolerance, aMessage)
   return reportLuaAssertion(
-    true, --????,
+    type(numA) == 'number' and type(numB) == 'number'
+    and math.abs(numA - numB) <= tolerance,
     aMessage,
     fmt("Expected %s to equal %s with tolerance %s.",
-      toStr(anObj), toStr(expected), toStr(tolerance))
+      toStr(numA), toStr(numB), toStr(tolerance))
   )
 end
 
-function assert.isNotEqual(anObj, expected, aMessage)
+function assert.isNotEqual(objA, objB, aMessage)
   return reportLuaAssertion(
-    anObj ~= expected,
+    objA ~= objB,
     aMessage,
     fmt("Expected %s to not equal %s.",
-      toStr(expected), toStr(anObj))
+      toStr(objA), toStr(objB))
   )
 end
 
-function assert.isNotEqualWithIn(anObj, expected,
-  tolerance, aMessage)
+function assert.isNotEqualWithIn(numA, numB, tolerance, aMessage)
   return reportLuaAssertion(
-    true, --????,
+    type(numA) ~= 'number' or type(numB) ~= 'number'
+    or tolerance < math.abs(numA - numB),
     aMessage,
     fmt("Expected %s to not equal %s with tolerance %s.",
-      toStr(anObj), toStr(expected), toStr(tolerance))
+      toStr(numA), toStr(numB), toStr(tolerance))
   )
 end
 
@@ -257,7 +258,8 @@ end
 
 function assert.matches(anObj, aPattern, aMessage)
   return reportLuaAssertion(
-    anObj:matches(aPattern),
+    type(anObj) == 'string' and type(aPattern) == 'string'
+    and anObj:matches(aPattern),
     aMessage,
     ftm("Expected [%s] to match [%s].",
       toStr(anObj), toStr(aPattern))
@@ -266,7 +268,8 @@ end
 
 function assert.doesNotMatch(anObj, aPattern, aMessage)
   return reportLuaAssertion(
-    not anObj:matches(aPattern),
+    type(anObj) ~= 'string' or type(aPattern) ~= 'string'
+    or not anObj:matches(aPattern),
     aMessage,
     fmt("Expected [%s] to not match [%s].",
       toStr(anObj), toStr(aPattern))

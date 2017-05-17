@@ -2,11 +2,14 @@
 
 \startchapter[title=Unit Test Suites]
 
+Note that you can not use \type{"} in the \type{\startTestSuite} or 
+\type{\startTestCase} arguments. 
+
 \startMkIVCode
 
 \def\startTestSuite[#1]{%
   \startsubsection[title=Test Suite: #1]
-  \directlua{thirddata.contests.startTestSuite('#1')}
+  \directlua{thirddata.contests.startTestSuite("#1")}
 }
 
 \def\stopTestSuite{%
@@ -16,7 +19,7 @@
 
 \def\startTestCase[#1]{%
   \startsubsubsection[title=Test Case: #1]
-  \directlua{thirddata.contests.startTestCase('#1')}
+  \directlua{thirddata.contests.startTestCase("#1")}
 }
 
 \def\stopTestCase{%

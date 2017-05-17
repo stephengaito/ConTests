@@ -52,7 +52,7 @@
 
 \def\startTestSuite[#1]{%
   \startsubsection[title=Test Suite: #1]
-  \directlua{thirddata.contests.startTestSuite('#1')}
+  \directlua{thirddata.contests.startTestSuite("#1")}
 }
 
 \def\stopTestSuite{%
@@ -62,7 +62,7 @@
 
 \def\startTestCase[#1]{%
   \startsubsubsection[title=Test Case: #1]
-  \directlua{thirddata.contests.startTestCase('#1')}
+  \directlua{thirddata.contests.startTestCase("#1")}
 }
 
 \def\stopTestCase{%

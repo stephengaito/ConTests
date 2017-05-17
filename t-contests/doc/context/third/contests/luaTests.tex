@@ -1004,6 +1004,8 @@ We test using various numbers.
 
 \startTestSuite[assert.isString]
 
+The \type{assert.isString} assertion confirms that the object is a string. 
+
 \startLuaCode
 function assert.isString(anObj, aMessage)
   return reportLuaAssertion(
@@ -1014,14 +1016,39 @@ function assert.isString(anObj, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeeed if the object is a string]
+
+We test using various strings.
+
+\startLuaTest
+  assert.isString("aString")
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is not a string]
+
+We test using various objects which are not strings. 
+
+\startLuaTest
+  assert.throwsError(assert.isString, "", 42)
+  assert.throwsError(assert.isString, "", { "aTable" })
+  assert.throwsError(assert.isString, "", function() end)
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.matches]
 
+The \type{assert.matches} assertion confirms that the object is both a 
+string and that it matches the given pattern, using lua's pattern matching 
+tools. 
+
 \startLuaCode
 function assert.matches(anObj, aPattern, aMessage)
   return reportLuaAssertion(
-    anObj:matches(aPattern),
+    type(anObj) == 'string' and type(aPattern) == 'string' 
+    and anObj:matches(aPattern),
     aMessage,
     ftm("Expected [%s] to match [%s].",
       toStr(anObj), toStr(aPattern))
@@ -1029,14 +1056,49 @@ function assert.matches(anObj, aPattern, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if the object matches the pattern]
+
+We use various strings which match the provided patterns. 
+
+\startLuaTest
+  assert.matches("this is a test", "test")
+  assert.matches("this is a test", "[ ]*")
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is not a string]
+
+We test using objects which are not strings.
+
+\startLuaTest
+  assert.throwsError(assert.matches, "", 42, "[ ]*")
+  assert.throwsError(assert.matches, "",
+    "this is a test", 42)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should faile if the string does not match the pattern]
+
+We test using a string which does not match the pattern.
+
+\startLuaTest
+  assert.throwsError(assert.matches, "", 
+    "this is a test", "  ") -- does not have two spaces
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.doesNotMatch]
 
+The \type{assert.doesNotMatch} assertion confirms that one of the object 
+or pattern are not strings, or that the object does not match the pattern. 
+
 \startLuaCode
 function assert.doesNotMatch(anObj, aPattern, aMessage)
   return reportLuaAssertion(
-    not anObj:matches(aPattern),
+    type(anObj) ~= 'string' or type(aPattern) ~= 'string' 
+    or not anObj:matches(aPattern),
     aMessage,
     fmt("Expected [%s] to not match [%s].",
       toStr(anObj), toStr(aPattern))
@@ -1044,9 +1106,43 @@ function assert.doesNotMatch(anObj, aPattern, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if the object does not match the pattern]
+
+We use various strings which do not match the associated pattern. 
+
+\startLuaTest
+  assert.doesNotMatch("this is a test", "  ") -- two spaces
+  assert.doesNotMatch("this is a test", "something")
+  assert.doesNotMatch("this is a test", "^ ")
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if either the object or pattern are not strings]
+
+We consider the case where either the object or pattern are not strings. 
+
+\startLuaTest
+  assert.throwsError(assert.doesNotMatch, "", 42, "[ ]")
+  assert.throwsError(assert.doesNotMatch, "",
+    "this is a test", 42)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the string does not match the pattern]
+
+We consider the case where the string does match the pattern.
+
+\startLuaTest
+  assert.throwsError(assert.doesNotMatch, "", "this is a test", "test")
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.length]
+
+The \type{assert.length} assertion confirms that the string or array have 
+the specified length. 
 
 \startLuaCode
 function assert.length(anObj, aLength, aMessage)
@@ -1059,9 +1155,34 @@ function assert.length(anObj, aLength, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if the object's length is correct]
+
+We consider the case where the string or array have the specified length. 
+
+\startLuaTest
+  assert.length("this", 4)
+  assert.length({ "1", "2"}, 2)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object does not have the correct length]
+
+We consider the case where the string, array or object do not have the 
+specified length. 
+
+\startLuaTest
+  assert.throwsError(assert.length, "", "this", 3)
+  assert.throwsError(assert.length, "", { "1", "2" }, 5)
+  assert.throwsError(assert.length, "", 42, 2)
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isNotLength]
+
+The \type{assert.isNotLength} assertion confirms that the object does not 
+have the specified length. 
 
 \startLuaCode
 function assert.isNotLength(anObj, aLength, aMessage)
@@ -1074,9 +1195,42 @@ function assert.isNotLength(anObj, aLength, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if the object does not have the correct length]
+
+We consider the case where the string or array does not have the specified 
+length.
+
+\startLuaTest
+  assert.isNotLength("this", 2)
+  assert.isNotLength({ "1", "2" }, 1)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object has the correct length]
+
+We consider the case where the string or array has the specified length. 
+
+\startLuaTest
+  assert.throwsError(assert.isNotLength, "", "this", 4)
+  assert.throwsError(assert.isNotLength, "", { "1", "2" }, 2)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is not a string or array]
+
+We consider objects which are not strings or arrays.
+
+\startLuaTest
+  assert.throwsError(assert.isNotLength, "", 42, 2)
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isNotString]
+
+The \type{assert.isNotString} assertion confirms that the object is not a 
+string. 
 
 \startLuaCode
 function assert.isNotString(anObj, aMessage)
@@ -1088,9 +1242,32 @@ function assert.isNotString(anObj, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if the object is not a string]
+
+We consider various objects which are not strings.
+
+\startLuaTest
+  assert.isNotString(42)
+  assert.isNotString({ "aTable" })
+  assert.isNotString(function() end)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is a string]
+
+We consider various strings.
+
+\startLuaTest
+  assert.throwsError(assert.isNotString, "", "aString")
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isTable]
+
+The \type{assert.isTable} assertion confirms that the object is a lua 
+table. 
 
 \startLuaCode
 function assert.isTable(anObj, aMessage)
@@ -1102,14 +1279,39 @@ function assert.isTable(anObj, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if the object is a table]
+
+We consider various lua tables.
+
+\startLuaTest
+  assert.isTable({ })
+  assert.isTable({ "1", "2" })
+  assert.isTable({ one = "one", two = "two" })
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is not a table]
+
+We consider various objects which are not tables. 
+
+\startLuaTest
+  assert.throwsError(assert.isTable, "", "aString")
+  assert.throwsError(assert.isTable, "", 42)
+  assert.throwsError(assert.isTable, "", function() end)
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.hasKey]
 
+The \type{assert.hasKey} assertion confirms that the given table has the 
+key provided. 
+
 \startLuaCode
 function assert.hasKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
-    anObj[aKey] ~= nil,
+    type(anObj) == 'table' and anObj[aKey] ~= nil,
     aMessage,
     fmt("Expected %s to have the key %s.",
       toStr(anObj), toStr(aKey))
@@ -1117,14 +1319,50 @@ function assert.hasKey(anObj, aKey, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if the table has the key]
+
+We consider various tables and key combinations.
+
+\startLuaTest
+  assert.hasKey({ oneKey = "oneValue" }, "oneKey"})
+  assert.hasKey({ "1", "2" }, 1)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the table does not have the key]
+
+We consider keys which are not contained in the given table. 
+
+\startLuaTest
+  assert.throwsError(assert.hasKey, "",
+    { oneKey = "oneValue" }, "twoKey")
+  assert.throwsError(assert.hasKey, "",
+    { "1", "2" }, 10)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is not a table]
+
+We consider objects which are not tables.
+
+\startLuaTest
+  assert.throwsError(assert.hasKey, "", 42, 1)
+  assert.throwsError(assert.hasKey, "", "aString", 2)
+  assert.throwsError(assert.hasKey, "", function() end, 3)
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.doesNotHaveKey]
 
+The \type{assert.doesNotHaveKey} assertion confirms that either the object 
+is not a table, or that the table does not have the key. 
+
 \startLuaCode
 function assert.doesNotHaveKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
-    anObj[aKey] == nil,
+    type(anObj) == 'table' and anObj[aKey] == nil,
     aMessage,
     fmt("Expected %s to not have the key %s.",
       toStr(anObj), toStr(aKey))
@@ -1132,9 +1370,46 @@ function assert.doesNotHaveKey(anObj, aKey, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if the table does not have the key]
+
+We consider keys which are not contained in the given lua table.
+
+\startLuaTest
+  assert.doesNotHaveKey({ oneKey = "oneValue" }, "twoKey")
+  assert.doesNotHaveKey({ "1", "2" }, 10)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the table has the key]
+
+We consider keys which are contained in the given lua table.
+
+\startLuaTest
+  assert.throwsError(assert.doesNotHaveKey, "",
+    { oneKey = "oneValue" }, "oneKey")
+  assert.throwsError(assert.doesNotHaveKey, "",
+    { "1", "2" }, 1)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is not a table]
+
+We consider objects which are not lua tables.
+
+\startLuaTest
+  assert.throwsError(assert.doesNotHaveKey, "", 42, 2)
+  assert.throwsError(assert.doesNotHaveKey, "", "aString", 2)
+  assert.throwsError(assert.doesNotHaveKey, "",
+    function() end, 2)
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isNotTable]
+
+The \type{assert.isNotTable} assertion confirms that the object is not a 
+lua table. 
 
 \startLuaCode
 function assert.isNotTable(anObj, aMessage)
@@ -1145,6 +1420,27 @@ function assert.isNotTable(anObj, aMessage)
   )
 end
 \stopLuaCode
+
+\startTestCase[should succeed if the object is not a table]
+
+We consider various objects which are not lua tables.
+
+\startLuaTest
+  assert.isNotTable(42)
+  assert.isNotTable("aString")
+  assert.isNotTable(function() end)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the object is a table]
+
+We consider various tables.
+
+\startLuaTest
+  assert.throwsError(assert.isNotTable, "", { "1", "2" })
+  assert.throwsError(assert.isNotTable, "", { oneKey = "oneValue" })
+\stopLuaTest
+\stopTestCase
 
 \stopTestSuite
 
