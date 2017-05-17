@@ -262,7 +262,7 @@ There is only one test case, this assertion should always fail.
 
 \startTestSuite[assert.isBoolean]
 
-The \type{assert.isBoolean} assertion tests an lua object to confirm that 
+The \type{assert.isBoolean} assertion tests a lua object to confirm that 
 it is a boolean. 
 
 \startLuaCode
@@ -300,7 +300,7 @@ lua objects, none of which are booleans.
 \startLuaTest
   assert.throwsError(assert.isBoolean, "", "aString")
   assert.throwsError(assert.isBoolean, "", { "a table" })
-  assert.throwsError(assert.isBoolean, "", 10 )
+  assert.throwsError(assert.isBoolean, "", 42 )
   assert.throwsError(assert.isBoolean, "", function() end)
 \stopLuaTest
 \stopTestCase
@@ -327,10 +327,10 @@ end
 We assert directly that various non-boolean objects are not booleans. 
 
 \startLuaTest
-  assert.isBoolean("aString")
-  assert.isBoolean({ "a table" })
-  assert.isBoolean(10 )
-  assert.isBoolean(function() end)
+  assert.isNotBoolean("aString")
+  assert.isNotBoolean({ "a table" })
+  assert.isNotBoolean(42 )
+  assert.isNotBoolean(function() end)
 \stopLuaTest
 \stopTestCase
 
@@ -341,18 +341,22 @@ assertion, by passing in various booleans both directly and via variable
 references. 
 
 \startLuaTest
-  assert.throwsError(assert.isBoolean, "", true)
-  assert.throwsError(assert.isBoolean, "", false)
+  assert.throwsError(assert.isNotBoolean, "", true)
+  assert.throwsError(assert.isNotBoolean, "", false)
   local aBoolean = true
-  assert.throwsError(assert.isBoolean, "", aBoolean)
+  assert.throwsError(assert.isNotBoolean, "", aBoolean)
   aBoolean = false
-  assert.throwsError(assert.isBoolean, "", aBoolean)
+  assert.throwsError(assert.isNotBoolean, "", aBoolean)
 \stopLuaTest
 \stopTestCase
 
 \stopTestSuite
 
 \startTestSuite[assert.isTrue]
+
+The \type{assert.isTrue} assertion tests a lua object to confirm that it 
+is not either \type{false} or \type{nil} (which represents \quote{truth} 
+in lua). 
 
 \startLuaCode
 function assert.isTrue(aBoolean, aMessage)
@@ -364,9 +368,35 @@ function assert.isTrue(aBoolean, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if a boolean is true]
+
+We test various lua objects which are neither \type{false} nor \type{nil}. 
+
+\startLuaTest
+  assert.isTrue(true)
+  assert.isTrue("aString")
+  assert.isTrue({ "aTable" })
+  assert.isTrue(42)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if a boolean is false]
+
+We test both \type{false} and \type{nil} to show they are not 
+\quote{true}. 
+
+\startLuaTest
+  assert.throwsError(assert.isTrue, "", false)
+  assert.throwsError(assert.isTrue, "", nil)
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isFalse]
+
+The \type{assert.isFalse} assertion tests a lua object to confirm that it 
+is either \type{false} or \type{nil}. 
 
 \startLuaCode
 function assert.isFalse(aBoolean, aMessage)
@@ -378,9 +408,35 @@ function assert.isFalse(aBoolean, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if a boolean is false]
+
+We test both \type{false} and \type{nil} to show that they are 
+\quote{false}. 
+
+\startLuaTest
+  assert.isFalse(false)
+  assert.isFalse(nil)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if a boolean is true]
+
+We test various objects to show that they are not \quote{false}.
+
+\startLuaTest
+  assert.throwsError(assert.isFalse, "", true)
+  assert.throwsError(assert.isFalse, "", "aString")
+  assert.throwsError(assert.isFalse, "", { "aTable" })
+  assert.throwsError(assert.isFalse, "", 42)
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isNil]
+
+The \type{assert.isNil} assertion tests a lua object to confirm that it is 
+\type{nil}. 
 
 \startLuaCode
 function assert.isNil(anObj, aMessage)
@@ -392,9 +448,34 @@ function assert.isNil(anObj, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if an object is nil]
+
+We test \type{nil} to show that it is \type{nil}. 
+
+\startLuaTest
+  assert.isNil(nil)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if an object is not nil]
+
+We test various non \type{nil} objects to show that they are not 
+\type{nil}. 
+
+\startLuaTest
+  assert.throwsError(assert.isNil, "", true)
+  assert.throwsError(assert.isNil, "", "aString")
+  assert.throwsError(assert.isNil, "", { "aTable" })
+  assert.throwsError(assert.isNil, "", 42)
+\stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isNotNil]
+
+The \type{assert.isNotNil} assertion tests a lua object to confirm that is 
+it not \type{nil}. 
 
 \startLuaCode
 function assert.isNotNil(anObj, aMessage)
@@ -406,9 +487,31 @@ function assert.isNotNil(anObj, aMessage)
 end
 \stopLuaCode
 
+\startTestCase[should succeed if an object is not nil]
+
+We test various lua objects which are not \type{nil}.
+
+\startLuaTest
+  assert.isNotNil(true)
+  assert.isNotNil("aString")
+  assert.isNotNil({ "aTable" })
+  assert.isNotNil(42)
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if an object is nil]
+
+We test \type{nil}.
+
+\startLuaTest
+  assert.throwsError(assert.isNotNil, "", nil)
+\stopLuaTest
 \stopTestSuite
 
 \startTestSuite[assert.isEqual]
+
+The \type{assert.isEqual} assertion tests two lua objects to confirm that 
+they are equal (\type{==}) as far as lua is concerned. 
 
 \startLuaCode
 function assert.isEqual(anObj, expected, aMessage)
@@ -420,6 +523,32 @@ function assert.isEqual(anObj, expected, aMessage)
   )
 end
 \stopLuaCode
+
+\startTestCase[should succeed if the two objects are equal]
+
+We test various pairs of objects to show that they are equal.
+
+\startLuaTest
+  assert.isEqual(true, true)
+  assert.isEqual("aString", "aString")
+  assert.isEqual({ "aTable" }, { "aTable" })
+  assert.isEqual(42, (40+2))
+\stopLuaTest
+\stopTestCase
+
+\startTestCase[should fail if the two objects are not equal]
+
+We test various pairs of objects to show that they are not equal. 
+
+\startLuaTest
+  assert.throwsError(assert.isEqual, "", true, false)
+  assert.throwsError(assert.isEqual, "",
+    "aString", "anotherString")
+  assert.throwsError(assert.isEqual, "",
+    { "aTable" }, { "aDifferentTable"})
+  assert.throwsError(assert.isEqual, "", 42, 0)
+\stopLuaTest
+\stopTestCase
 
 \stopTestSuite
 
