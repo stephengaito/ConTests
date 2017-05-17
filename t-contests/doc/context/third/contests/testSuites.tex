@@ -49,8 +49,8 @@ function contests.startTestCase(aDesc)
 end
 
 function contests.collectTestCase()
-  contests.runCurLuaTestCase()
   local suite = tests.curSuite
+  contests.runCurLuaTestCase(suite.curCase)
   table_insert(suite.cases, suite.curCase)
   suite.curCase = {}
 end

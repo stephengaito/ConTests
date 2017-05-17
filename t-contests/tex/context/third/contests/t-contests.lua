@@ -40,8 +40,8 @@ function contests.startTestCase(aDesc)
 end
 
 function contests.collectTestCase()
-  contests.runCurLuaTestCase()
   local suite = tests.curSuite
+  contests.runCurLuaTestCase(suite.curCase)
   table_insert(suite.cases, suite.curCase)
   suite.curCase = {}
 end
@@ -54,19 +54,30 @@ function contests.addLuaTest(bufferName)
   table_insert(case.lua, bufferContents)
 end
 
-function contests.runCurLuaTestCase()
-  local suite    = tests.curSuite
-  local case     = suite.curCase
+function contests.runCurLuaTestCase(case)
   local luaChunk = table_concat(case.lua, '\n')
   if not luaChunk:match('^%s*$') then
     luaChunk = [=[
     local assert = thirddata.contests.assert
-    ]=]..luaChunk
-    -- consider using PCall here
+    ]=]..luaChunk..[=[
+    return true
+    ]=]
     local luaFunc, errMessage = load(luaChunk)
     if luaFunc then
-      --local result = luaFunc()
+      local ok, errObj = pcall(luaFunc)
+      if ok then
+        tex.print("\\noindent{\\green PASSED}")
+      else
+        tex.print("\\noindent{\\red FAILED}: \\\\")
+        tex.cprint(12, pp.write(errObj))
+        tex.print("\\\\ on \\ConTeXt\\ line number \\the\\inputlineno")
+      end
+    else
+      tex.print("\\noindent{\\red FAILED TO COMPILE}: \\\\")
+      tex.cprint(12, errMessage)
+      tex.print("\\\\ on \\ConTeXt\\ line number \\the\\inputlineno")      
     end
+    tex.print("\\hairline")
   end
 end
 
