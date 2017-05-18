@@ -31,33 +31,40 @@ Note that you can not use \type{"} in the \type{\startTestSuite} or
 
 \startLuaCode
 
+local function initSuite()
+  local curSuite = {}
+  curSuite.passed = true
+  curSuite.cases  = {}
+  return curSuite
+end
+
 function contests.startTestSuite(aDesc)
-  tests.curSuite       = {}
-  tests.curSuite.cases = {}
-  tests.curSuite.desc  = aDesc
+  tests.curSuite      = initSuite()
+  tests.curSuite.desc = aDesc
 end
 
 function contests.collectTestSuite()
   table_insert(tests.suites, tests.curSuite)
-  tests.curSuite = {}
+  tests.curSuite = initSuite()
 end
 
 function contests.startTestCase(aDesc)
   local suite       = tests.curSuite
   suite.curCase     = {}
   local curCase     = suite.curCase
+  curCase.passed    = true
   curCase.desc      = aDesc
   curCase.fileName  = status.filename
   curCase.startLine = status.linenumber
 end
 
 function contests.collectTestCase()
-  local suite      = tests.curSuite
-  local curCase    = suite.curCase
+  local curSuite   = tests.curSuite
+  local curCase    = curSuite.curCase
   curCase.lastLine = status.linenumber
-  contests.runCurLuaTestCase(curCase)
-  table_insert(suite.cases, curCase)
-  suite.curCase    = {}
+  contests.runCurLuaTestCase(curSuite, curCase)
+  table_insert(curSuite.cases, curCase)
+  curSuite.curCase = {}
 end
 
 \stopLuaCode

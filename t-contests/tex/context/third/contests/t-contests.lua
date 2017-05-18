@@ -41,33 +41,40 @@ local pp = require('pl/pretty')
 local table_insert = table.insert
 local table_concat = table.concat
 
+local function initSuite()
+  local curSuite = {}
+  curSuite.passed = true
+  curSuite.cases  = {}
+  return curSuite
+end
+
 function contests.startTestSuite(aDesc)
-  tests.curSuite       = {}
-  tests.curSuite.cases = {}
-  tests.curSuite.desc  = aDesc
+  tests.curSuite      = initSuite()
+  tests.curSuite.desc = aDesc
 end
 
 function contests.collectTestSuite()
   table_insert(tests.suites, tests.curSuite)
-  tests.curSuite = {}
+  tests.curSuite = initSuite()
 end
 
 function contests.startTestCase(aDesc)
   local suite       = tests.curSuite
   suite.curCase     = {}
   local curCase     = suite.curCase
+  curCase.passed    = true
   curCase.desc      = aDesc
   curCase.fileName  = status.filename
   curCase.startLine = status.linenumber
 end
 
 function contests.collectTestCase()
-  local suite      = tests.curSuite
-  local curCase    = suite.curCase
+  local curSuite   = tests.curSuite
+  local curCase    = curSuite.curCase
   curCase.lastLine = status.linenumber
-  contests.runCurLuaTestCase(curCase)
-  table_insert(suite.cases, curCase)
-  suite.curCase    = {}
+  contests.runCurLuaTestCase(curSuite, curCase)
+  table_insert(curSuite.cases, curCase)
+  curSuite.curCase = {}
 end
 
 local fmt   = string.format
@@ -81,7 +88,8 @@ function contests.addLuaTest(bufferName)
   table_insert(case.lua, bufferContents)
 end
 
-function contests.runCurLuaTestCase(case)
+function contests.runCurLuaTestCase(suite, case)
+  case.passed = case.passed or true
   local luaChunk = table_concat(case.lua, '\n')
   if not luaChunk:match('^%s*$') then
     local caseStats = tests.stats.lua.cases
@@ -91,7 +99,7 @@ function contests.runCurLuaTestCase(case)
     ]=]..luaChunk..[=[
     return true
     ]=]
-    tex.print("\\starttextrule{Test Case}")
+    tex.print("\\starttextrule{Lua Test Case}")
     local luaFunc, errMessage = load(luaChunk)
     if luaFunc then
       local ok, errObj = pcall(luaFunc)
@@ -99,6 +107,8 @@ function contests.runCurLuaTestCase(case)
         caseStats.passed = caseStats.passed + 1
         tex.print("\\noindent{\\green PASSED}")
       else
+        case.passed  = false
+        suite.passed = false
         caseStats.failed = caseStats.failed + 1
         tex.print("\\noindent{\\red FAILED}: ")
         tex.print(case.desc.."\\\\")
@@ -107,6 +117,8 @@ function contests.runCurLuaTestCase(case)
           case.fileName, toStr(case.startLine), toStr(case.lastLine)))
       end
     else
+      case.passed  = false
+      suite.passed = false
       caseStats.failed = caseStats.failed + 1
       tex.print("\\noindent{\\red FAILED TO COMPILE}: \\\\")
       tex.cprint(12, errMessage)
@@ -141,7 +153,10 @@ function contests.reportStats(statsType)
 end
 
 function reportLuaAssertion(theCondition, aMessage, theReason)
-  -- we do not need to do anything unless theCondition if false!
+  local assertionStats = tests.stats.lua.assertions
+  assertionStats.attempted = assertionStats.attempted + 1
+  --
+  -- we do not need to do anything unless theCondition is false!
   if not theCondition then
     local test     = { }
     test.message   = aMessage
@@ -149,8 +164,10 @@ function reportLuaAssertion(theCondition, aMessage, theReason)
     test.condition = theCondition
     local info     = debug.getinfo(2,'l')
     test.line      = info.currentline
+    assertionStats.failed = assertionStats.failed + 1
     error(test, 0) -- throw an error to be captured by an error_handler
   end
+  assertionStats.passed = assertionStats.passed + 1
 end
 
 function assert.throwsError(aFunction, aMessage, ...)
