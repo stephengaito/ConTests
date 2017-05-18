@@ -2,6 +2,13 @@
 
 \startchapter[title=Conclusions]
 
+We temporarily make the \type{\createCHeaderFile}, \type{\createCCodeFile} 
+and \type{\createCTestFile} macros \type{\relax}. 
+
+\def\createCHeaderFile[#1]{\relax}
+\def\createCCodeFile[#1]{\relax}
+\def\createCTestFile[#1]{\relax}
+
 \startMkIVCode
 
 \protect \endinput
@@ -16,6 +23,12 @@
 \createMkIVFile[../../../../../build/t-contests.mkiv]
 
 \createLuaFile[../../../../../build/t-contests.lua]
+
+\createCHeaderFile[../../../../../build/cTests.h]
+
+\createCCodeFile[../../../../../build/cTests.c]
+
+\createCTestFile[../../../../../build/allCTests.c]
 
 \createTemplateFile[../../../../../build/t-contests-templates.lua]
 

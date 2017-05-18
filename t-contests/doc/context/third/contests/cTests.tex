@@ -1,15 +1,52 @@
 % A ConTeXt document [master document: contests.tex]
 
-\startchapter[title=C Tests]
+\startchapter[title=C Unit Testing]
 
 We will eventually include a collection of C unit tests.
 
+\definetyping[CHeader]
+\definetyping[CCode]
+
+\startMkIVCode
+
+\usemodule[high-cpp]
+
+\definetyping[CTest]
+\setuptyping[CTest][option=cpp]
+
+\let\oldStopCTest=\stopCTest
+\def\stopCTest{%
+  \oldStopCTest%
+  \directlua{thirddata.contests.addCTest('_typing_')}
+}
+
+\def\createCTestFile[#1]{%
+  \relax
+}
+
+\stopMkIVCode
+
 \startLuaCode
 
-function contests.collectCTest()
-
+function contests.addCTest(bufferName)
+  local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
+  local suite = tests.curSuite
+  local case  = suite.curCase
+  case.ansiC  = case.ansiC or {}
+  table_insert(case.ansiC, bufferContents)
 end
 
 \stopLuaCode
+
+\section[title=Assertions]
+
+\startTestSuite[assert_throwsError]
+
+\startCHeader
+  // what do we do here?
+
+\stopCHeader
+
+\stopTestSuite
 
 \stopchapter
