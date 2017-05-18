@@ -19,6 +19,11 @@ interface. We tailor these ideas for use \emph{inside} \ConTeXt.
   \directlua{thirddata.contests.addLuaTest('_typing_')}
 }
 
+\def\reportLuaStats{%
+  \directlua{thirddata.contests.reportStats('lua')}
+}
+
+
 \stopMkIVCode
 
 We provide local names for both \type{string.format} and \type{tostring}. 
@@ -45,17 +50,22 @@ end
 function contests.runCurLuaTestCase(case)
   local luaChunk = table_concat(case.lua, '\n')
   if not luaChunk:match('^%s*$') then
+    local caseStats = tests.stats.lua.cases
+    caseStats.attempted = caseStats.attempted + 1  
     luaChunk = [=[
     local assert = thirddata.contests.assert
     ]=]..luaChunk..[=[
     return true
     ]=]
+    tex.print("\\starttextrule{Test Case}")
     local luaFunc, errMessage = load(luaChunk)
     if luaFunc then
       local ok, errObj = pcall(luaFunc)
       if ok then
+        caseStats.passed = caseStats.passed + 1
         tex.print("\\noindent{\\green PASSED}")
       else
+        caseStats.failed = caseStats.failed + 1
         tex.print("\\noindent{\\red FAILED}: ")
         tex.print(case.desc.."\\\\")
         tex.cprint(12, toStr(errObj.reason))
@@ -63,13 +73,37 @@ function contests.runCurLuaTestCase(case)
           case.fileName, toStr(case.startLine), toStr(case.lastLine)))
       end
     else
+      caseStats.failed = caseStats.failed + 1
       tex.print("\\noindent{\\red FAILED TO COMPILE}: \\\\")
       tex.cprint(12, errMessage)
       tex.print(fmt("\\\\ in file: %s between lines %s and %s",
         case.fileName, toStr(case.startLine), toStr(case.lastLine)))
     end
-    tex.print("\\hairline")
+    tex.print("\\stoptextrule")
   end
+end
+
+function contests.reportStats(statsType)
+  local stats = tests.stats[statsType]
+  local rows = { 'cases', 'assertions' }
+  local cols = { 'attempted', 'passed', 'failed' }
+  local colCol = { '', '\\green', '\\red'}
+  tex.print("\\placetable[force,none]{}{%")
+  tex.print("\\starttabulate[|r|c|c|c|]\\HL\\NC")
+  for j, col in ipairs(cols) do
+    tex.print("\\NC "..colCol[j]..' '..col)
+  end
+  tex.print("\\NR\\HL")
+  for i, row in ipairs(rows) do
+    tex.print("\\NC "..row)
+    for j, col in ipairs(cols) do
+      tex.print("\\NC "..colCol[j]..' '..tostring(stats[row][col]))
+    end
+    tex.print("\\NR")
+  end
+  tex.print("\\HL\\stoptabulate")
+  tex.print("}")
+  --tex.cprint(12, pp.write(tests.stats[statsType]))
 end
 
 \stopLuaCode
@@ -1833,5 +1867,8 @@ ANSI-C.
 
 \stopTestSuite
 
+\section{Test case results}
+
+\reportLuaStats
 
 \stopchapter

@@ -80,6 +80,25 @@ tests.suites    = {}
 contests.assert = {}
 local assert    = contests.assert
 
+local function initRawStats()
+  local raw = {}
+  raw.attempted = 0
+  raw.failed    = 0
+  raw.passed    = 0
+  return raw
+end
+
+local function initStats()
+  local stats = {}
+  stats.assertions = initRawStats()
+  stats.cases      = initRawStats()
+  stats.suites     = initRawStats()
+  return stats
+end
+
+tests.stats     = {}
+tests.stats.lua = initStats()
+
 local pp = require('pl/pretty')
 local table_insert = table.insert
 local table_concat = table.concat
