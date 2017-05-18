@@ -34,17 +34,25 @@ function contests.collectTestSuite()
 end
 
 function contests.startTestCase(aDesc)
-  local suite = tests.curSuite
-  suite.curCase = {}
-  suite.curCase.desc = aDesc
+  local suite       = tests.curSuite
+  suite.curCase     = {}
+  local curCase     = suite.curCase
+  curCase.desc      = aDesc
+  curCase.fileName  = status.filename
+  curCase.startLine = status.linenumber
 end
 
 function contests.collectTestCase()
-  local suite = tests.curSuite
-  contests.runCurLuaTestCase(suite.curCase)
-  table_insert(suite.cases, suite.curCase)
-  suite.curCase = {}
+  local suite      = tests.curSuite
+  local curCase    = suite.curCase
+  curCase.lastLine = status.linenumber
+  contests.runCurLuaTestCase(curCase)
+  table_insert(suite.cases, curCase)
+  suite.curCase    = {}
 end
+
+local fmt   = string.format
+local toStr = tostring
 
 function contests.addLuaTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
@@ -68,14 +76,17 @@ function contests.runCurLuaTestCase(case)
       if ok then
         tex.print("\\noindent{\\green PASSED}")
       else
-        tex.print("\\noindent{\\red FAILED}: \\\\")
-        tex.cprint(12, pp.write(errObj))
-        tex.print("\\\\ on \\ConTeXt\\ line number \\the\\inputlineno")
+        tex.print("\\noindent{\\red FAILED}: ")
+        tex.print(case.desc.."\\\\")
+        tex.cprint(12, toStr(errObj.reason))
+        tex.print(fmt("\\\\ in file: %s between lines %s and %s",
+          case.fileName, toStr(case.startLine), toStr(case.lastLine)))
       end
     else
       tex.print("\\noindent{\\red FAILED TO COMPILE}: \\\\")
       tex.cprint(12, errMessage)
-      tex.print("\\\\ on \\ConTeXt\\ line number \\the\\inputlineno")      
+      tex.print(fmt("\\\\ in file: %s between lines %s and %s",
+        case.fileName, toStr(case.startLine), toStr(case.lastLine)))
     end
     tex.print("\\hairline")
   end
@@ -93,9 +104,6 @@ function reportLuaAssertion(theCondition, aMessage, theReason)
     error(test, 0) -- throw an error to be captured by an error_handler
   end
 end
-
-local fmt   = string.format
-local toStr = tostring
 
 function assert.throwsError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
@@ -323,7 +331,7 @@ end
 
 function assert.hasKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
-    anObj[aKey] ~= nil,
+    type(anObj) == 'table' and anObj[aKey] ~= nil,
     aMessage,
     fmt("Expected %s to have the key %s.",
       toStr(anObj), toStr(aKey))
@@ -332,7 +340,7 @@ end
 
 function assert.doesNotHaveKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
-    anObj[aKey] == nil,
+    type(anObj) == 'table' and anObj[aKey] == nil,
     aMessage,
     fmt("Expected %s to not have the key %s.",
       toStr(anObj), toStr(aKey))
@@ -363,25 +371,9 @@ function assert.isNotFunction(anObj, aMessage)
   )
 end
 
-function assert.isUserData(anObj, aMessage)
-  return reportLuaAssertion(
-    type(anObj) == 'userdata',
-    aMessage,
-    fmt("Expected %s to be user data.", toStr(anObj))
-  )
-end
-
-function assert.isNotUserData(anObj, aMessage)
-  return reportLuaAssertion(
-    type(anObj) ~= 'userdata',
-    aMessage,
-    fmt("Expected %s to not be user data.", toStr(anObj))
-  )
-end
-
 function assert.hasMetaTable(anObj, aMessage)
   return reportLuaAssertion(
-    getMetaTable(anObj) ~= nil,
+    getmetatable(anObj) ~= nil,
     aMessage,
     fmt("Expected %s to have a meta table.", toStr(anObj))
   )
@@ -389,7 +381,7 @@ end
 
 function assert.metaTableEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
-    getMetaTable(anObj) == aMetaTable,
+    getmetatable(anObj) == aMetaTable,
     aMessage,
     fmt("Expected %s to have the meta table %s.",
       toStr(anObj), toStr(aMetaTable))
@@ -398,16 +390,16 @@ end
 
 function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
-    getMetaTable(anObj) ~= aMetaTable,
+    getmetatable(anObj) ~= aMetaTable,
     aMessage,
     fmt("Expected %s to not have the meta table %s.",
       toStr(anObj), toStr(aMetaTable))
   )
 end
 
-function assert.hasMetaTable(anObj, aMessage)
+function assert.doesNotHaveMetaTable(anObj, aMessage)
   return reportLuaAssertion(
-    getMetaTable(anObj) == nil,
+    getmetatable(anObj) == nil,
     aMessage,
     fmt("Expected %s to not have a meta table.", toStr(anObj))
   )
@@ -426,6 +418,22 @@ function assert.isNotThread(anObj, aMessage)
     type(anObj) ~= 'thread',
     aMessage,
     fmt("Expected %s to not be a thread.", toStr(anObj))
+  )
+end
+
+function assert.isUserData(anObj, aMessage)
+  return reportLuaAssertion(
+    type(anObj) == 'userdata',
+    aMessage,
+    fmt("Expected %s to be user data.", toStr(anObj))
+  )
+end
+
+function assert.isNotUserData(anObj, aMessage)
+  return reportLuaAssertion(
+    type(anObj) ~= 'userdata',
+    aMessage,
+    fmt("Expected %s to not be user data.", toStr(anObj))
   )
 end
 

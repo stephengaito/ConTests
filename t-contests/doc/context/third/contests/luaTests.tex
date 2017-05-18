@@ -21,6 +21,17 @@ interface. We tailor these ideas for use \emph{inside} \ConTeXt.
 
 \stopMkIVCode
 
+We provide local names for both \type{string.format} and \type{tostring}. 
+We will make extensive use of both of these functions, in the next 
+section, to format the reason each assertion fails. We defined these both 
+now since we also make use of them to format the error messages returned 
+by \type{runCurLuaTestCase}. 
+
+\startLuaCode
+local fmt   = string.format
+local toStr = tostring
+\stopLuaCode
+
 \startLuaCode
 
 function contests.addLuaTest(bufferName)
@@ -42,9 +53,22 @@ function contests.runCurLuaTestCase(case)
     local luaFunc, errMessage = load(luaChunk)
     if luaFunc then
       local ok, errObj = pcall(luaFunc)
+      if ok then
+        tex.print("\\noindent{\\green PASSED}")
+      else
+        tex.print("\\noindent{\\red FAILED}: ")
+        tex.print(case.desc.."\\\\")
+        tex.cprint(12, toStr(errObj.reason))
+        tex.print(fmt("\\\\ in file: %s between lines %s and %s",
+          case.fileName, toStr(case.startLine), toStr(case.lastLine)))
+      end
     else
-      -- what should we do here?
+      tex.print("\\noindent{\\red FAILED TO COMPILE}: \\\\")
+      tex.cprint(12, errMessage)
+      tex.print(fmt("\\\\ in file: %s between lines %s and %s",
+        case.fileName, toStr(case.startLine), toStr(case.lastLine)))
     end
+    tex.print("\\hairline")
   end
 end
 
@@ -73,17 +97,6 @@ function reportLuaAssertion(theCondition, aMessage, theReason)
     error(test, 0) -- throw an error to be captured by an error_handler
   end
 end
-\stopLuaCode
-
-Since all of the assertions will use the standard lua \type{string.format} 
-function to format the various reasons using information specific to each 
-assertion, we make \type{string.format} local with a shorter name. For 
-efficiency we also make the lua global \type{tostring} a local with the 
-shorter name \type{toStr}. 
-
-\startLuaCode
-local fmt   = string.format
-local toStr = tostring
 \stopLuaCode
 
 Having defined both the \type{reportLuaAssertion} and the \type{fmt} 
@@ -227,7 +240,7 @@ by the \type{assert.throwsNoError} function. Note that the
 \startLuaTest
   assert.throwsError(assert.throwsNoError, "", function()
     error("this 'inner-most' function throws an error!")
-  )
+  end)
 \stopLuaTest
 \stopTestCase
 
@@ -527,12 +540,15 @@ end
 
 \startTestCase[should succeed if the two objects are equal]
 
-We test various pairs of objects to show that they are equal.
+We test various pairs of objects to show that they are equal. Note that, 
+unlike lua strings, lua tables are compared using memory pointers rather 
+than recursive comparison. 
 
 \startLuaTest
   assert.isEqual(true, true)
   assert.isEqual("aString", "aString")
-  assert.isEqual({ "aTable" }, { "aTable" })
+  local aTable = { "aTable" }
+  assert.isEqual(aTable, aTable)
   assert.isEqual(42, (40+2))
 \stopLuaTest
 \stopTestCase
@@ -764,7 +780,7 @@ We start by considering pairs for which \type{objA} is greater than
 \startLuaTest
   assert.isGT(42, 41)
   assert.isGT(0.3, 0.2)
-  assert.isGt(5, -3)
+  assert.isGT(5, -3)
 \stopLuaTest
 
 We now consider pairs for which \type{objA} is less than or equal to 
@@ -1528,7 +1544,7 @@ class level methods for any object with a given meta-table.
 \startLuaCode
 function assert.hasMetaTable(anObj, aMessage)
   return reportLuaAssertion(
-    getMetaTable(anObj) ~= nil,
+    getmetatable(anObj) ~= nil,
     aMessage,
     fmt("Expected %s to have a meta table.", toStr(anObj))
   )
@@ -1604,7 +1620,7 @@ meta-table is not equal to the one provided.
 \startLuaCode
 function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
-    getMetaTable(anObj) ~= aMetaTable,
+    getmetatable(anObj) ~= aMetaTable,
     aMessage,
     fmt("Expected %s to not have the meta table %s.",
       toStr(anObj), toStr(aMetaTable))
@@ -1642,7 +1658,7 @@ does not have a meta-table.
 \startLuaCode
 function assert.doesNotHaveMetaTable(anObj, aMessage)
   return reportLuaAssertion(
-    getMetaTable(anObj) == nil,
+    getmetatable(anObj) == nil,
     aMessage,
     fmt("Expected %s to not have a meta table.", toStr(anObj))
   )
@@ -1781,6 +1797,7 @@ We test various objects which are not \quote{userData}.
 
 \stopTestSuite
 
+\godown[2ex]
 The \type{assert.isNotUserData} assertion confirms that an object is not a 
 lua \quote{userData}. 
 
@@ -1808,6 +1825,7 @@ We test various objects which are not \quote{userData}.
 \stopLuaTest
 \stopTestCase
 
+\godown[2ex]
 Note that at the moment we do not provide any \quote{failure} tests for 
 the \type{assert.isNotUserData} assertion, since we would need to compile 
 and link an shared library written in some non-lua language such as 

@@ -43,16 +43,21 @@ function contests.collectTestSuite()
 end
 
 function contests.startTestCase(aDesc)
-  local suite = tests.curSuite
-  suite.curCase = {}
-  suite.curCase.desc = aDesc
+  local suite       = tests.curSuite
+  suite.curCase     = {}
+  local curCase     = suite.curCase
+  curCase.desc      = aDesc
+  curCase.fileName  = status.filename
+  curCase.startLine = status.linenumber
 end
 
 function contests.collectTestCase()
-  local suite = tests.curSuite
-  contests.runCurLuaTestCase(suite.curCase)
-  table_insert(suite.cases, suite.curCase)
-  suite.curCase = {}
+  local suite      = tests.curSuite
+  local curCase    = suite.curCase
+  curCase.lastLine = status.linenumber
+  contests.runCurLuaTestCase(curCase)
+  table_insert(suite.cases, curCase)
+  suite.curCase    = {}
 end
 
 \stopLuaCode
