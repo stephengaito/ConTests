@@ -58,7 +58,6 @@ function contests.runCurLuaTestCase(suite, case)
     ]=]..luaChunk..[=[
     return true
     ]=]
-    tex.print("\\starttextrule{Lua Test Case}")
     local luaFunc, errMessage = load(luaChunk)
     if luaFunc then
       local ok, errObj = pcall(luaFunc)
@@ -69,46 +68,35 @@ function contests.runCurLuaTestCase(suite, case)
         case.passed  = false
         suite.passed = false
         caseStats.failed = caseStats.failed + 1
-        tex.print("\\noindent{\\red FAILED}: ")
-        tex.print(case.desc.."\\\\")
-        tex.cprint(12, toStr(errObj.reason))
-        tex.print(fmt("\\\\ in file: %s between lines %s and %s",
-          case.fileName, toStr(case.startLine), toStr(case.lastLine)))
+        local failure = logFailure(
+          "FAILED",
+          suite.desc,
+          case.desc,
+          errObj.message,
+          toStr(errObj.reason),
+          fmt("in file: %s between lines %s and %s",
+            case.fileName, toStr(case.startLine), toStr(case.lastLine))
+        )
+        reportFailure(failure, false)
+        table_insert(tests.failures, failure)
       end
     else
       case.passed  = false
       suite.passed = false
       caseStats.failed = caseStats.failed + 1
-      tex.print("\\noindent{\\red FAILED TO COMPILE}: \\\\")
-      tex.cprint(12, errMessage)
-      tex.print(fmt("\\\\ in file: %s between lines %s and %s",
-        case.fileName, toStr(case.startLine), toStr(case.lastLine)))
+      local failure = logFailure(
+        "FAILED TO COMPILE",
+        suite.desc,
+        case.desc,
+        "",
+        errMessage,
+        fmt("in file: %s between lines %s and %s",
+          case.fileName, toStr(case.startLine), toStr(case.lastLine))
+      )
+      reportFailure(failure, false)
+      table_insert(tests.failures, failure)
     end
-    tex.print("\\stoptextrule")
   end
-end
-
-function contests.reportStats(statsType)
-  local stats = tests.stats[statsType]
-  local rows = { 'cases', 'assertions' }
-  local cols = { 'attempted', 'passed', 'failed' }
-  local colCol = { '', '\\green', '\\red'}
-  tex.print("\\placetable[force,none]{}{%")
-  tex.print("\\starttabulate[|r|c|c|c|]\\HL\\NC")
-  for j, col in ipairs(cols) do
-    tex.print("\\NC "..colCol[j]..' '..col)
-  end
-  tex.print("\\NR\\HL")
-  for i, row in ipairs(rows) do
-    tex.print("\\NC "..row)
-    for j, col in ipairs(cols) do
-      tex.print("\\NC "..colCol[j]..' '..tostring(stats[row][col]))
-    end
-    tex.print("\\NR")
-  end
-  tex.print("\\HL\\stoptabulate")
-  tex.print("}")
-  --tex.cprint(12, pp.write(tests.stats[statsType]))
 end
 
 \stopLuaCode
@@ -232,7 +220,6 @@ function() end
 \stopTestCase
 
 \stopTestSuite
-
 
 \startTestSuite[assert.throwsNoError]
 
@@ -564,6 +551,8 @@ We test \type{nil}.
 \startLuaTest
   assert.throwsError(assert.isNotNil, "", nil)
 \stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isEqual]
@@ -671,7 +660,7 @@ and \type{numB} are two numbers which are not closer than
 
 \stopTestSuite
 
-\startTestSuite[assert_isNotEqual]
+\startTestSuite[assert.isNotEqual]
 
 The \type{assert.isNotEqual} assertion tests two lua objects to confirm 
 that they are not equal (\type{~=}) as far as lua is concerned. 
@@ -759,6 +748,8 @@ We test using two numbers which are closer than \type{tolerance}.
   assert.throwsError(assert.isNotEqualWithIn, "", -41, -42, 2)
   assert.throwsError(assert.isNotEqualWithIn, "", 0.5, 0.4, 0.3)
 \stopLuaTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assert.isNumber]
@@ -1077,7 +1068,7 @@ function assert.isString(anObj, aMessage)
 end
 \stopLuaCode
 
-\startTestCase[should succeeed if the object is a string]
+\startTestCase[should succeed if the object is a string]
 
 We test using various strings.
 
@@ -1109,9 +1100,9 @@ tools.
 function assert.matches(anObj, aPattern, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'string' and type(aPattern) == 'string' 
-    and anObj:matches(aPattern),
+    and anObj:match(aPattern),
     aMessage,
-    ftm("Expected [%s] to match [%s].",
+    fmt("Expected [%s] to match [%s].",
       toStr(anObj), toStr(aPattern))
   )
 end
@@ -1122,8 +1113,8 @@ end
 We use various strings which match the provided patterns. 
 
 \startLuaTest
-  assert.matches("this is a test", "test")
-  assert.matches("this is a test", "[ ]*")
+  assert.matches("this is a test", "test", "pat:test")
+  assert.matches("this is a test", "[ ]*", "pat:[ ]*")
 \stopLuaTest
 \stopTestCase
 
@@ -1138,7 +1129,7 @@ We test using objects which are not strings.
 \stopLuaTest
 \stopTestCase
 
-\startTestCase[should faile if the string does not match the pattern]
+\startTestCase[should fail if the string does not match the pattern]
 
 We test using a string which does not match the pattern.
 
@@ -1159,7 +1150,7 @@ or pattern are not strings, or that the object does not match the pattern.
 function assert.doesNotMatch(anObj, aPattern, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'string' or type(aPattern) ~= 'string' 
-    or not anObj:matches(aPattern),
+    or not anObj:match(aPattern),
     aMessage,
     fmt("Expected [%s] to not match [%s].",
       toStr(anObj), toStr(aPattern))
@@ -1178,18 +1169,17 @@ We use various strings which do not match the associated pattern.
 \stopLuaTest
 \stopTestCase
 
-\startTestCase[should fail if either the object or pattern are not strings]
+\startTestCase[should succeed if either the object or pattern are not strings]
 
 We consider the case where either the object or pattern are not strings. 
 
 \startLuaTest
-  assert.throwsError(assert.doesNotMatch, "", 42, "[ ]")
-  assert.throwsError(assert.doesNotMatch, "",
-    "this is a test", 42)
+  assert.doesNotMatch(42, "[ ]")
+  assert.doesNotMatch("this is a test", 42)
 \stopLuaTest
 \stopTestCase
 
-\startTestCase[should fail if the string does not match the pattern]
+\startTestCase[should fail if the string does match the pattern]
 
 We consider the case where the string does match the pattern.
 
@@ -1666,7 +1656,7 @@ function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
     getmetatable(anObj) ~= aMetaTable,
     aMessage,
-    fmt("Expected %s to not have the meta table %s.",
+    fmt("Expected %s to not have the meta-table %s.",
       toStr(anObj), toStr(aMetaTable))
   )
 end
@@ -1880,5 +1870,7 @@ ANSI-C.
 \section{Test case results}
 
 \reportLuaStats
+
+\reportFailures
 
 \stopchapter

@@ -18,13 +18,18 @@ Note that you can not use \type{"} in the \type{\startTestSuite} or
 }
 
 \def\startTestCase[#1]{%
-  \startsubsubsection[title=Test Case: #1]
+  \starttextrule{Test case}
+  \noindent {\tfa #1} \godown[2ex]
   \directlua{thirddata.contests.startTestCase("#1")}
 }
 
 \def\stopTestCase{%
-  \stopsubsubsection%
   \directlua{thirddata.contests.collectTestCase()}
+  \stoptextrule%
+}
+
+\def\reportFailures{%
+  \directlua{thirddata.contests.reportFailures()}
 }
 
 \stopMkIVCode
@@ -65,6 +70,66 @@ function contests.collectTestCase()
   contests.runCurLuaTestCase(curSuite, curCase)
   table_insert(curSuite.cases, curCase)
   curSuite.curCase = {}
+end
+
+function contests.reportStats(statsType)
+  local stats = tests.stats[statsType]
+  local rows = { 'cases', 'assertions' }
+  local cols = { 'attempted', 'passed', 'failed' }
+  local colCol = { '', '\\green', '\\red'}
+  tex.print("\\placetable[force,none]{}{%")
+  tex.print("\\starttabulate[|r|c|c|c|]\\HL\\NC")
+  for j, col in ipairs(cols) do
+    tex.print("\\NC "..colCol[j]..' '..col)
+  end
+  tex.print("\\NR\\HL")
+  for i, row in ipairs(rows) do
+    tex.print("\\NC "..row)
+    for j, col in ipairs(cols) do
+      tex.print("\\NC "..colCol[j]..' '..tostring(stats[row][col]))
+    end
+    tex.print("\\NR")
+  end
+  tex.print("\\HL\\stoptabulate")
+  tex.print("}")
+end
+
+local function logFailure(reason, suiteDesc, caseDesc,
+                          testMsg, errMsg, fileInfo)
+  local failure = {}
+  failure.reason    = reason
+  failure.suiteDesc = suiteDesc
+  failure.caseDesc  = caseDesc
+  failure.testMsg   = testMsg
+  failure.errMsg    = errMsg
+  failure.fileInfo  = fileInfo
+  return failure
+end
+
+local function reportFailure(aFailure, fullReport)
+  tex.print("\\noindent{\\red "..aFailure.reason.."}:\\\\")
+  if fullReport then
+    tex.print(aFailure.suiteDesc.."\\\\")
+    tex.print(aFailure.caseDesc.."\\\\")
+  end
+  if aFailure.testMsg and 0 < #aFailure.testMsg then
+    tex.print(aFailure.testMsg)
+  end
+  tex.cprint(12, aFailure.errMsg)
+  tex.print("\\\\"..aFailure.fileInfo)
+end
+
+function contests.reportFailures()
+  if 0 < #tests.failures then
+    tex.print("\\startitemize ")
+    for i, aFailure in ipairs(tests.failures) do
+      tex.print("\\item ")
+      reportFailure(aFailure, true)
+    end
+    tex.print("\\stopitemize ")
+  else
+    tex.print("{\\green All test cases PASSED}")
+  end
 end
 
 \stopLuaCode

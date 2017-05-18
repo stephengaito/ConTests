@@ -61,13 +61,18 @@
 }
 
 \def\startTestCase[#1]{%
-  \startsubsubsection[title=Test Case: #1]
+  \starttextrule{Test case}
+  \noindent {\tfa #1} \godown[2ex]
   \directlua{thirddata.contests.startTestCase("#1")}
 }
 
 \def\stopTestCase{%
-  \stopsubsubsection%
   \directlua{thirddata.contests.collectTestCase()}
+  \stoptextrule%
+}
+
+\def\reportFailures{%
+  \directlua{thirddata.contests.reportFailures()}
 }
 
 \definetyping[LuaTest]

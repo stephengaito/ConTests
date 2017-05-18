@@ -15,6 +15,7 @@ local contests  = thirddata.contests
 contests.tests  = {}
 local tests     = contests.tests
 tests.suites    = {}
+tests.failures  = {}
 contests.assert = {}
 local assert    = contests.assert
 
@@ -77,6 +78,66 @@ function contests.collectTestCase()
   curSuite.curCase = {}
 end
 
+function contests.reportStats(statsType)
+  local stats = tests.stats[statsType]
+  local rows = { 'cases', 'assertions' }
+  local cols = { 'attempted', 'passed', 'failed' }
+  local colCol = { '', '\\green', '\\red'}
+  tex.print("\\placetable[force,none]{}{%")
+  tex.print("\\starttabulate[|r|c|c|c|]\\HL\\NC")
+  for j, col in ipairs(cols) do
+    tex.print("\\NC "..colCol[j]..' '..col)
+  end
+  tex.print("\\NR\\HL")
+  for i, row in ipairs(rows) do
+    tex.print("\\NC "..row)
+    for j, col in ipairs(cols) do
+      tex.print("\\NC "..colCol[j]..' '..tostring(stats[row][col]))
+    end
+    tex.print("\\NR")
+  end
+  tex.print("\\HL\\stoptabulate")
+  tex.print("}")
+end
+
+local function logFailure(reason, suiteDesc, caseDesc,
+                          testMsg, errMsg, fileInfo)
+  local failure = {}
+  failure.reason    = reason
+  failure.suiteDesc = suiteDesc
+  failure.caseDesc  = caseDesc
+  failure.testMsg   = testMsg
+  failure.errMsg    = errMsg
+  failure.fileInfo  = fileInfo
+  return failure
+end
+
+local function reportFailure(aFailure, fullReport)
+  tex.print("\\noindent{\\red "..aFailure.reason.."}:\\\\")
+  if fullReport then
+    tex.print(aFailure.suiteDesc.."\\\\")
+    tex.print(aFailure.caseDesc.."\\\\")
+  end
+  if aFailure.testMsg and 0 < #aFailure.testMsg then
+    tex.print(aFailure.testMsg)
+  end
+  tex.cprint(12, aFailure.errMsg)
+  tex.print("\\\\"..aFailure.fileInfo)
+end
+
+function contests.reportFailures()
+  if 0 < #tests.failures then
+    tex.print("\\startitemize ")
+    for i, aFailure in ipairs(tests.failures) do
+      tex.print("\\item ")
+      reportFailure(aFailure, true)
+    end
+    tex.print("\\stopitemize ")
+  else
+    tex.print("{\\green All test cases PASSED}")
+  end
+end
+
 local fmt   = string.format
 local toStr = tostring
 
@@ -99,7 +160,6 @@ function contests.runCurLuaTestCase(suite, case)
     ]=]..luaChunk..[=[
     return true
     ]=]
-    tex.print("\\starttextrule{Lua Test Case}")
     local luaFunc, errMessage = load(luaChunk)
     if luaFunc then
       local ok, errObj = pcall(luaFunc)
@@ -110,46 +170,35 @@ function contests.runCurLuaTestCase(suite, case)
         case.passed  = false
         suite.passed = false
         caseStats.failed = caseStats.failed + 1
-        tex.print("\\noindent{\\red FAILED}: ")
-        tex.print(case.desc.."\\\\")
-        tex.cprint(12, toStr(errObj.reason))
-        tex.print(fmt("\\\\ in file: %s between lines %s and %s",
-          case.fileName, toStr(case.startLine), toStr(case.lastLine)))
+        local failure = logFailure(
+          "FAILED",
+          suite.desc,
+          case.desc,
+          errObj.message,
+          toStr(errObj.reason),
+          fmt("in file: %s between lines %s and %s",
+            case.fileName, toStr(case.startLine), toStr(case.lastLine))
+        )
+        reportFailure(failure, false)
+        table_insert(tests.failures, failure)
       end
     else
       case.passed  = false
       suite.passed = false
       caseStats.failed = caseStats.failed + 1
-      tex.print("\\noindent{\\red FAILED TO COMPILE}: \\\\")
-      tex.cprint(12, errMessage)
-      tex.print(fmt("\\\\ in file: %s between lines %s and %s",
-        case.fileName, toStr(case.startLine), toStr(case.lastLine)))
+      local failure = logFailure(
+        "FAILED TO COMPILE",
+        suite.desc,
+        case.desc,
+        "",
+        errMessage,
+        fmt("in file: %s between lines %s and %s",
+          case.fileName, toStr(case.startLine), toStr(case.lastLine))
+      )
+      reportFailure(failure, false)
+      table_insert(tests.failures, failure)
     end
-    tex.print("\\stoptextrule")
   end
-end
-
-function contests.reportStats(statsType)
-  local stats = tests.stats[statsType]
-  local rows = { 'cases', 'assertions' }
-  local cols = { 'attempted', 'passed', 'failed' }
-  local colCol = { '', '\\green', '\\red'}
-  tex.print("\\placetable[force,none]{}{%")
-  tex.print("\\starttabulate[|r|c|c|c|]\\HL\\NC")
-  for j, col in ipairs(cols) do
-    tex.print("\\NC "..colCol[j]..' '..col)
-  end
-  tex.print("\\NR\\HL")
-  for i, row in ipairs(rows) do
-    tex.print("\\NC "..row)
-    for j, col in ipairs(cols) do
-      tex.print("\\NC "..colCol[j]..' '..tostring(stats[row][col]))
-    end
-    tex.print("\\NR")
-  end
-  tex.print("\\HL\\stoptabulate")
-  tex.print("}")
-  --tex.cprint(12, pp.write(tests.stats[statsType]))
 end
 
 function reportLuaAssertion(theCondition, aMessage, theReason)
@@ -343,9 +392,9 @@ end
 function assert.matches(anObj, aPattern, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'string' and type(aPattern) == 'string'
-    and anObj:matches(aPattern),
+    and anObj:match(aPattern),
     aMessage,
-    ftm("Expected [%s] to match [%s].",
+    fmt("Expected [%s] to match [%s].",
       toStr(anObj), toStr(aPattern))
   )
 end
@@ -353,7 +402,7 @@ end
 function assert.doesNotMatch(anObj, aPattern, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'string' or type(aPattern) ~= 'string'
-    or not anObj:matches(aPattern),
+    or not anObj:match(aPattern),
     aMessage,
     fmt("Expected [%s] to not match [%s].",
       toStr(anObj), toStr(aPattern))
@@ -457,7 +506,7 @@ function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
     getmetatable(anObj) ~= aMetaTable,
     aMessage,
-    fmt("Expected %s to not have the meta table %s.",
+    fmt("Expected %s to not have the meta-table %s.",
       toStr(anObj), toStr(aMetaTable))
   )
 end
