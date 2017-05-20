@@ -38,9 +38,48 @@ end
 
 \stopLuaCode
 
+\startCHeader
+
+typedef struct TestCase_struc TestCase;
+
+typedef void (*TestCaseFunc)(TestCase*);
+
+struct TestCase_struc {
+  char*         desc;
+  TestCaseFunc  testCaseFunc;
+  int           failed;
+  const char*   message;
+  jmp_buf      *jumpBuf;
+};
+
+\stopCHeader
+
+\startCCode
+
+void TestCaseRun(TestCase *tc) {
+  jmp_buf jumpBuf;
+  tc->jumpBuf = &jumpBuf;
+  (tc->testCaseFunc)(tc);
+  tc->jumpBuf = 0;
+}
+
+static void CTFailLongJump(TestCase *tc,
+                           const char* fileName,
+                           int lineNum,
+                           const char* message) {
+  // do something with the fileName, lineNum and message
+  // tc->message = something
+  //
+  // Now do a long jump back to the TestCaseFunc
+  //
+  if (tc->jumpBuf) longjump(*(tc->jumpBuf), 0);
+}
+
+\stopCCode
+
 \section[title=Assertions]
 
-\startTestSuite[assert_throwsError]
+\startTestSuite[assertFail]
 
 \startCHeader
   // what do we do here?
@@ -48,5 +87,67 @@ end
 \stopCHeader
 
 \stopTestSuite
+
+\startTestSuite[assertIntTrue]
+\startCHeader
+  // what do we do here?
+
+\stopCHeader
+
+\stopTestSuite
+
+\startTestSuite[assertIntFalse]
+
+\stopTestSuite
+
+\startTestSuite[assertIntEquals]
+
+\stopTestSuite
+
+\startTestSuite[assertIntNotEquals]
+
+\stopTestSuite
+
+\startTestSuite[assertPrtNull]
+
+\stopTestSuite
+
+\startTestSuite[assertPtrNotNull]
+
+\stopTestSuite
+
+\startTestSuite[assertPtrEquals]
+
+\stopTestSuite
+
+\startTestSuite[assertPtrNotEquals]
+
+\stopTestSuite
+
+\startTestSuite[assertStrEmpty]
+
+\stopTestSuite
+
+\startTestSuite[assertStrNotEmpty]
+
+\stopTestSuite
+
+\startTestSuite[assertStrEquals]
+
+\stopTestSuite
+
+\startTestSuite[assertStrNotEquals]
+
+\stopTestSuite
+
+\startTestSuite[assertDblEquals]
+
+\stopTestSuite
+
+\startTestSuite[assertDblNotEqals]
+
+\stopTestSuite
+
+\startTestSuite[assert]
 
 \stopchapter
