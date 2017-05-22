@@ -4,4 +4,21 @@
 
 We will eventually include MkIV unit testing.
 
+\definetyping[ConTest]
+
+\section[title=Assertions]
+
+As with the implementation of both the LuaTests and CTests, the heart of 
+the ConTests is the ability to throw and capture errors. In this case it 
+will be \TeX\ errors, when run, a TestCase will capture all \TeX\ errors 
+and provide a report of where those errors happened. 
+
+\startTestSuite[assertThrowsError]
+
+\stopTestSuite
+
+\startTestSuite[assertDoesNotThrowError]
+
+\stopTestSuite
+
 \stopchapter
