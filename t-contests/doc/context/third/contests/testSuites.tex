@@ -75,8 +75,11 @@ end
 function contests.reportStats(statsType)
   local stats = tests.stats[statsType]
   local rows = { 'cases', 'assertions' }
-  local cols = { 'attempted', 'passed', 'failed' }
-  local colCol = { '', '\\green', '\\red'}
+  local cols =
+    { 'attempted', 'passed', 'failed' }
+  local colCol = { '', '\\green', '\\red' }
+  stats.assertions.unexpected =
+    stats.assertions.failed - stats.assertions.expected
   tex.print("\\placetable[force,none]{}{%")
   tex.print("\\starttabulate[|r|c|c|c|]\\HL\\NC")
   for j, col in ipairs(cols) do

@@ -83,9 +83,11 @@ local assert    = contests.assert
 
 local function initRawStats()
   local raw = {}
-  raw.attempted = 0
-  raw.failed    = 0
-  raw.passed    = 0
+  raw.attempted  = 0
+  raw.passed     = 0
+  raw.failed     = 0
+  raw.expected   = 0
+  raw.unexpected = 0
   return raw
 end
 
@@ -97,8 +99,9 @@ local function initStats()
   return stats
 end
 
-tests.stats     = {}
-tests.stats.lua = initStats()
+tests.stats      = {}
+tests.stats.mkiv = initStats()
+tests.stats.lua  = initStats()
 
 local pp = require('pl/pretty')
 local table_insert = table.insert

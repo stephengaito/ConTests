@@ -88,4 +88,19 @@
   \directlua{thirddata.contests.reportStats('lua')}
 }
 
+\usemodule[high-cpp]
+
+\definetyping[CTest]
+\setuptyping[CTest][option=cpp]
+
+\let\oldStopCTest=\stopCTest
+\def\stopCTest{%
+  \oldStopCTest%
+  \directlua{thirddata.contests.addCTest('_typing_')}
+}
+
+\def\createCTestFile[#1]{%
+  \relax
+}
+
 \protect \endinput

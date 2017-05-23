@@ -156,6 +156,13 @@ assertion, then any error that this function throws will be thrown
 \startLuaCode
 function assert.throwsError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
+  if not ok and type(err) == 'table' and err.reason ~= nil then 
+    -- this is an expected error which has already been counted...
+    -- so reduce the number of failures and attempts...
+    local assertions = tests.stats.lua.assertions
+    assertions.failed    = assertions.failed    - 1
+    assertions.attempted = assertions.attempted - 1
+  end
   return reportLuaAssertion(
     not ok,
     aMessage,
@@ -174,21 +181,18 @@ throws an error then the assertion succeeds.
 Note that the function being tested: 
 
 \starttyping[option=lua]
-function()
-  error("this 'inner' function throws an error!")
+  assert.fail
 end
 \stoptyping
 
-\noindent does \emph{not} accept any arguments. However it is important to 
-notice that it is the \emph{function} that is being passed into the 
-\type{assert.throwsError} and not the \emph{value} of calling this 
-function. The actual function call is delayed and happens \emph{inside} 
-the assertion. 
+\noindent does \emph{not} need to accept any arguments. However it is 
+important to notice that it is the \emph{function} that is being passed 
+into the \type{assert.throwsError} and not the \emph{value} of calling 
+this function. The actual function call is delayed and happens 
+\emph{inside} the assertion. 
 
 \startLuaTest
-  assert.throwsError(function()
-    error("this 'inner' function throws an error!")
-  end)
+  assert.throwsError(assert.fail)
 \stopLuaTest
 \stopTestCase
 
@@ -205,7 +209,7 @@ argument to the \quote{inner} \type{assert.throwsError} function which is
 the \quote{null-function}: 
 
 \starttyping[option=lua]
-function() end
+  assert.succeed
 \stoptyping
 
 \noindent We do this to ensure that the \quote{outer} 
@@ -214,7 +218,7 @@ function() end
 \quote{inner} nested function itself throws no error. 
 
 \startLuaTest
-  assert.throwsError(assert.throwsError, "", function() end)
+  assert.throwsError(assert.throwsError, "", assert.succeed)
 \stopLuaTest
 \stopTestCase
 
@@ -236,6 +240,13 @@ to be tested.
 \startLuaCode
 function assert.throwsNoError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
+  if not ok and type(err) == 'table' and err.reason ~= nil then
+    -- this is an unexpected error which has already been counted...
+    -- so reduce the number of failures and attempts...
+    local assertions = tests.stats.lua.assertions
+    assertions.failed    = assertions.failed    - 1
+    assertions.attempted = assertions.attempted - 1
+  end
   return reportLuaAssertion(
     ok,
     aMessage,
@@ -253,7 +264,7 @@ In this test case, we pass in a function which throws no error and expect
 the assertion to succeed. 
 
 \startLuaTest
-  assert.throwsNoError(function() end)
+  assert.throwsNoError(assert.succeed)
 \stopLuaTest
 \stopTestCase
 
@@ -268,9 +279,7 @@ by the \type{assert.throwsNoError} function. Note that the
 \quote{inner-most} function \emph{does} throw an error. 
 
 \startLuaTest
-  assert.throwsError(assert.throwsNoError, "", function()
-    error("this 'inner-most' function throws an error!")
-  end)
+  assert.throwsError(assert.throwsNoError, "", assert.fail)
 \stopLuaTest
 \stopTestCase
 
@@ -299,6 +308,31 @@ There is only one test case, this assertion should always fail.
 
 \startLuaTest
   assert.throwsError(assert.fail, "")
+\stopLuaTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[assert.succeed]
+
+The \type{assert.succeed} assertion always succeeds.
+
+\startLuaCode
+function assert.succeed(aMessage)
+  return reportLuaAssertion(
+    true,
+    aMessage,
+    "(Succeed)"
+  )
+end
+\stopLuaCode
+
+\startTestCase[should always succeed]
+
+There is only one test case, this assertion should always succeed. 
+
+\startLuaTest
+  assert.throwsNoError(assert.succeed, "")
 \stopLuaTest
 \stopTestCase
 

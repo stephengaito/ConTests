@@ -21,9 +21,11 @@ local assert    = contests.assert
 
 local function initRawStats()
   local raw = {}
-  raw.attempted = 0
-  raw.failed    = 0
-  raw.passed    = 0
+  raw.attempted  = 0
+  raw.passed     = 0
+  raw.failed     = 0
+  raw.expected   = 0
+  raw.unexpected = 0
   return raw
 end
 
@@ -35,8 +37,9 @@ local function initStats()
   return stats
 end
 
-tests.stats     = {}
-tests.stats.lua = initStats()
+tests.stats      = {}
+tests.stats.mkiv = initStats()
+tests.stats.lua  = initStats()
 
 local pp = require('pl/pretty')
 local table_insert = table.insert
@@ -81,8 +84,11 @@ end
 function contests.reportStats(statsType)
   local stats = tests.stats[statsType]
   local rows = { 'cases', 'assertions' }
-  local cols = { 'attempted', 'passed', 'failed' }
-  local colCol = { '', '\\green', '\\red'}
+  local cols =
+    { 'attempted', 'passed', 'failed' }
+  local colCol = { '', '\\green', '\\red' }
+  stats.assertions.unexpected =
+    stats.assertions.failed - stats.assertions.expected
   tex.print("\\placetable[force,none]{}{%")
   tex.print("\\starttabulate[|r|c|c|c|]\\HL\\NC")
   for j, col in ipairs(cols) do
@@ -221,6 +227,13 @@ end
 
 function assert.throwsError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
+  if not ok and type(err) == 'table' and err.reason ~= nil then
+    -- this is an expected error which has already been counted...
+    -- so reduce the number of failures and attempts...
+    local assertions = tests.stats.lua.assertions
+    assertions.failed    = assertions.failed    - 1
+    assertions.attempted = assertions.attempted - 1
+  end
   return reportLuaAssertion(
     not ok,
     aMessage,
@@ -230,6 +243,13 @@ end
 
 function assert.throwsNoError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
+  if not ok and type(err) == 'table' and err.reason ~= nil then
+    -- this is an unexpected error which has already been counted...
+    -- so reduce the number of failures and attempts...
+    local assertions = tests.stats.lua.assertions
+    assertions.failed    = assertions.failed    - 1
+    assertions.attempted = assertions.attempted - 1
+  end
   return reportLuaAssertion(
     ok,
     aMessage,
@@ -243,6 +263,14 @@ function assert.fail(aMessage)
     false,
     aMessage,
     "(Failed)"
+  )
+end
+
+function assert.succeed(aMessage)
+  return reportLuaAssertion(
+    true,
+    aMessage,
+    "(Succeed)"
   )
 end
 
@@ -549,6 +577,14 @@ function assert.isNotUserData(anObj, aMessage)
     aMessage,
     fmt("Expected %s to not be user data.", toStr(anObj))
   )
+end
+
+function contests.addCTest(bufferName)
+  local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
+  local suite = tests.curSuite
+  local case  = suite.curCase
+  case.ansiC  = case.ansiC or {}
+  table_insert(case.ansiC, bufferContents)
 end
 
 function contests.collectCTest()
