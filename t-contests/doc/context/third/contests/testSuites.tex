@@ -14,7 +14,7 @@ Note that you can not use \type{"} in the \type{\startTestSuite} or
 
 \def\stopTestSuite{%
   \stopsubsection%
-  \directlua{thirddata.contests.collectTestSuite()}
+  \directlua{thirddata.contests.stopTestSuite()}
 }
 
 \def\startTestCase[#1]{%
@@ -24,7 +24,7 @@ Note that you can not use \type{"} in the \type{\startTestSuite} or
 }
 
 \def\stopTestCase{%
-  \directlua{thirddata.contests.collectTestCase()}
+  \directlua{thirddata.contests.stopTestCase()}
   \stoptextrule%
 }
 
@@ -48,7 +48,7 @@ function contests.startTestSuite(aDesc)
   tests.curSuite.desc = aDesc
 end
 
-function contests.collectTestSuite()
+function contests.stopTestSuite()
   table_insert(tests.suites, tests.curSuite)
   tests.curSuite = initSuite()
 end
@@ -61,9 +61,11 @@ function contests.startTestCase(aDesc)
   curCase.desc      = aDesc
   curCase.fileName  = status.filename
   curCase.startLine = status.linenumber
+  contests.startConTestTestCase()
 end
 
-function contests.collectTestCase()
+function contests.stopTestCase()
+  contests.stopConTestTestCase()
   local curSuite   = tests.curSuite
   local curCase    = curSuite.curCase
   curCase.lastLine = status.linenumber

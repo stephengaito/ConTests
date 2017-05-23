@@ -4,7 +4,62 @@
 
 We will eventually include MkIV unit testing.
 
-\definetyping[ConTest]
+\section[title=Test cases]
+
+\def\startConTest{\relax}
+\def\stopConTest{\relax}
+
+\startMkIVCode
+
+\def\startConTest{
+  \directlua{thirddata.contests.startConTests()}
+}
+
+\def\stopConTest{
+  \directlua{thriddata.contests.stopConTests()}
+}
+
+\stopMkIVCode
+
+\startLuaCode
+
+function contests.startConTestTestCase()
+  -- save logging....
+  -- turn logging to no-stop/batch
+end
+
+function contests.stopConTestTestCase()
+  -- turn logging back to original value
+end
+
+local function conTestShowErrorHook()
+  local stats = tests.stats.mkiv
+  if not stats.shouldFail then
+    -- curCase failed
+  end
+end
+
+function contests.preAssertConTest(shouldFail)
+  local stats = tests.stats.mkiv
+  stats.attempted = stats.attempted + 1
+  stats.shouldFail = shouldFail
+end
+
+function contests.postAssertConTest()
+  local stats = tests.stats.mkiv
+  stats.shouldFail = false
+end
+
+function contests.startConTests()
+  local id, err =
+    callback.register('show_error_hook', conTestShowErrorHook)
+end
+
+function contests.stopConTests()
+  local id, err = callback.register('show_error_hook', nil)
+end
+
+\stopLuaCode
 
 \section[title=Assertions]
 
