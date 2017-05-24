@@ -98,9 +98,13 @@ local function initStats()
   return stats
 end
 
-tests.stats      = {}
-tests.stats.mkiv = initStats()
-tests.stats.lua  = initStats()
+tests.stats          = {}
+tests.stats.mkiv     = initStats()
+local mkivStats      = tests.stats.mkiv
+local mkivAssertions = mkivStats.assertions
+tests.stats.lua      = initStats()
+local luaStats       = tests.stats.lua
+local luaAssertions  = luaStats.assertions
 
 local pp = require('pl/pretty')
 local table_insert = table.insert
