@@ -24,8 +24,6 @@ local function initRawStats()
   raw.attempted  = 0
   raw.passed     = 0
   raw.failed     = 0
-  raw.expected   = 0
-  raw.unexpected = 0
   return raw
 end
 
@@ -37,9 +35,13 @@ local function initStats()
   return stats
 end
 
-tests.stats      = {}
-tests.stats.mkiv = initStats()
-tests.stats.lua  = initStats()
+tests.stats          = {}
+tests.stats.mkiv     = initStats()
+local mkivStats      = tests.stats.mkiv
+local mkivAssertions = mkivStats.assertions
+tests.stats.lua      = initStats()
+local luaStats       = tests.stats.lua
+local luaAssertions  = luaStats.assertions
 
 local pp = require('pl/pretty')
 local table_insert = table.insert
@@ -57,7 +59,7 @@ function contests.startTestSuite(aDesc)
   tests.curSuite.desc = aDesc
 end
 
-function contests.collectTestSuite()
+function contests.stopTestSuite()
   table_insert(tests.suites, tests.curSuite)
   tests.curSuite = initSuite()
 end
@@ -72,13 +74,13 @@ function contests.startTestCase(aDesc)
   curCase.startLine = status.linenumber
 end
 
-function contests.collectTestCase()
+function contests.stopTestCase()
   local curSuite   = tests.curSuite
   local curCase    = curSuite.curCase
   curCase.lastLine = status.linenumber
+  contests.runCurMkIVTestCase(curSuite, curCase)
   contests.runCurLuaTestCase(curSuite, curCase)
   table_insert(curSuite.cases, curCase)
-  curSuite.curCase = {}
 end
 
 function contests.reportStats(statsType)
@@ -87,8 +89,6 @@ function contests.reportStats(statsType)
   local cols =
     { 'attempted', 'passed', 'failed' }
   local colCol = { '', '\\green', '\\red' }
-  stats.assertions.unexpected =
-    stats.assertions.failed - stats.assertions.expected
   tex.print("\\placetable[force,none]{}{%")
   tex.print("\\starttabulate[|r|c|c|c|]\\HL\\NC")
   for j, col in ipairs(cols) do
@@ -147,6 +147,139 @@ end
 local fmt   = string.format
 local toStr = tostring
 
+------------------
+-- ConTest code --
+------------------
+
+function contests.addConTest(bufferName)
+  local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
+  local suite = tests.curSuite
+  local case  = suite.curCase
+  case.mkiv   = case.mkiv or {}
+  table_insert(case.mkiv, bufferContents)
+end
+
+function contests.runCurMkIVTestCase(suite, case)
+  case.passed = case.passed or true
+  case.mkiv   = case.mkiv   or { }
+  local mkivChunk = table_concat(case.mkiv, '\n')
+  if not mkivChunk:match('^%s*$') then
+    local caseStats = tests.stats.mkiv.cases
+    caseStats.attempted = caseStats.attempted + 1
+    tex.print("\\directlua{thirddata.contests.startConTestImplementation()}")
+    for i, aChunk in ipairs(case.mkiv) do
+      for aLine in string.gmatch(aChunk, '[^\n]*') do
+        if 0 < #aLine then
+          tex.print(aLine)
+        end
+      end
+    end
+    tex.print("\\directlua{thirddata.contests.stopConTestImplementation()}")
+  end
+end
+
+local function conTestShowErrorHook()
+  --tests.curSuite.curCase.caughtError = true
+  --texio.write_nl('================================================================')
+  --texio.write_nl("Caught error")
+  --texio.write_nl(status.lasterrorstring)
+  --texio.write_nl(status.lasterrorcontext)
+  --texio.write_nl('================================================================')
+end
+
+function contests.startConTestImplementation()
+  --tests.curSuite.curCase.caughtError = false
+  -- save logging.... -- alas we can not ;-(
+  -- turn logging to no-stop/batch
+  --callback.register('show_error_hook', conTestShowErrorHook)
+end
+
+function contests.stopConTestImplementation()
+  --callback.register('show_error_hook', nil)
+  -- turn logging back to original value
+  local curCase  = tests.curSuite.curCase
+  local caseStats = mkivStats.cases
+  if curCase.passed then
+    caseStats.passed = caseStats.passed + 1
+  else
+    caseStats.failed = caseStats.failed + 1
+  end
+end
+
+function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
+  local curSuite  = tests.curSuite
+  local curCase   = curSuite.curCase
+  mkivAssertions.attempted = mkivAssertions.attempted + 1
+
+  if type(curCase.shouldFail) == 'table'  then
+    local shouldFail = curCase.shouldFail
+    local innerMessage = aMessage
+    local innerReason  = theReason
+    theReason = nil
+    theCondition = not theCondition
+    if theReason ~= nil
+      and shouldFail.messagePattern ~= nil
+      and type(shouldFail.messagePattern) == 'string'
+      and 0 < #shouldFail.messagePattern
+      and aMessage:match(shouldFail.messagePattern) then
+      -- do nothing
+    else
+      theReason = fmt('Expected inner message [%s] to match [%s]',
+        innerMessage, shouldFail.messagePattern)
+    end
+    if theReason ~= nil
+      and shouldFail.reasonPattern ~= nil
+      and type(shouldFail.reasonPattern) == 'string'
+      and 0 < #shouldFail.reasonPattern
+      and theReason:match(shouldFail.reasonPattern) then
+      -- do nothing
+    else
+      theReason = fmt('Expected inner failure reason [%s] to match [%s]',
+        innerReason, shouldFail.reasonPattern)
+    end
+    if theReason ~= nil then
+      theReason = 'Expected inner assertion ['..aMessage..'] to fail'
+    end
+    aMessage  = shouldFail.message
+    curCase.shouldFail = nil
+  end
+
+  if theCondition then
+    mkivAssertions.passed = mkivAssertions.passed + 1
+  else
+    curSuite.passed = false
+    curCase.passed  = false
+    mkivAssertions.failed = mkivAssertions.failed + 1
+    local failure = logFailure(
+      "ConTest FAILED",
+      curSuite.desc,
+      curCase.desc,
+      aMessage,
+      theReason,
+      fmt("in file: %s between lines %s and %s",
+        curCase.fileName,
+        toStr(curCase.startLine),
+        toStr(curCase.lastLine)
+      )
+    )
+    reportFailure(failure, false)
+    table_insert(tests.failures, failure)
+  end
+end
+
+function contests.mkivAssertShouldFail(messagePattern, reasonPattern, aMessage)
+  local curCase = tests.curSuite.curCase
+  curCase.shouldFail = { }
+  local shouldFail = curCase.shouldFail
+  shouldFail.messagePattern = messagePattern
+  shouldFail.reasonPattern  = reasonPattern
+  shouldFail.message        = aMessage
+end
+
+------------------
+-- LuaTest code --
+------------------
+
 function contests.addLuaTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
   local suite = tests.curSuite
@@ -157,6 +290,7 @@ end
 
 function contests.runCurLuaTestCase(suite, case)
   case.passed = case.passed or true
+  case.lua    = case.lua    or { }
   local luaChunk = table_concat(case.lua, '\n')
   if not luaChunk:match('^%s*$') then
     local caseStats = tests.stats.lua.cases
@@ -177,7 +311,7 @@ function contests.runCurLuaTestCase(suite, case)
         suite.passed = false
         caseStats.failed = caseStats.failed + 1
         local failure = logFailure(
-          "FAILED",
+          "LuaTest FAILED",
           suite.desc,
           case.desc,
           errObj.message,
@@ -193,7 +327,7 @@ function contests.runCurLuaTestCase(suite, case)
       suite.passed = false
       caseStats.failed = caseStats.failed + 1
       local failure = logFailure(
-        "FAILED TO COMPILE",
+        "LuaTest FAILED TO COMPILE",
         suite.desc,
         case.desc,
         "",

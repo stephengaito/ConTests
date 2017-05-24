@@ -67,9 +67,9 @@ function contests.stopTestCase()
   local curSuite   = tests.curSuite
   local curCase    = curSuite.curCase
   curCase.lastLine = status.linenumber
+  contests.runCurMkIVTestCase(curSuite, curCase)
   contests.runCurLuaTestCase(curSuite, curCase)
   table_insert(curSuite.cases, curCase)
-  curSuite.curCase = {}
 end
 
 function contests.reportStats(statsType)
@@ -78,8 +78,6 @@ function contests.reportStats(statsType)
   local cols =
     { 'attempted', 'passed', 'failed' }
   local colCol = { '', '\\green', '\\red' }
-  stats.assertions.unexpected =
-    stats.assertions.failed - stats.assertions.expected
   tex.print("\\placetable[force,none]{}{%")
   tex.print("\\starttabulate[|r|c|c|c|]\\HL\\NC")
   for j, col in ipairs(cols) do
@@ -134,6 +132,9 @@ function contests.reportFailures()
     tex.print("{\\green All test cases PASSED}")
   end
 end
+
+local fmt   = string.format
+local toStr = tostring
 
 \stopLuaCode
 

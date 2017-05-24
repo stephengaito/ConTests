@@ -9,6 +9,9 @@ interface. We tailor these ideas for use \emph{inside} \ConTeXt.
 \section[title=Test cases]
 
 \startMkIVCode
+%%%%%%%%%%%%%%%%
+% LuaTest code %
+%%%%%%%%%%%%%%%%
 
 \definetyping[LuaTest]
 \setuptyping[LuaTest][option=lua]
@@ -32,11 +35,9 @@ now since we also make use of them to format the error messages returned
 by \type{runCurLuaTestCase}. 
 
 \startLuaCode
-local fmt   = string.format
-local toStr = tostring
-\stopLuaCode
-
-\startLuaCode
+------------------
+-- LuaTest code --
+------------------
 
 function contests.addLuaTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
@@ -48,6 +49,7 @@ end
 
 function contests.runCurLuaTestCase(suite, case)
   case.passed = case.passed or true
+  case.lua    = case.lua    or { }  
   local luaChunk = table_concat(case.lua, '\n')
   if not luaChunk:match('^%s*$') then
     local caseStats = tests.stats.lua.cases

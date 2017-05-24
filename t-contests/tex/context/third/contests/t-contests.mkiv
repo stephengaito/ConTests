@@ -57,7 +57,7 @@
 
 \def\stopTestSuite{%
   \stopsubsection%
-  \directlua{thirddata.contests.collectTestSuite()}
+  \directlua{thirddata.contests.stopTestSuite()}
 }
 
 \def\startTestCase[#1]{%
@@ -67,13 +67,88 @@
 }
 
 \def\stopTestCase{%
-  \directlua{thirddata.contests.collectTestCase()}
+  \directlua{thirddata.contests.stopTestCase()}
   \stoptextrule%
 }
 
 \def\reportFailures{%
   \directlua{thirddata.contests.reportFailures()}
 }
+
+%%%%%%%%%%%%%%%%
+% ConTest code %
+%%%%%%%%%%%%%%%%
+
+\definetyping[ConTest]
+\setuptyping[ConTest][option=context]
+
+\let\oldStopConTest=\stopConTest
+\def\stopConTest{%
+  \oldStopConTest%
+  \directlua{thirddata.contests.addConTest('_typing_')}
+}
+
+\def\reportMkIVStats{%
+  \directlua{thirddata.contests.reportStats('mkiv')}
+}
+
+\def\assertionFailed#1#2{%
+  \directlua{thirddata.contests.reportMkIVAssertion(false, '#1', '#2')}
+}
+
+\def\assertionSucceeded#1{%
+  \directlua{thirddata.contests.reportMkIVAssertion(true, '#1', '')}
+}
+
+\def\startAssertShouldFail#1#2#3{%
+  \directlua{thirddata.contests.mkivAssertShouldFail('#1', '#2', '#3')}
+}
+
+\def\stopAssertShouldFail{\relax}
+
+\def\assertFail#1{\assertionFailed{#1}{(Failed)}}
+
+\def\assertSucceed#1{\assertionSucceeded{#1}}
+
+\def\assertDefined#1#2{%
+  \expandafter\ifx\csname#1\endcsname\relax%
+    \assertionFailed{#2}{Expected #1 to be defined}%
+  \else%
+    \assertionSucceeded{#2}{}%
+  \fi
+}
+
+\def\assertNotDefined#1#2{%
+  \expandafter\ifx\csname#1\endcsname\relax%
+    \assertionSucceeded{#2}%
+  \else%
+    \assertionFailed{#2}{Expected #1 to not be defined}%
+  \fi
+}
+
+\def\assertStringMatches#1#2#3{%
+  \directlua{
+    thirddata.contests.reportMkIVAssertions(
+      string.match('#1','#2'),
+      '#3',
+      'Expected [#1] to match [#2]'
+    )
+  }
+}
+
+\def\assertStringMatches#1#2#3{%
+  \directlua{
+    thirddata.contests.reportMkIVAssertions(
+      not string.match('#1','#2'),
+      '#3',
+      'Expected [#1] to not match [#2]'
+    )
+  }
+}
+
+%%%%%%%%%%%%%%%%
+% LuaTest code %
+%%%%%%%%%%%%%%%%
 
 \definetyping[LuaTest]
 \setuptyping[LuaTest][option=lua]
