@@ -23,45 +23,73 @@ We will eventually include MkIV unit testing.
 
 \startLuaCode
 
-function contests.startConTestTestCase()
-  -- save logging.... -- alas we can not ;-(
-  -- turn logging to no-stop/batch
-end
-
-function contests.stopConTestTestCase()
-  -- turn logging back to original value
-end
-
 local function conTestShowErrorHook()
-  if not mkivAssertions.shouldFail then
-    mkivAssertions.failed = mkivAssertions.failed + 1
-    local curCase = tests.curSuite.curCase
-    curCase.failed = true
-    
-  end
-end
-
-function contests.preAssertConTest(shouldFail)
-  mkivAssertions.attempted  = mkivAssertions.attempted + 1
-  mkivAssertions.shouldFail = shouldFail
-end
-
-function contests.postAssertConTest()
-  mkivAssertions.shouldFail = false
+  tests.curSuite.curCase.caughtError = true
+  texio.write_nl("Caught error")
 end
 
 function contests.startConTests()
-  local id, err =
-    callback.register('show_error_hook', conTestShowErrorHook)
+  tests.curSuite.curCase.caughtError = false
+  -- save logging.... -- alas we can not ;-(
+  -- turn logging to no-stop/batch
+  callback.register('show_error_hook', conTestShowErrorHook)
 end
 
 function contests.stopConTests()
-  local id, err = callback.register('show_error_hook', nil)
+  callback.register('show_error_hook', nil)
+  -- turn logging back to original value
 end
 
 \stopLuaCode
 
 \section[title=Assertions]
+
+We start by defining two helper functions to declare (to the lua code) 
+that an assertion together with its message and reason (for failure) has 
+either failed or succeeded. 
+
+\startMkIVCode
+\def\assertionFailed#1#2{%
+  \directlua{thirddata.contests.reportMkIVAssertion(false, '#1', '#2')}
+}
+
+\def\assertionSucceeded#1{%
+  \directlua{thirddata.contests.reportMkIVAssertion(true, '#1', '')}
+}
+\stopMkIVCode
+
+\startLuaCode
+function contests.reportMkIVAssertions(thCondition, aMessage, theReason)
+  local curSuite  = tests.curSuite
+  curSuite.passed = curSuite.passed or true
+  local curCase   = curSuite.curCase
+  curCase.passed  = curCase.passed or true
+  mkivAssertions.attempted = mkivAssertions.attempted + 1
+
+  if theCondition then
+    mkivAssertions.passed = mkivAssertions.passed + 1
+  else
+    curSuite.passed = false
+    curCase.passed  = false
+    mkivAssertions.failed = mkivAssertions.failed + 1
+    local failure = logFailue(
+      "ConTest FAILED",
+      curSuite.desc,
+      curCase.desc,
+      aMessage,
+      theReason,
+      fmt("in file: %s between lines %s and %s",
+        curCase.fileName,
+        toStr(curCase.startLine),
+        toStr(curCase.stopLine)
+      )
+    )
+    reportFailure(failure, false)
+    table_insert(tests.failure, failure)
+  end
+end
+
+\stopLuaCode
 
 As with the implementation of both the LuaTests and CTests, the heart of 
 the ConTests is the ability to throw and capture errors. In this case it 
@@ -71,18 +99,38 @@ and provide a report of where those errors happened.
 \startTestSuite[assertThrowsError environment]
 
 \startMkIVCode
-\def\startAssertThrowsError{%
-  \directlua{thirddata.contests.preAsserConTest(true)}
+\def\startAssertThrowsError#1{%
+  \def\startAssertionMessage{#1}
+  \directlua{thirddata.contests.tests.curSuite.curCase.caughtError = false}
 }
 
 \def\stopAssertThrowsError{%
-  \directlua{thirddata.contests.postAssertConTest()}
+  \directlua{thirddata.contests.reportMkIVAssertion(
+    thirddata.contests.tests.curSuite.curCase.caughtError,
+    '\startAssertionMessage',
+    'Expected an error to be thrown'
+  )}
 }
 \stopMkIVCode
 
 \stopTestSuite
 
 \startTestSuite[assertDoesNotThrowError]
+
+\startMkIVCode
+\def\startAssertDoesNotThrowError#1{%
+  \def\startAssertionMessage{#1}
+  \directlua{thirddata.contests.tests.curSuite.curCase.caughtError = false}
+}
+
+\def\stopAssertDoesNotThrowError{%
+  \directlua{thirddata.contests.reportMkIVAssertion(
+    not thirddata.contests.tests.curSuite.curCase.caughtError,
+    '\startAssertionMessage',
+    'Expected no error to be thrown'
+  )}
+}
+\stopMkIVCode
 
 \stopTestSuite
 
@@ -91,7 +139,7 @@ and provide a report of where those errors happened.
 The \type{\assertFail} assertion always fails.
 
 \startMkIVCode
-\def\assertFail#1{\errmessage{(Failure) #1}}
+\def\assertFail#1{\assertionFailed{#1}{(Failed)}}
 \stopMkIVCode
 
 \stopTestSuite
@@ -99,6 +147,10 @@ The \type{\assertFail} assertion always fails.
 \startTestSuite[assertSucceed]
 
 The \type{\assertSucceed} assertion always succeeds.
+
+\startMkIVCode
+\def\assertSucceed#1{\assertionSucceeded{#1}}
+\stopMkIVCode
 
 \stopTestSuite
 
@@ -121,12 +173,32 @@ is defined as a \TeX\ command.
 
 % See: 13.2.3 on page 141 of TeXbyTopic v1.4-2013
 
+\startMkIVCode
+\def\assertDefined#1#2{%
+  \expandafter\ifx\csname#1\endcsname\relax%
+    \assertionFailed{#2}{Expected #1 to be defined}%
+  \else%
+    \assertionSucceeded{#2}{}%
+  \fi
+}
+\stopMkIVCode
+
 \stopTestSuite
 
 \startTestSuite[assertNotDefined]
 
 The \type{\assertNotDefined} assertion confirms that the csname provided 
 is not defined as a \TeX\ command. 
+
+\startMkIVCode
+\def\assertNotDefined#1#2{%
+  \expandafter\ifx\csname#1\endcsname\relax%
+    \assertionSucceeded{#2}%
+  \else%
+    \assertionFailed{#2}{Expected #1 to not be defined}%
+  \fi
+}
+\stopMkIVCode
 
 \stopTestSuite
 
@@ -135,12 +207,36 @@ is not defined as a \TeX\ command.
 The \type{\assertStringMatches} assertion confirms that the fully expanded 
 result, taken as a lua string, matches the associated lua pattern match. 
 
+\startMkIVCode
+\def\assertStringMatches#1#2#3{%
+  \directlua{
+    thirddata.contests.reportMkIVAssertions(
+      string.match('#1','#2'),
+      '#3',
+      'Expected [#1] to match [#2]'
+    )
+  }
+}
+\stopMkIVCode
+
 \stopTestSuite
 
 \startTestSuite[assertStringDoesNotMatch]
 
 The \type{\assertStringDoesNotMatch} assertion confirms that the fully expanded 
 result, taken as a lua string, does not match the associated lua pattern match. 
+
+\startMkIVCode
+\def\assertStringMatches#1#2#3{%
+  \directlua{
+    thirddata.contests.reportMkIVAssertions(
+      not string.match('#1','#2'),
+      '#3',
+      'Expected [#1] to not match [#2]'
+    )
+  }
+}
+\stopMkIVCode
 
 \stopTestSuite
 

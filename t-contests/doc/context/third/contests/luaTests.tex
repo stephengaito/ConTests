@@ -68,7 +68,7 @@ function contests.runCurLuaTestCase(suite, case)
         suite.passed = false
         caseStats.failed = caseStats.failed + 1
         local failure = logFailure(
-          "FAILED",
+          "LuaTest FAILED",
           suite.desc,
           case.desc,
           errObj.message,
@@ -84,7 +84,7 @@ function contests.runCurLuaTestCase(suite, case)
       suite.passed = false
       caseStats.failed = caseStats.failed + 1
       local failure = logFailure(
-        "FAILED TO COMPILE",
+        "LuaTest FAILED TO COMPILE",
         suite.desc,
         case.desc,
         "",
