@@ -64,25 +64,11 @@ function contests.runCurMkIVTestCase(suite, case)
   end
 end
 
-local function conTestShowErrorHook()
-  --tests.curSuite.curCase.caughtError = true
-  --texio.write_nl('================================================================')
-  --texio.write_nl("Caught error")
-  --texio.write_nl(status.lasterrorstring)
-  --texio.write_nl(status.lasterrorcontext)
-  --texio.write_nl('================================================================')
-end
-
 function contests.startConTestImplementation()
-  --tests.curSuite.curCase.caughtError = false
-  -- save logging.... -- alas we can not ;-(
-  -- turn logging to no-stop/batch
-  --callback.register('show_error_hook', conTestShowErrorHook)
+  -- nothing to do at the moment
 end
 
 function contests.stopConTestImplementation()
-  --callback.register('show_error_hook', nil)
-  -- turn logging back to original value
   local curCase  = tests.curSuite.curCase
   local caseStats = mkivStats.cases
   if curCase.passed then
@@ -151,6 +137,7 @@ function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
 
   if theCondition then
     mkivAssertions.passed = mkivAssertions.passed + 1
+    tex.print("\\noindent{\\green PASSED}")
   else
     curSuite.passed = false
     curCase.passed  = false
@@ -172,95 +159,6 @@ function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
   end
 end
 \stopLuaCode
-
-As with the implementation of both the LuaTests and CTests, the heart of 
-the ConTests is the ability to throw and capture errors. In this case it 
-will be \TeX\ errors, when run, a TestCase will capture all \TeX\ errors 
-and provide a report of where those errors happened. 
-
-%\startTestSuite[assertThrowsError environment]
-%
-%\startMkIVCode
-%\def\startAssertThrowsError#1{%
-%  \def\startAssertionMessage{#1}
-%  \directlua{thirddata.contests.tests.curSuite.curCase.caughtError = false}
-%}
-%
-%\def\stopAssertThrowsError{%
-%  \directlua{thirddata.contests.reportMkIVAssertion(
-%    thirddata.contests.tests.curSuite.curCase.caughtError,
-%    '\startAssertionMessage',
-%    'Expected an error to be thrown'
-%  )}
-%}
-%\stopMkIVCode
-%
-%\startTestCase[should succeed if error thrown]
-%
-%We want to show that if a command throws a \TeX\ \type{\errmessage}, then 
-%the associated test case fails. 
-%
-%\startConTest
-%\startAssertThrowsError{A Message}
-%  \errmessage{Throw this message}
-%\stopAssertThrowsError
-%\stopConTest
-%\stopTestCase
-%
-%\startTestCase[should fail if no error thrown]
-%\startConTest
-%\startAssertShouldFail%
-%  {Inner message}{Expected an error to be thrown}{Outer message}
-%\startAssertThrowsError{Inner message}
-%No error is thrown
-%\stopAssertThrowsError
-%\stopAssertShouldFail
-%\stopConTest
-%\stopTestCase
-%
-%\stopTestSuite
-
-%\startTestSuite[assertDoesNotThrowError]
-%
-%\startMkIVCode
-%\def\startAssertDoesNotThrowError#1{%
-%  \def\startAssertionMessage{#1}
-%  \directlua{thirddata.contests.tests.curSuite.curCase.caughtError = false}
-%}
-%
-%\def\stopAssertDoesNotThrowError{%
-%  \directlua{thirddata.contests.reportMkIVAssertion(
-%    not thirddata.contests.tests.curSuite.curCase.caughtError,
-%    '\startAssertionMessage',
-%    'Expected no error to be thrown'
-%  )}
-%}
-%\stopMkIVCode
-%
-%\startTestCase[should succeed if no error thrown]
-%
-%\startConTest
-%\startAssertDoesNotThrowError{A message}
-%No error is thrown.
-%\stopAssertDoesNotThrowError
-%\stopConTest
-%
-%\stopTestCase
-%
-%\startTestCase[should fail if an error is thrown]
-%
-%\startConTest
-%\startAssertShouldFail%
-%  {Inner message}{Expected no error to be thrown}{Outer message}
-%\startAssertDoesNotThrowError{Inner message}
-%  \errmessage{Throw this error message}
-%\stopAssertDoesNotThrowError
-%\stopAssertShouldFail
-%\stopConTest
-%
-%\stopTestCase
-%
-%\stopTestSuite
 
 \startTestSuite[assertShouldFail environment]
 
@@ -459,7 +357,7 @@ result, taken as a lua string, matches the associated lua pattern match.
 \startMkIVCode
 \def\assertStringMatches#1#2#3{%
   \directlua{
-    thirddata.contests.reportMkIVAssertions(
+    thirddata.contests.reportMkIVAssertion(
       string.match('#1','#2'),
       '#3',
       'Expected [#1] to match [#2]'
@@ -471,16 +369,16 @@ result, taken as a lua string, matches the associated lua pattern match.
 \startTestCase[should succeed if a string matches]
 
 \startConTest
-%\assertStringMatches{a string}{string}
+\assertStringMatches{a string}{string}{A message}
 \stopConTest
 
 \stopTestCase
 
-\startTestCase[should fail is a string does not match]
+\startTestCase[should fail if a string does not match]
 
 \startConTest
 \startAssertShouldFail{}{}{}
-%\assertStringMatches{a string}{noMatch}
+\assertStringMatches{a string}{noMatch}{A message}
 \stopAssertShouldFail
 \stopConTest
 
@@ -494,9 +392,9 @@ The \type{\assertStringDoesNotMatch} assertion confirms that the fully expanded
 result, taken as a lua string, does not match the associated lua pattern match. 
 
 \startMkIVCode
-\def\assertStringMatches#1#2#3{%
+\def\assertStringDoesNotMatch#1#2#3{%
   \directlua{
-    thirddata.contests.reportMkIVAssertions(
+    thirddata.contests.reportMkIVAssertion(
       not string.match('#1','#2'),
       '#3',
       'Expected [#1] to not match [#2]'
@@ -508,7 +406,7 @@ result, taken as a lua string, does not match the associated lua pattern match.
 \startTestCase[should succeed if a string does not match ]
 
 \startConTest
-%\assertStringDoesNotMatch{a string}{noMatch}
+\assertStringDoesNotMatch{a string}{noMatch}{A message}
 \stopConTest
 
 \stopTestCase
@@ -517,11 +415,162 @@ result, taken as a lua string, does not match the associated lua pattern match.
 
 \startConTest
 \startAssertShouldFail{}{}{}
-%\assertStringDoesNotMatch{a string}{string}
+\assertStringDoesNotMatch{a string}{string}{A message}
 \stopAssertShouldFail
 \stopConTest
 
 \stopTestCase
+\stopTestSuite
+
+\startTestSuite[assertThrowsError environment]
+
+It might be useful to determine if some \ConTeXt\ code has thrown a \TeX\ 
+error. To do this the \type{assertThrowsError} environment needs to 
+capture all \TeX\ errors and provide a report of where those errors 
+happened. 
+
+While \LuaTeX\ does provide the ability to interact with the underlying 
+\TeX\ error reporting system, this interaction proves to have subtle 
+reprecussions for understanding general \TeX\ errors. So at the moment we 
+only sketch this code. 
+
+%\startMkIVCode
+\starttyping[option=context]
+\def\startAssertThrowsError#1{%
+  \def\startAssertionMessage{#1}
+  \directlua{thirddata.contests.startAssertThrowsError()}
+}
+
+\def\stopAssertThrowsError{%
+  \directlua{thirddata.contests.stopAssertThrowsError()}
+}
+\stoptyping
+%\stopMkIVCode
+
+%\startLuaCode
+\starttyping[option=lua]
+local function conTestShowErrorHook()
+  --tests.curSuite.curCase.caughtError = true
+  --texio.write_nl('==========================')
+  --texio.write_nl("Caught error")
+  --texio.write_nl(status.lasterrorstring)
+  --texio.write_nl(status.lasterrorcontext)
+  --texio.write_nl('==========================')
+end
+
+function contests.startAssertThrowsError()
+  tests.curSuite.curCase.caughtError = false
+  -- save logging.... -- alas we can not ;-(
+  -- turn logging to no-stop/batch
+  --callback.register('show_error_hook', conTestShowErrorHook)
+end
+
+function contests.stopAssertThrowsError()
+  --callback.register('show_error_hook', nil)
+  -- turn logging back to original value
+  contests.reportMkIVAssertion(
+    thirddata.contests.tests.curSuite.curCase.caughtError,
+    '\startAssertionMessage',
+    'Expected an error to be thrown'
+  )
+end
+
+\stoptyping
+%\stopLuaCode
+
+\startTestCase[should succeed if error thrown]
+
+We want to show that if a command throws a \TeX\ \type{\errmessage}, then 
+the associated test case fails. 
+
+%\startConTest
+\starttyping[option=context]
+\startAssertThrowsError{A Message}
+  \errmessage{Throw this message}
+\stopAssertThrowsError
+\stoptyping
+%\stopConTest
+\stopTestCase
+
+\startTestCase[should fail if no error thrown]
+
+%\startConTest
+\starttyping[option=context]
+\startAssertShouldFail%
+  {Inner message}{Expected an error to be thrown}{Outer message}
+\startAssertThrowsError{Inner message}
+No error is thrown
+\stopAssertThrowsError
+\stopAssertShouldFail
+\stoptyping
+%\stopConTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[assertDoesNotThrowError]
+
+%\startMkIVCode
+\starttyping[option=context]
+\def\startAssertDoesNotThrowError#1{%
+  \def\startAssertionMessage{#1}
+  \directlua{thirddata.contests.startAssertDoesNotThrowError()}
+}
+
+\def\stopAssertDoesNotThrowError{%
+  \directlua{thirddata.contests.stopAssertDoesNotThrowError()}
+}
+\stoptyping
+%\stopMkIVCode
+
+%\startLuaCode
+\starttyping[option=lua]
+function contests.startAssertDoesNotThrowError()
+  tests.curSuite.curCase.caughtError = false
+  -- save logging.... -- alas we can not ;-(
+  -- turn logging to no-stop/batch
+  --callback.register('show_error_hook', conTestShowErrorHook)
+end
+
+function contests.stopAssertDoesNotThrowError()
+  --callback.register('show_error_hook', nil)
+  -- turn logging back to original value
+  contests.reportMkIVAssertion(
+    not thirddata.contests.tests.curSuite.curCase.caughtError,
+    '\startAssertionMessage',
+    'Expected no error to be thrown'
+  )
+end
+
+\stoptyping
+%\stopLuaCode
+\startTestCase[should succeed if no error thrown]
+
+%\startConTest
+\starttyping[option=context]
+\startAssertDoesNotThrowError{A message}
+No error is thrown.
+\stopAssertDoesNotThrowError
+\stoptyping
+%\stopConTest
+
+\stopTestCase
+
+\startTestCase[should fail if an error is thrown]
+
+%\startConTest
+\starttyping[option=context]
+\startAssertShouldFail%
+  {Inner message}{Expected no error to be thrown}{Outer message}
+\startAssertDoesNotThrowError{Inner message}
+  \errmessage{Throw this error message}
+\stopAssertDoesNotThrowError
+\stopAssertShouldFail
+\stoptyping
+%\stopConTest
+
+\stopTestCase
+
 \stopTestSuite
 
 \section{Test case results}

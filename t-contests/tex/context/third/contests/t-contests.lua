@@ -178,25 +178,11 @@ function contests.runCurMkIVTestCase(suite, case)
   end
 end
 
-local function conTestShowErrorHook()
-  --tests.curSuite.curCase.caughtError = true
-  --texio.write_nl('================================================================')
-  --texio.write_nl("Caught error")
-  --texio.write_nl(status.lasterrorstring)
-  --texio.write_nl(status.lasterrorcontext)
-  --texio.write_nl('================================================================')
-end
-
 function contests.startConTestImplementation()
-  --tests.curSuite.curCase.caughtError = false
-  -- save logging.... -- alas we can not ;-(
-  -- turn logging to no-stop/batch
-  --callback.register('show_error_hook', conTestShowErrorHook)
+  -- nothing to do at the moment
 end
 
 function contests.stopConTestImplementation()
-  --callback.register('show_error_hook', nil)
-  -- turn logging back to original value
   local curCase  = tests.curSuite.curCase
   local caseStats = mkivStats.cases
   if curCase.passed then
@@ -246,6 +232,7 @@ function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
 
   if theCondition then
     mkivAssertions.passed = mkivAssertions.passed + 1
+    tex.print("\\noindent{\\green PASSED}")
   else
     curSuite.passed = false
     curCase.passed  = false

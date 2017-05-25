@@ -128,7 +128,7 @@
 
 \def\assertStringMatches#1#2#3{%
   \directlua{
-    thirddata.contests.reportMkIVAssertions(
+    thirddata.contests.reportMkIVAssertion(
       string.match('#1','#2'),
       '#3',
       'Expected [#1] to match [#2]'
@@ -136,9 +136,9 @@
   }
 }
 
-\def\assertStringMatches#1#2#3{%
+\def\assertStringDoesNotMatch#1#2#3{%
   \directlua{
-    thirddata.contests.reportMkIVAssertions(
+    thirddata.contests.reportMkIVAssertion(
       not string.match('#1','#2'),
       '#3',
       'Expected [#1] to not match [#2]'
