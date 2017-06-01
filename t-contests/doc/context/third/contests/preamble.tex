@@ -80,6 +80,8 @@ tests.suites    = {}
 tests.failures  = {}
 contests.assert = {}
 local assert    = contests.assert
+contests.mocks  = {}
+local mocks     = contests.mocks
 
 local function initRawStats()
   local raw = {}
@@ -108,6 +110,7 @@ local luaAssertions  = luaStats.assertions
 local pp = require('pl/pretty')
 local table_insert = table.insert
 local table_concat = table.concat
+local table_remove = table.remove
 
 \stopLuaCode
 

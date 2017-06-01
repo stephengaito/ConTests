@@ -422,6 +422,143 @@ result, taken as a lua string, does not match the associated lua pattern match.
 \stopTestCase
 \stopTestSuite
 
+\section[title=Mocking \ConTeXt]
+
+We sometimes need to assert that a given macro has been used with given 
+arguments. For example we might want to assert that a macro does or does 
+not \quote{throw} an \type{\errmessage}. Equally sometimes we need a given 
+macro to return a mock result for the overall \ConTeXt\ process to work. 
+We solve both of these use cases by making use of \TeX's 
+\type{\begingroup}, \type{\endgroup} environment to provide local 
+namespaces in which we can temporarily redefine a macro to ensure the 
+mocked macro interacts with the assertion system. 
+
+We begin by defining \type{\startMocking} and \type{\stopMocking} commands.
+
+\startMkIVCode
+\def\startMocking{%
+  \directlua{thirddata.contests.startMocking()}%
+  \begingroup%
+}
+\def\stopMocking{%
+  \endgroup%
+  \directlua{thirddata.contests.stopMocking()}
+}
+\stopMkIVCode
+
+There are two classes of macros to mock, those which use \quote{normal} 
+\TeX\ arguments delimited by \quote{\{} and \quote{\}}, and those which 
+use \ConTeXt\ \quote{variable} arguments delimited by \quote{\[} and 
+\quote{\]}. 
+
+We begin by defining the \TeX\ argument pattern first. At the moment, to 
+do this we define four separate macros corresponding to the calling 
+pattern of zero, one, two, and three required arguments. These macros come 
+in pairs, a \quote{define} and a \quote{call} variant. The first argument 
+of all variants is the name of the macro to mock. The second argument for 
+all of the \quote{define} macros, is the result that should be returned on 
+the next use of the macro. Any subsequent arguments for the \quote{call} 
+variants are the collection of required arguments. 
+
+\startMkIVCode
+\def\defTexMockZero#1#2{%
+  \directlua{thirddata.contests.defMock('#1', '#2')}%
+  \setvalue{#1}{%
+    \directlua{%
+      thirddata.contests.callMock('#1', { }, 'tex')
+    }
+  }
+}
+
+\def\defTexMockOne#1#2{%
+  \directlua{thirddata.contests.defMock('#1', '#2')}%
+  \setvalue{#1}#2{%
+    \directlua{%
+      thirddata.contests.callMock('#1', { '#2' }, 'tex')
+    }
+  }
+}
+
+\def\defTexMockTwo#1#2{%
+  \directlua{thirddata.contests.defMock('#1', '#2')}%
+  \setvalue{#1}#2#3{%
+    \directlua{%
+      thirddata.contests.callMock('#1', { '#2', '#3' }, 'tex')
+    }
+  }
+}
+
+\def\defTexMockThree#1#2{%
+  \directlua{thriddata.contests.defMock('#1', '#2')}
+  \setvalue{#1}#2#3#4{%
+    \directlua{%
+      thirddata.contests.callMock('#1', { '#2', '#3', '#4' }, 'tex')
+    }
+  }
+}
+\stopMkIVCode
+
+We now define the \ConTeXt\ argument (\quote{optional}) calling patterns. 
+
+\startMkIVCode
+\def\defContextMock#1#2{%
+  \directlua{thirddata.contests.defMock('#1', '#2')}
+  \setuvalue{#1}{%
+    \dotripleempty\getvalue{#1Direct}%
+  }
+  \setuvalue{#1Direct}{%
+    \ifthirdargument%
+      \expandafter\getvalue{#1Triple}
+    \else\ifsecondargument%
+      \expandafter\getvalue{#1Double}
+    \else\iffirstargument%
+      \expandafter\getvalue{#1Single}
+    \else%
+      \expandafter\getvalue{#1None}
+    \fi\fi\fi%
+  }
+  \setuvalue{#1Triple}[#3][#4][#5]{
+    \directlua{%
+      thirddata.contests.callMock('#1', { '#3', '#4', '#5' }, 'context')
+    }
+  }
+  \setuvalue{#1Double}[#3][#4]{
+    \directlua{%
+      thirddata.contests.callMock('#1', { '#3', '#3' }, 'context')
+    }
+  }
+  \setuvalue{#1Single}[#3]{
+    \directlua{%
+      thirddata.contests.callMock('#1', { '#3' }, 'context')
+    }
+  }
+  \setuvalue{#1None}{
+    \directlua{%
+      thirddata.contests.callMock('#1', { }, 'context')
+    }
+  }
+}
+\stopMkIVCode
+
+We now need to define the corresponding lua code.
+
+\startLuaCode
+function contests.callMock(mockedMacro, mockedArguments, callType)
+  mocks[mockedMacro] = mocks[mockedMacro] or { }
+  mockedMacro = mocks[mockedMacro]
+  mockedMacro.calls = mockedMacro.calls or { }
+  table_insert(mockedMacros.calls, { callType, mockedArguments})
+  return table_remove(mockedMacros.returns, 1)
+end
+
+function contests.defMock(mockedMacro, returnValue)
+  mocks[mockedMacro] = mocks[mockedMacro] or { }
+  mockedMacro = mocks[mockedMacro]
+  mockedMacro.returns = mockedMacro.returns or { }
+  table_insert(mockedMacro.returns, returnValue)
+end
+\stopLuaCode
+
 \startTestSuite[assertThrowsError environment]
 
 It might be useful to determine if some \ConTeXt\ code has thrown a \TeX\ 
