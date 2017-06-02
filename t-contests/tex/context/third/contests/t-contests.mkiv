@@ -127,22 +127,140 @@
 }
 
 \def\assertStringMatches#1#2#3{%
+  \edef\aString{#1}
   \directlua{
     thirddata.contests.reportMkIVAssertion(
-      string.match('#1','#2'),
+      string.match('\aString','#2'),
       '#3',
-      'Expected [#1] to match [#2]'
+      'Expected [\aString] to match [#2]'
     )
   }
 }
 
 \def\assertStringDoesNotMatch#1#2#3{%
+  \edef\aString{#1}
   \directlua{
     thirddata.contests.reportMkIVAssertion(
-      not string.match('#1','#2'),
+      not string.match('\aString','#2'),
       '#3',
-      'Expected [#1] to not match [#2]'
+      'Expected [\aString] to not match [#2]'
     )
+  }
+}
+
+\def\startMocking{%
+  \directlua{thirddata.contests.startMocking()}%
+  \begingroup%
+}
+\def\stopMocking{%
+  \endgroup%
+  \directlua{thirddata.contests.stopMocking()}
+}
+
+\def\callTexMockZero#1{%
+  \directlua{%
+    thirddata.contests.callMock('#1', { }, 'tex')
+  }
+}
+\def\defTexMockZeroArgs#1{%
+  \directlua{thirddata.contests.defMock('#1')}%
+  \setevalue{#1}{\noexpand\callTexMockZero{#1}}%
+}
+
+\def\callTexMockOne#1#2{%
+  \directlua{%
+    thirddata.contests.callMock('#1', { '#2' }, 'tex')
+  }
+}
+\def\defTexMockOneArg#1{%
+  \directlua{thirddata.contests.defMock('#1')}%
+  \setevalue{#1}{\noexpand\callTexMockOne{#1}}%
+}
+
+\def\callTexMockTwo#1#2#3{%
+  \directlua{%
+    thirddata.contests.callMock('#1', { '#2', '#3' }, 'tex')
+  }
+}
+\def\defTexMockTwoArgs#1{%
+  \directlua{thirddata.contests.defMock('#1')}%
+  \setevalue{#1}{\noexpand\callTexMockTwo{#1}}%
+}
+
+\def\callTexMockThree#1#2#3#4{%
+  \directlua{%
+    thirddata.contests.callMock('#1', { '#2', '#3', '#4' }, 'tex')
+  }
+}
+\def\defTexMockThreeArgs#1{%
+  \directlua{thirddata.contests.defMock('#1')}%
+  \setevalue{#1}{\noexpand\callTexMockThree{#1}}%
+}
+
+\def\callContextMockNone#1[#2][#3][#4]{%
+    \directlua{%
+      thirddata.contests.callMock('#1', { }, 'context')
+    }
+}
+\def\callContextMockSingle#1[#2][#3][#4]{%
+    \directlua{%
+      thirddata.contests.callMock('#1', { '#2' }, 'context')
+    }
+}
+\def\callContextMockDouble#1[#2][#3][#4]{%
+    \directlua{%
+      thirddata.contests.callMock('#1', { '#2', '#3' }, 'context')
+    }
+}
+\def\callContextMockTriple#1[#2][#3][#4]{%
+    \directlua{%
+      thirddata.contests.callMock('#1', { '#2', '#3', '#4' }, 'context')
+    }
+}
+\def\defContextMock#1{%
+  \directlua{thirddata.contests.defMock('#1')}
+  \setuevalue{#1}{%
+    \noexpand\dotripleempty\getvalue{#1Direct}%
+  }
+  \setuevalue{#1Direct}{%
+    \noexpand\ifthirdargument%
+      \noexpand\expandafter\getvalue{#1Triple}
+    \noexpand\else\noexpand\ifsecondargument%
+      \noexpand\expandafter\getvalue{#1Double}
+    \noexpand\else\noexpand\iffirstargument%
+      \noexpand\expandafter\getvalue{#1Single}
+    \noexpand\else%
+      \noexpand\expandafter\getvalue{#1None}
+    \noexpand\fi\noexpand\fi\noexpand\fi%
+  }
+  \setuevalue{#1Triple}{\noexpand\callContextMockTriple #1}%
+  \setuevalue{#1Double}{\noexpand\callContextMockDouble #1}%
+  \setuevalue{#1Single}{\noexpand\callContextMockSingle #1}%
+  \setuevalue{#1None}  {\noexpand\callContextMockNone #1}%
+}
+
+\def\assertMockExpanded#1#2{%
+  \directlua{%
+    thirddata.contests.assertMockExpanded('#1', 1, '#2')
+  }
+}
+\def\assertMockExpandedNTimes#1#2#3{%
+  \directlua{%
+    thirddata.contests.assertMockExpanded('#1', #2, '#3')
+  }
+}
+
+\def\assertMockNthArgumentOnMthExpansionMatches#1#2#3#4#5{%
+  \directlua{%
+    thirddata.contests.assertMockArguments(
+      '#1', #3, #2, '#4', '#5'
+    )
+  }
+}
+
+\def\addMockResult#1#2{%
+  \directlua{%
+    thirddata.contests.addMockResult('#1', '#2')
   }
 }
 

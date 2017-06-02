@@ -4,12 +4,7 @@
 
 We provide an evolving collection of unit test assertions in \ConTeXt. 
 
-\nonstopmode
-
 \section[title=Test cases]
-
-%\definetyping[ConTest]
-%\setuptyping[ConTest][option=context]
 
 \startMkIVCode
 
@@ -356,11 +351,12 @@ result, taken as a lua string, matches the associated lua pattern match.
 
 \startMkIVCode
 \def\assertStringMatches#1#2#3{%
+  \edef\aString{#1}
   \directlua{
     thirddata.contests.reportMkIVAssertion(
-      string.match('#1','#2'),
+      string.match('\aString','#2'),
       '#3',
-      'Expected [#1] to match [#2]'
+      'Expected [\aString] to match [#2]'
     )
   }
 }
@@ -393,11 +389,12 @@ result, taken as a lua string, does not match the associated lua pattern match.
 
 \startMkIVCode
 \def\assertStringDoesNotMatch#1#2#3{%
+  \edef\aString{#1}
   \directlua{
     thirddata.contests.reportMkIVAssertion(
-      not string.match('#1','#2'),
+      not string.match('\aString','#2'),
       '#3',
-      'Expected [#1] to not match [#2]'
+      'Expected [\aString] to not match [#2]'
     )
   }
 }
@@ -446,6 +443,54 @@ We begin by defining \type{\startMocking} and \type{\stopMocking} commands.
 }
 \stopMkIVCode
 
+On the lua side, both \type{startMocking} and \type{stopMocking} simply 
+empty the mocks table so that any previous mocking data is cleared. 
+
+\startLuaCode
+function contests.startMocking()
+  contests.mocks = { }
+  mocks          = contests.mocks
+end
+
+function contests.stopMocking()
+  contests.mocks = { }
+  mocks          = contests.mocks
+end
+\stopLuaCode
+
+We next define the lua code which will capture the information used to 
+eventually test the mocked macros. 
+
+\startLuaCode
+function contests.callMock(mockedMacro, mockedArguments, callType)
+  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  mocks[mockedMacro] = mocks[mockedMacro] or { }
+  mockedMacro = mocks[mockedMacro]
+  mockedMacro.calls = mockedMacro.calls or { }
+  table_insert(mockedMacro.calls, { callType, mockedArguments})
+  mockedMacro.returns = mockedMacro.returns or { }
+  local result = table_remove(mockedMacro.returns, 1)
+  if result and type(result) == 'string' and not result:match('^%s*$') then
+    tex.print(result)
+  end
+end
+
+function contests.defMock(mockedMacro)
+  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  mocks[mockedMacro] = { }
+end
+
+function contests.addMockResult(mockedMacro, returnValue)
+  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  mocks[mockedMacro] = mocks[mockedMacro] or { }
+  mockedMacro = mocks[mockedMacro]
+  mockedMacro.returns = mockedMacro.returns or { }
+  table_insert(mockedMacro.returns, returnValue)
+end
+\stopLuaCode
+
+\startTestSuite[Defining TeX mock macros]
+
 There are two classes of macros to mock, those which use \quote{normal} 
 \TeX\ arguments delimited by \quote{\{} and \quote{\}}, and those which 
 use \ConTeXt\ \quote{variable} arguments delimited by \quote{\[} and 
@@ -453,111 +498,347 @@ use \ConTeXt\ \quote{variable} arguments delimited by \quote{\[} and
 
 We begin by defining the \TeX\ argument pattern first. At the moment, to 
 do this we define four separate macros corresponding to the calling 
-pattern of zero, one, two, and three required arguments. These macros come 
-in pairs, a \quote{define} and a \quote{call} variant. The first argument 
-of all variants is the name of the macro to mock. The second argument for 
-all of the \quote{define} macros, is the result that should be returned on 
-the next use of the macro. Any subsequent arguments for the \quote{call} 
-variants are the collection of required arguments. 
+pattern of zero, one, two, and three required arguments. In each case the 
+\type{\defTexMockXXX} macro defines a macro expecting the appropriate 
+number of argument using the name provided by the \type{\defTexMockXXX} 
+marco's first argument. 
 
 \startMkIVCode
-\def\defTexMockZero#1#2{%
-  \directlua{thirddata.contests.defMock('#1', '#2')}%
-  \setvalue{#1}{%
-    \directlua{%
-      thirddata.contests.callMock('#1', { }, 'tex')
-    }
+\def\callTexMockZero#1{%
+  \directlua{%
+    thirddata.contests.callMock('#1', { }, 'tex')
   }
 }
-
-\def\defTexMockOne#1#2{%
-  \directlua{thirddata.contests.defMock('#1', '#2')}%
-  \setvalue{#1}#2{%
-    \directlua{%
-      thirddata.contests.callMock('#1', { '#2' }, 'tex')
-    }
-  }
+\def\defTexMockZeroArgs#1{%
+  \directlua{thirddata.contests.defMock('#1')}%
+  \setevalue{#1}{\noexpand\callTexMockZero{#1}}%
 }
 
-\def\defTexMockTwo#1#2{%
-  \directlua{thirddata.contests.defMock('#1', '#2')}%
-  \setvalue{#1}#2#3{%
-    \directlua{%
-      thirddata.contests.callMock('#1', { '#2', '#3' }, 'tex')
-    }
+\def\callTexMockOne#1#2{%
+  \directlua{%
+    thirddata.contests.callMock('#1', { '#2' }, 'tex')
   }
 }
+\def\defTexMockOneArg#1{%
+  \directlua{thirddata.contests.defMock('#1')}%
+  \setevalue{#1}{\noexpand\callTexMockOne{#1}}%
+}
 
-\def\defTexMockThree#1#2{%
-  \directlua{thriddata.contests.defMock('#1', '#2')}
-  \setvalue{#1}#2#3#4{%
-    \directlua{%
-      thirddata.contests.callMock('#1', { '#2', '#3', '#4' }, 'tex')
-    }
+\def\callTexMockTwo#1#2#3{%
+  \directlua{%
+    thirddata.contests.callMock('#1', { '#2', '#3' }, 'tex')
   }
+}
+\def\defTexMockTwoArgs#1{%
+  \directlua{thirddata.contests.defMock('#1')}%
+  \setevalue{#1}{\noexpand\callTexMockTwo{#1}}%
+}
+
+\def\callTexMockThree#1#2#3#4{%
+  \directlua{%
+    thirddata.contests.callMock('#1', { '#2', '#3', '#4' }, 'tex')
+  }
+}
+\def\defTexMockThreeArgs#1{%
+  \directlua{thirddata.contests.defMock('#1')}%
+  \setevalue{#1}{\noexpand\callTexMockThree{#1}}%
 }
 \stopMkIVCode
+
+\startTestCase[should define macros]
+
+\startConTest
+\startMocking
+  \defTexMockZeroArgs{aTexMockZeroArgs}
+  \assertDefined{aTexMockZeroArgs}{}
+  \defTexMockOneArg{aTexMockOneArg}
+  \assertDefined{aTexMockOneArg}{}
+  \defTexMockTwoArgs{aTexMockTwoArgs}
+  \assertDefined{aTexMockTwoArgs}{}
+  \defTexMockThreeArgs{aTexMockThreeArgs}
+  \assertDefined{aTexMockThreeArgs}{}
+\stopMocking
+\stopConTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[Defining ConTeXt mock macros]
 
 We now define the \ConTeXt\ argument (\quote{optional}) calling patterns. 
 
 \startMkIVCode
-\def\defContextMock#1#2{%
-  \directlua{thirddata.contests.defMock('#1', '#2')}
-  \setuvalue{#1}{%
-    \dotripleempty\getvalue{#1Direct}%
-  }
-  \setuvalue{#1Direct}{%
-    \ifthirdargument%
-      \expandafter\getvalue{#1Triple}
-    \else\ifsecondargument%
-      \expandafter\getvalue{#1Double}
-    \else\iffirstargument%
-      \expandafter\getvalue{#1Single}
-    \else%
-      \expandafter\getvalue{#1None}
-    \fi\fi\fi%
-  }
-  \setuvalue{#1Triple}[#3][#4][#5]{
-    \directlua{%
-      thirddata.contests.callMock('#1', { '#3', '#4', '#5' }, 'context')
-    }
-  }
-  \setuvalue{#1Double}[#3][#4]{
-    \directlua{%
-      thirddata.contests.callMock('#1', { '#3', '#3' }, 'context')
-    }
-  }
-  \setuvalue{#1Single}[#3]{
-    \directlua{%
-      thirddata.contests.callMock('#1', { '#3' }, 'context')
-    }
-  }
-  \setuvalue{#1None}{
+\def\callContextMockNone#1[#2][#3][#4]{%
     \directlua{%
       thirddata.contests.callMock('#1', { }, 'context')
     }
+}
+\def\callContextMockSingle#1[#2][#3][#4]{%
+    \directlua{%
+      thirddata.contests.callMock('#1', { '#2' }, 'context')
+    }
+}
+\def\callContextMockDouble#1[#2][#3][#4]{%
+    \directlua{%
+      thirddata.contests.callMock('#1', { '#2', '#3' }, 'context')
+    }
+}
+\def\callContextMockTriple#1[#2][#3][#4]{%
+    \directlua{%
+      thirddata.contests.callMock('#1', { '#2', '#3', '#4' }, 'context')
+    }
+}
+\def\defContextMock#1{%
+  \directlua{thirddata.contests.defMock('#1')}
+  \setuevalue{#1}{%
+    \noexpand\dotripleempty\getvalue{#1Direct}%
+  }
+  \setuevalue{#1Direct}{%
+    \noexpand\ifthirdargument%
+      \noexpand\expandafter\getvalue{#1Triple}
+    \noexpand\else\noexpand\ifsecondargument%
+      \noexpand\expandafter\getvalue{#1Double}
+    \noexpand\else\noexpand\iffirstargument%
+      \noexpand\expandafter\getvalue{#1Single}
+    \noexpand\else%
+      \noexpand\expandafter\getvalue{#1None}
+    \noexpand\fi\noexpand\fi\noexpand\fi%
+  }
+  \setuevalue{#1Triple}{\noexpand\callContextMockTriple #1}%
+  \setuevalue{#1Double}{\noexpand\callContextMockDouble #1}%
+  \setuevalue{#1Single}{\noexpand\callContextMockSingle #1}%
+  \setuevalue{#1None}  {\noexpand\callContextMockNone #1}%
+}
+\stopMkIVCode
+
+\startTestCase[should define macros]
+
+\startConTest
+\startMocking
+  \defContextMock{aContextMock}
+  \assertDefined{aContextMock}{}
+  \assertDefined{aContextMockNone}{}
+  \assertDefined{aContextMockSingle}{}
+  \assertDefined{aContextMockDouble}{}
+  \assertDefined{aContextMockTriple}{}
+\stopMocking
+\stopConTest
+\stopTestCase
+\stopTestSuite
+
+\startTestSuite[assertMockExpanded and assertMockExpandedNTimes]
+
+\startMkIVCode
+\def\assertMockExpanded#1#2{%
+  \directlua{%
+    thirddata.contests.assertMockExpanded('#1', 1, '#2')
+  }
+}
+\def\assertMockExpandedNTimes#1#2#3{%
+  \directlua{%
+    thirddata.contests.assertMockExpanded('#1', #2, '#3')
   }
 }
 \stopMkIVCode
 
-We now need to define the corresponding lua code.
-
 \startLuaCode
-function contests.callMock(mockedMacro, mockedArguments, callType)
-  mocks[mockedMacro] = mocks[mockedMacro] or { }
+function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
+  local expectedMsg = 'Expected ['..mockedMacro..']'
   mockedMacro = mocks[mockedMacro]
-  mockedMacro.calls = mockedMacro.calls or { }
-  table_insert(mockedMacros.calls, { callType, mockedArguments})
-  return table_remove(mockedMacros.returns, 1)
-end
-
-function contests.defMock(mockedMacro, returnValue)
-  mocks[mockedMacro] = mocks[mockedMacro] or { }
-  mockedMacro = mocks[mockedMacro]
-  mockedMacro.returns = mockedMacro.returns or { }
-  table_insert(mockedMacro.returns, returnValue)
+  contests.reportMkIVAssertion(
+    mockedMacro ~= nil
+    and mockedMacro.calls ~= nil
+    and mockedMacro.calls[callNum] ~= nil,
+    aMessage,
+    expectedMsg..'to have been expanded at least '..
+      toStr(callNum)..' times'
+  )
 end
 \stopLuaCode
+
+\startTestCase[should succeed if mocked macro expanded]
+
+The \type{\assertMockExpanded} assertion should succeed if the mocked 
+macro has ever been expanded. The \type{\assertMockExpandedNTimes} should 
+succeed if it has been expanded the specified number of times. 
+
+\startConTest
+\startMocking
+  \defTexMockZeroArgs{aTexMockZeroArgs}
+  \aTexMockZeroArgs
+  \assertMockExpanded{aTexMockZeroArgs}{}
+  \assertMockExpandedNTimes{aTexMockZeroArgs}{1}{}
+\stopMocking
+\stopConTest
+
+\stopTestCase
+
+\startTestCase[should fail if mocked macro never expanded]
+\startConTest
+\startMocking
+  \defContextMock{aContextMock}
+  \startAssertShouldFail{}{}{}
+    \assertMockExpanded{aContextMock}{}
+  \stopAssertShouldFail
+  \aContextMock
+  \assertMockExpandedNTimes{aContextMock}{1}{}
+  \startAssertShouldFail{}{}{}
+    \assertMockExpandedNTimes{aContextMock}{2}{}
+  \stopAssertShouldFail
+\stopMocking
+\stopConTest
+\stopTestCase
+\stopTestSuite
+
+\startTestSuite[assertMockNthArgumentOnMthExpansionMatches]
+
+\startMkIVCode
+\def\assertMockNthArgumentOnMthExpansionMatches#1#2#3#4#5{%
+  \directlua{%
+    thirddata.contests.assertMockArguments(
+      '#1', #3, #2, '#4', '#5'
+    )
+  }
+}
+\stopMkIVCode
+
+\startLuaCode
+function contests.assertMockArguments(mockedMacro,
+                                      callNum,
+                                      argNum,
+                                      aPattern,
+                                      aMessage)
+  local expectedMsg = 'Expected ['..mockedMacro..'] '
+  mockedMacro = mocks[mockedMacro]
+  if mockedMacro then
+    local calls = mockedMacro.calls
+    if calls then
+      local aCall = calls[callNum]
+      if aCall then
+        local anArg = aCall[2][argNum]
+        if anArg then
+          if str_match(anArg, aPattern) then
+            contests.reportMkIVAssertion(true, aMessage, '')
+          else
+            contests.reportMkIVAssertion(false, aMessage,
+              expectedMsg..'the '..
+              toStr(argNum)..' argument on the '..
+              toStr(callNum)..' expansion to match ['..
+              aPattern..']')
+          end
+        else
+          contests.reportMkIVAssertion(false, aMessage,
+            expectedMsg..'to have supplied '..
+            toStr(argNum)..' arguments on the '..
+            toStr(callNum)..' expansion')
+        end
+      else
+        contests.reportMkIVAssertion(false, aMessage,
+          expectedMsg..'to have been expanded '..
+          toStr(callNum)..' times')
+      end
+    else
+      contests.reportMkIVAssertion(false, aMessage,
+        expectedMsg..'to have been expanded')
+    end
+  else
+    contests.reportMkIVAssertion(false, aMessage,
+      expectedMsg..'to be defined')
+  end
+end
+\stopLuaCode
+
+\startTestCase[should succeed if mocked macro expanded]
+
+The \type{\assertMockNthArgumentOnMthExpansionMatches} assertion should 
+succeed if $\text{n}^{\text{th}}$ argument of the $\text{m}^{\text{th}}$ 
+of the mocked macro has been expanded with arguments which match the given 
+pattern. 
+
+\startConTest
+\startMocking
+  \defTexMockTwoArgs{aTexMockTwoArgs}
+  \aTexMockTwoArgs%
+    {first arg first expansion}{second arg first expansion}
+  \aTexMockTwoArgs%
+    {first arg second expansion}{second arg second expansion}
+  \assertMockNthArgumentOnMthExpansionMatches%
+    {aTexMockTwoArgs}{1}{1}{first arg first expansion}{}
+  \assertMockNthArgumentOnMthExpansionMatches%
+    {aTexMockTwoArgs}{1}{2}{first arg second expansion}{}
+  \assertMockNthArgumentOnMthExpansionMatches%
+    {aTexMockTwoArgs}{2}{1}{second arg first expansion}{}
+  \assertMockNthArgumentOnMthExpansionMatches%
+    {aTexMockTwoArgs}{2}{2}{second arg second expansion}{}
+\stopMocking
+\stopConTest
+
+\stopTestCase
+
+\startTestCase[should fail if mocked macro never expanded]
+\startConTest
+\startMocking
+  \defContextMock{aContextMock}
+  \aContextMock%
+    [only arg first expansion]
+  \aContextMock%
+    [first arg second expansion]%
+    [second arg second expansion]
+  \assertMockNthArgumentOnMthExpansionMatches%
+    {aContextMock}{1}{1}{only arg first expansion}{}
+  \assertMockNthArgumentOnMthExpansionMatches%
+    {aContextMock}{1}{2}{first arg second expansion}{}
+  \startAssertShouldFail{}%
+    {Expected [aContextMock] to have supplied}%
+    {}
+    \assertMockNthArgumentOnMthExpansionMatches%
+      {aContextMock}{2}{1}{second arg first expansion}{}
+  \stopAssertShouldFail
+  \assertMockNthArgumentOnMthExpansionMatches%
+    {aContextMock}{2}{2}{second arg second expansion}{}
+\stopMocking
+\stopConTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[Adding mock results]
+
+Finally we define the \type{\addMockResult} macro which adds a return 
+value to the appropriate mocked macro. 
+
+\startMkIVCode
+\def\addMockResult#1#2{%
+  \directlua{%
+    thirddata.contests.addMockResult('#1', '#2')
+  }
+}
+\stopMkIVCode
+
+\startTestCase[should return result provided]
+
+Note that since the \type{\defContextMock} family of macros are all 
+protected, there is no easy way of capturing the results of the macro 
+expansion in any way that can be transfered to the lua back-end. This is 
+why we explicitly expand the \type{\aContextMock[anArg]} into 
+\type{\callContextMockSingle{aConTexMock}[anArg][][]}. 
+
+\startConTest
+\startMocking
+  \defTexMockZeroArgs{aTexMockZeroArgs}
+  \addMockResult{aTexMockZeroArgs}{aResult}
+  \assertStringMatches{\aTexMockZeroArgs}{aResult}{}
+  \defContextMock{aContextMock}
+  \addMockResult{aContextMock}{anotherResult}
+  \assertStringMatches%
+    {\callContextMockSingle{aContextMock}[anArg][][]}%
+    {anotherResult}{}
+\stopMocking
+\stopConTest
+\stopTestCase
+
+\stopTestSuite
+
 
 \startTestSuite[assertThrowsError environment]
 

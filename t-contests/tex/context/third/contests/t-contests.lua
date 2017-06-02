@@ -18,6 +18,8 @@ tests.suites    = {}
 tests.failures  = {}
 contests.assert = {}
 local assert    = contests.assert
+contests.mocks  = {}
+local mocks     = contests.mocks
 
 local function initRawStats()
   local raw = {}
@@ -46,6 +48,8 @@ local luaAssertions  = luaStats.assertions
 local pp = require('pl/pretty')
 local table_insert = table.insert
 local table_concat = table.concat
+local table_remove = table.remove
+local str_match    = string.match
 
 local function initSuite()
   local curSuite = {}
@@ -261,6 +265,99 @@ function contests.mkivAssertShouldFail(messagePattern, reasonPattern, aMessage)
   shouldFail.messagePattern = messagePattern
   shouldFail.reasonPattern  = reasonPattern
   shouldFail.message        = aMessage
+end
+
+function contests.startMocking()
+  contests.mocks = { }
+  mocks          = contests.mocks
+end
+
+function contests.stopMocking()
+  contests.mocks = { }
+  mocks          = contests.mocks
+end
+
+function contests.callMock(mockedMacro, mockedArguments, callType)
+  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  mocks[mockedMacro] = mocks[mockedMacro] or { }
+  mockedMacro = mocks[mockedMacro]
+  mockedMacro.calls = mockedMacro.calls or { }
+  table_insert(mockedMacro.calls, { callType, mockedArguments})
+  mockedMacro.returns = mockedMacro.returns or { }
+  local result = table_remove(mockedMacro.returns, 1)
+  if result and type(result) == 'string' and not result:match('^%s*$') then
+    tex.print(result)
+  end
+end
+
+function contests.defMock(mockedMacro)
+  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  mocks[mockedMacro] = { }
+end
+
+function contests.addMockResult(mockedMacro, returnValue)
+  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  mocks[mockedMacro] = mocks[mockedMacro] or { }
+  mockedMacro = mocks[mockedMacro]
+  mockedMacro.returns = mockedMacro.returns or { }
+  table_insert(mockedMacro.returns, returnValue)
+end
+
+function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
+  local expectedMsg = 'Expected ['..mockedMacro..']'
+  mockedMacro = mocks[mockedMacro]
+  contests.reportMkIVAssertion(
+    mockedMacro ~= nil
+    and mockedMacro.calls ~= nil
+    and mockedMacro.calls[callNum] ~= nil,
+    aMessage,
+    expectedMsg..'to have been expanded at least '..
+      toStr(callNum)..' times'
+  )
+end
+
+function contests.assertMockArguments(mockedMacro,
+                                      callNum,
+                                      argNum,
+                                      aPattern,
+                                      aMessage)
+  local expectedMsg = 'Expected ['..mockedMacro..'] '
+  mockedMacro = mocks[mockedMacro]
+  if mockedMacro then
+    local calls = mockedMacro.calls
+    if calls then
+      local aCall = calls[callNum]
+      if aCall then
+        local anArg = aCall[2][argNum]
+        if anArg then
+          if str_match(anArg, aPattern) then
+            contests.reportMkIVAssertion(true, aMessage, '')
+          else
+            contests.reportMkIVAssertion(false, aMessage,
+              expectedMsg..'the '..
+              toStr(argNum)..' argument on the '..
+              toStr(callNum)..' expansion to match ['..
+              aPattern..']')
+          end
+        else
+          contests.reportMkIVAssertion(false, aMessage,
+            expectedMsg..'to have supplied '..
+            toStr(argNum)..' arguments on the '..
+            toStr(callNum)..' expansion')
+        end
+      else
+        contests.reportMkIVAssertion(false, aMessage,
+          expectedMsg..'to have been expanded '..
+          toStr(callNum)..' times')
+      end
+    else
+      contests.reportMkIVAssertion(false, aMessage,
+        expectedMsg..'to have been expanded')
+    end
+  else
+    contests.reportMkIVAssertion(false, aMessage,
+      expectedMsg..'to be defined')
+  end
 end
 
 ------------------
