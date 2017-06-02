@@ -839,153 +839,48 @@ why we explicitly expand the \type{\aContextMock[anArg]} into
 
 \stopTestSuite
 
+\startTestSuite[assertErrorThrown]
 
-\startTestSuite[assertThrowsError environment]
+One of the primary uses of the above mocking assertions is to provide 
+assertions for macros which \quote{throw} \type{\errmessage}s. We do this 
+explicitly mocking \type{\errmessage}. 
 
-It might be useful to determine if some \ConTeXt\ code has thrown a \TeX\ 
-error. To do this the \type{assertThrowsError} environment needs to 
-capture all \TeX\ errors and provide a report of where those errors 
-happened. 
-
-While \LuaTeX\ does provide the ability to interact with the underlying 
-\TeX\ error reporting system, this interaction proves to have subtle 
-reprecussions for understanding general \TeX\ errors. So at the moment we 
-only sketch this code. 
-
-%\startMkIVCode
-\starttyping[option=context]
-\def\startAssertThrowsError#1{%
-  \def\startAssertionMessage{#1}
-  \directlua{thirddata.contests.startAssertThrowsError()}
+\startMkIVCode
+\def\mockErrMessage{%
+  \defTexMockOneArg{errmessage}
 }
-
-\def\stopAssertThrowsError{%
-  \directlua{thirddata.contests.stopAssertThrowsError()}
+\def\assertErrorThrown#1{%
+  \assertMockExpanded{errmessage}{#1}
 }
-\stoptyping
-%\stopMkIVCode
-
-%\startLuaCode
-\starttyping[option=lua]
-local function conTestShowErrorHook()
-  --tests.curSuite.curCase.caughtError = true
-  --texio.write_nl('==========================')
-  --texio.write_nl("Caught error")
-  --texio.write_nl(status.lasterrorstring)
-  --texio.write_nl(status.lasterrorcontext)
-  --texio.write_nl('==========================')
-end
-
-function contests.startAssertThrowsError()
-  tests.curSuite.curCase.caughtError = false
-  -- save logging.... -- alas we can not ;-(
-  -- turn logging to no-stop/batch
-  --callback.register('show_error_hook', conTestShowErrorHook)
-end
-
-function contests.stopAssertThrowsError()
-  --callback.register('show_error_hook', nil)
-  -- turn logging back to original value
-  contests.reportMkIVAssertion(
-    thirddata.contests.tests.curSuite.curCase.caughtError,
-    '\startAssertionMessage',
-    'Expected an error to be thrown'
-  )
-end
-
-\stoptyping
-%\stopLuaCode
+\stopMkIVCode
 
 \startTestCase[should succeed if error thrown]
 
 We want to show that if a command throws a \TeX\ \type{\errmessage}, then 
 the associated test case fails. 
 
-%\startConTest
-\starttyping[option=context]
-\startAssertThrowsError{A Message}
+\startConTest
+\startMocking
+  \mockErrMessage
   \errmessage{Throw this message}
-\stopAssertThrowsError
-\stoptyping
-%\stopConTest
+  \assertErrorThrown{aMessage}
+\stopMocking
+\stopConTest
 \stopTestCase
 
-\startTestCase[should fail if no error thrown]
+\startTestCase[should fail is no error thrown]
 
-%\startConTest
-\starttyping[option=context]
-\startAssertShouldFail%
-  {Inner message}{Expected an error to be thrown}{Outer message}
-\startAssertThrowsError{Inner message}
-No error is thrown
-\stopAssertThrowsError
-\stopAssertShouldFail
-\stoptyping
-%\stopConTest
-\stopTestCase
+Conversely we need to show that the \type{\assertErrorThrown} assertion 
+fails if not error is thrown. 
 
-\stopTestSuite
-
-\startTestSuite[assertDoesNotThrowError]
-
-%\startMkIVCode
-\starttyping[option=context]
-\def\startAssertDoesNotThrowError#1{%
-  \def\startAssertionMessage{#1}
-  \directlua{thirddata.contests.startAssertDoesNotThrowError()}
-}
-
-\def\stopAssertDoesNotThrowError{%
-  \directlua{thirddata.contests.stopAssertDoesNotThrowError()}
-}
-\stoptyping
-%\stopMkIVCode
-
-%\startLuaCode
-\starttyping[option=lua]
-function contests.startAssertDoesNotThrowError()
-  tests.curSuite.curCase.caughtError = false
-  -- save logging.... -- alas we can not ;-(
-  -- turn logging to no-stop/batch
-  --callback.register('show_error_hook', conTestShowErrorHook)
-end
-
-function contests.stopAssertDoesNotThrowError()
-  --callback.register('show_error_hook', nil)
-  -- turn logging back to original value
-  contests.reportMkIVAssertion(
-    not thirddata.contests.tests.curSuite.curCase.caughtError,
-    '\startAssertionMessage',
-    'Expected no error to be thrown'
-  )
-end
-
-\stoptyping
-%\stopLuaCode
-\startTestCase[should succeed if no error thrown]
-
-%\startConTest
-\starttyping[option=context]
-\startAssertDoesNotThrowError{A message}
-No error is thrown.
-\stopAssertDoesNotThrowError
-\stoptyping
-%\stopConTest
-
-\stopTestCase
-
-\startTestCase[should fail if an error is thrown]
-
-%\startConTest
-\starttyping[option=context]
-\startAssertShouldFail%
-  {Inner message}{Expected no error to be thrown}{Outer message}
-\startAssertDoesNotThrowError{Inner message}
-  \errmessage{Throw this error message}
-\stopAssertDoesNotThrowError
-\stopAssertShouldFail
-\stoptyping
-%\stopConTest
+\startConTest
+\startMocking
+  \mockErrMessage
+  \startAssertShouldFail{aMessage}{}{}
+    \assertErrorThrown{aMessage}
+  \stopAssertShouldFail
+\stopMocking
+\stopConTest
 
 \stopTestCase
 

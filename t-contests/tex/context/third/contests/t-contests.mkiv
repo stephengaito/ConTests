@@ -264,6 +264,13 @@
   }
 }
 
+\def\mockErrMessage{%
+  \defTexMockOneArg{errmessage}
+}
+\def\assertErrorThrown#1{%
+  \assertMockExpanded{errmessage}{#1}
+}
+
 %%%%%%%%%%%%%%%%
 % LuaTest code %
 %%%%%%%%%%%%%%%%
