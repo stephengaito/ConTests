@@ -273,11 +273,23 @@ function contests.startMocking()
 end
 
 function contests.stopMocking()
-  contests.mocks = { }
-  mocks          = contests.mocks
+  contests.mocks   = { }
+  mocks            = contests.mocks
+  mocks.traceCalls = false
+end
+
+function contests.traceMockCalls(traceCalls)
+  mocks.traceCalls = traceCalls
+  texio.write_nl('-----------------------------------------------------')
 end
 
 function contests.callMock(mockedMacro, mockedArguments, callType)
+  if mocks.traceCalls then
+    texio.write_nl('MOCKED '..callType..' macro expanded ['..mockedMacro..']')
+    for i, anArg in ipairs(mockedArguments) do
+      texio.write_nl('  args['..toStr(i)..'] = ['..toStr(anArg)..']')
+    end
+  end
   mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
   mocks[mockedMacro] = mocks[mockedMacro] or { }
   mockedMacro = mocks[mockedMacro]
@@ -310,6 +322,18 @@ function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
     mockedMacro ~= nil
     and mockedMacro.calls ~= nil
     and mockedMacro.calls[callNum] ~= nil,
+    aMessage,
+    expectedMsg..'to have been expanded at least '..
+      toStr(callNum)..' times'
+  )
+end
+
+function contests.assertMockNeverExpanded(mockedMacro, aMessage)
+  local expectedMsg = 'Expected ['..mockedMacro..']'
+  mockedMacro = mocks[mockedMacro]
+  contests.reportMkIVAssertion(
+    mockedMacro ~= nil
+    and mockedMacro.calls == nil,
     aMessage,
     expectedMsg..'to have been expanded at least '..
       toStr(callNum)..' times'

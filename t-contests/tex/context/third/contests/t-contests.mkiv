@@ -205,6 +205,13 @@
   \directlua{thirddata.contests.stopMocking()}
 }
 
+\def\startTracingMockExpansions{%
+  \directlua{thirddata.contests.traceMockCalls(true)}
+}
+\def\stopTracingMockExpansions{%
+  \directlua{thirddata.contests.traceMockCalls(false)}
+}
+
 \def\callTexMockZero#1{%
   \directlua{%
     thirddata.contests.callMock('#1', { }, 'tex')
@@ -290,6 +297,11 @@
 \def\assertMockExpanded#1#2{%
   \directlua{%
     thirddata.contests.assertMockExpanded('#1', 1, '#2')
+  }
+}
+\def\assertMockNeverExpanded#1#2{%
+  \directlua{%
+    thirddata.contests.assertMockNeverExpanded('#1', '#2')
   }
 }
 \def\assertMockExpandedNTimes#1#2#3{%

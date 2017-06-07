@@ -691,6 +691,15 @@ We begin by defining \type{\startMocking} and \type{\stopMocking} commands.
 }
 \stopMkIVCode
 
+\startMkIVCode
+\def\startTracingMockExpansions{%
+  \directlua{thirddata.contests.traceMockCalls(true)}
+}
+\def\stopTracingMockExpansions{%
+  \directlua{thirddata.contests.traceMockCalls(false)}
+}
+\stopMkIVCode
+
 On the lua side, both \type{startMocking} and \type{stopMocking} simply 
 empty the mocks table so that any previous mocking data is cleared. 
 
@@ -701,8 +710,9 @@ function contests.startMocking()
 end
 
 function contests.stopMocking()
-  contests.mocks = { }
-  mocks          = contests.mocks
+  contests.mocks   = { }
+  mocks            = contests.mocks
+  mocks.traceCalls = false
 end
 \stopLuaCode
 
@@ -710,7 +720,18 @@ We next define the lua code which will capture the information used to
 eventually test the mocked macros. 
 
 \startLuaCode
+function contests.traceMockCalls(traceCalls)
+  mocks.traceCalls = traceCalls
+  texio.write_nl('-----------------------------------------------------')
+end
+
 function contests.callMock(mockedMacro, mockedArguments, callType)
+  if mocks.traceCalls then
+    texio.write_nl('MOCKED '..callType..' macro expanded ['..mockedMacro..']')
+    for i, anArg in ipairs(mockedArguments) do
+      texio.write_nl('  args['..toStr(i)..'] = ['..toStr(anArg)..']')
+    end
+  end
   mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
   mocks[mockedMacro] = mocks[mockedMacro] or { }
   mockedMacro = mocks[mockedMacro]
@@ -869,17 +890,24 @@ We now define the \ConTeXt\ argument (\quote{optional}) calling patterns.
   \assertDefined{aContextMockSingle}{}
   \assertDefined{aContextMockDouble}{}
   \assertDefined{aContextMockTriple}{}
+  \assertDefined{startTracingMockCalls}{}
+  \assertDefined{stopTracingMockCalls}{}
 \stopMocking
 \stopConTest
 \stopTestCase
 \stopTestSuite
 
-\startTestSuite[assertMockExpanded and assertMockExpandedNTimes]
+\startTestSuite[assertMockExpanded assertMockNeverExpanded and assertMockExpandedNTimes]
 
 \startMkIVCode
 \def\assertMockExpanded#1#2{%
   \directlua{%
     thirddata.contests.assertMockExpanded('#1', 1, '#2')
+  }
+}
+\def\assertMockNeverExpanded#1#2{%
+  \directlua{%
+    thirddata.contests.assertMockNeverExpanded('#1', '#2')
   }
 }
 \def\assertMockExpandedNTimes#1#2#3{%
@@ -902,34 +930,55 @@ function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
       toStr(callNum)..' times'
   )
 end
+
+function contests.assertMockNeverExpanded(mockedMacro, aMessage)
+  local expectedMsg = 'Expected ['..mockedMacro..']'
+  mockedMacro = mocks[mockedMacro]
+  contests.reportMkIVAssertion(
+    mockedMacro ~= nil
+    and mockedMacro.calls == nil,
+    aMessage,
+    expectedMsg..'to have been expanded at least '..
+      toStr(callNum)..' times'
+  )
+end
 \stopLuaCode
 
-\startTestCase[should succeed if mocked macro expanded]
+\startTestCase[mocked macro expanded]
 
 The \type{\assertMockExpanded} assertion should succeed if the mocked 
 macro has ever been expanded. The \type{\assertMockExpandedNTimes} should 
-succeed if it has been expanded the specified number of times. 
+succeed if it has been expanded the specified number of times. The 
+\type{\assertMockNeverExpanded} assertion should succeed if the mocked 
+macros has never been expanded. 
 
 \startConTest
 \startMocking
   \defTexMockZeroArgs{aTexMockZeroArgs}
   \aTexMockZeroArgs
   \assertMockExpanded{aTexMockZeroArgs}{}
+  \startAssertShouldFail{}{}{}
+    \assertMockNeverExpanded{aTexMockZeroArgs}{}
+  \stopAssertShouldFail
   \assertMockExpandedNTimes{aTexMockZeroArgs}{1}{}
 \stopMocking
 \stopConTest
 
 \stopTestCase
 
-\startTestCase[should fail if mocked macro never expanded]
+\startTestCase[mocked macro never expanded]
 \startConTest
 \startMocking
   \defContextMock{aContextMock}
   \startAssertShouldFail{}{}{}
     \assertMockExpanded{aContextMock}{}
   \stopAssertShouldFail
+  \assertMockNeverExpanded{aContextMock}{}
   \aContextMock
   \assertMockExpandedNTimes{aContextMock}{1}{}
+  \startAssertShouldFail{}{}{}
+    \assertMockNeverExpanded{aContextMock}{}
+  \stopAssertShouldFail
   \startAssertShouldFail{}{}{}
     \assertMockExpandedNTimes{aContextMock}{2}{}
   \stopAssertShouldFail
