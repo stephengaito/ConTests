@@ -419,6 +419,254 @@ result, taken as a lua string, does not match the associated lua pattern match.
 \stopTestCase
 \stopTestSuite
 
+\startTestSuite[assertFirstArgument]
+
+The \type{\assertFirstArgument} assertion confirms that any previous 
+\ConTeXt\ multiple optional argument macro had a first argument. 
+
+\startMkIVCode
+\def\assertFirstArgument#1{%
+  \iffirstargument%
+    \assertionSucceeded{#1}%
+  \else%
+    \assertionFailed{#1}{Expected a first argument}%
+  \fi
+}
+\stopMkIVCode
+
+\startTestCase[should succeed if there is a first argument]
+
+\startConTest
+\begingroup
+  \def\oneArgument[#1]{\relax}
+  \dosingleempty\oneArgument[an argument]
+  \assertFirstArgument{A message}
+\endgroup
+\stopConTest
+\stopTestCase
+
+\startTestCase[should fail if there is no first argument]
+
+\startConTest
+\begingroup
+  \def\oneArgument[#1]{\relax}
+  \dosingleempty\oneArgument
+  \startAssertShouldFail{}{}{}
+    \assertFirstArgument{A message}
+  \stopAssertShouldFail
+\endgroup
+\stopConTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[assertNoFirstArgument]
+
+The \type{\assertNoFirstArgument} assertion confirms that any previous 
+\ConTeXt\ multiple optional argument macro did not have a first argument. 
+
+\startMkIVCode
+\def\assertNoFirstArgument#1{%
+  \iffirstargument%
+    \assertionFailed{#1}{Expected no first argument}%
+  \else%
+    \assertionSucceeded{#1}%
+  \fi
+}
+\stopMkIVCode
+
+\startTestCase[should succeed if there is no first argument]
+
+\startConTest
+\begingroup
+  \def\oneArgument[#1]{\relax}
+  \dosingleempty\oneArgument
+  \assertNoFirstArgument{A message}
+\endgroup
+\stopConTest
+\stopTestCase
+
+\startTestCase[should fail if there is a first argument]
+
+\startConTest
+\begingroup
+  \def\oneArgument[#1]{\relax}
+  \dosingleempty\oneArgument[an argument]
+  \startAssertShouldFail{}{}{}
+    \assertNoFirstArgument{A message}
+  \stopAssertShouldFail
+\endgroup
+\stopConTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[assertSecondArgument]
+
+The \type{\assertSecondArgument} assertion confirms that any previous 
+\ConTeXt\ multiple optional argument macro had a second argument. 
+
+\startMkIVCode
+\def\assertSecondArgument#1{%
+  \ifsecondargument%
+    \assertionSucceeded{#1}%
+  \else%
+    \assertionFailed{#1}{Expected a second argument}%
+  \fi
+}
+\stopMkIVCode
+
+\startTestCase[should succeed if there is a second argument]
+
+\startConTest
+\begingroup
+  \def\twoArguments[#1][#2]{\relax}
+  \dodoubleempty\twoArguments[firstArgument][secondArgument]
+  \assertSecondArgument{A message}
+\endgroup
+\stopConTest
+\stopTestCase
+
+\startTestCase[should fail if there is no second argument]
+
+\startConTest
+\begingroup
+  \def\twoArguments[#1][#2]{\relax}
+  \dodoubleempty\twoArguments[firstArgument]
+  \startAssertShouldFail{}{}{}
+    \assertSecondArgument{A message}
+  \stopAssertShouldFail
+\endgroup
+\stopConTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[assertNoSecondArgument]
+
+The \type{\assertNoSecondArgument} assertion confirms that any previous 
+\ConTeXt\ multiple optional argument macro did not have a second argument. 
+
+\startMkIVCode
+\def\assertNoSecondArgument#1{%
+  \ifsecondargument%
+    \assertionFailed{#1}{Expected no second argument}%
+  \else%
+    \assertionSucceeded{#1}%
+  \fi
+}
+\stopMkIVCode
+
+\startTestCase[should succeed if there is no second argument]
+
+\startConTest
+\begingroup
+  \def\twoArguments[#1][#2]{\relax}
+  \dodoubleempty\twoArguments[firstArgument]
+  \assertNoSecondArgument{A message}
+\endgroup
+\stopConTest
+\stopTestCase
+
+\startTestCase[should fail if there is a second argument]
+
+\startConTest
+\begingroup
+  \def\twoArguments[#1][#2]{\relax}
+  \dosingleempty\twoArguments[firstArgument][secondArgument]
+  \startAssertShouldFail{}{}{}
+    \assertNoSecondArgument{A message}
+  \stopAssertShouldFail
+\endgroup
+\stopConTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[assertThirdArgument]
+
+The \type{\assertThirdArgument} assertion confirms that any previous 
+\ConTeXt\ multiple optional argument macro had a third argument. 
+
+\startMkIVCode
+\def\assertThirdArgument#1{%
+  \ifthirdargument%
+    \assertionSucceeded{#1}%
+  \else%
+    \assertionFailed{#1}{Expected a third argument}%
+  \fi
+}
+\stopMkIVCode
+
+\startTestCase[should succeed if there is a third argument]
+
+\startConTest
+\begingroup
+  \def\threeArguments[#1][#2][#3]{\relax}
+  \dotripleempty\threeArguments%
+    [firstArgument][secondArgument][thirdArgument]
+  \assertThirdArgument{A message}
+\endgroup
+\stopConTest
+\stopTestCase
+
+\startTestCase[should fail if there is no third argument]
+
+\startConTest
+\begingroup
+  \def\threeArguments[#1][#2][#3]{\relax}
+  \dotripleempty\threeArguments[firstArgument][secondArgument]
+  \startAssertShouldFail{}{}{}
+    \assertThirdArgument{A message}
+  \stopAssertShouldFail
+\endgroup
+\stopConTest
+\stopTestCase
+
+\stopTestSuite
+
+\startTestSuite[assertNoThirdArgument]
+
+
+The \type{\assertNoThirdArgument} assertion confirms that any previous 
+\ConTeXt\ multiple optional argument macro did not have a third argument. 
+
+\startMkIVCode
+\def\assertNoThirdArgument#1{%
+  \ifthirdargument%
+    \assertionFailed{#1}{Expected no third argument}%
+  \else%
+    \assertionSucceeded{#1}%
+  \fi
+}
+\stopMkIVCode
+
+\startTestCase[should succeed if there is no third argument]
+
+\startConTest
+\begingroup
+  \def\threeArguments[#1][#2][#3]{\relax}
+  \dotripleempty\threeArguments[firstArgument][secondArgument]
+  \assertNoThirdArgument{A message}
+\endgroup
+\stopConTest
+\stopTestCase
+
+\startTestCase[should fail if there is a third argument]
+
+\startConTest
+\begingroup
+  \def\threeArguments[#1][#2][#3]{\relax}
+  \dotripleempty\threeArguments%
+    [firstArgument][secondArgument][thirdArgument]
+  \startAssertShouldFail{}{}{}
+    \assertNoThirdArgument{A message}
+  \stopAssertShouldFail
+\endgroup
+\stopConTest
+\stopTestCase
+\stopTestSuite
+
 \section[title=Mocking \ConTeXt]
 
 We sometimes need to assert that a given macro has been used with given 

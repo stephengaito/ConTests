@@ -148,6 +148,54 @@
   }
 }
 
+\def\assertFirstArgument#1{%
+  \iffirstargument%
+    \assertionSucceeded{#1}%
+  \else%
+    \assertionFailed{#1}{Expected a first argument}%
+  \fi
+}
+
+\def\assertNoFirstArgument#1{%
+  \iffirstargument%
+    \assertionFailed{#1}{Expected no first argument}%
+  \else%
+    \assertionSucceeded{#1}%
+  \fi
+}
+
+\def\assertSecondArgument#1{%
+  \ifsecondargument%
+    \assertionSucceeded{#1}%
+  \else%
+    \assertionFailed{#1}{Expected a second argument}%
+  \fi
+}
+
+\def\assertNoSecondArgument#1{%
+  \ifsecondargument%
+    \assertionFailed{#1}{Expected no second argument}%
+  \else%
+    \assertionSucceeded{#1}%
+  \fi
+}
+
+\def\assertThirdArgument#1{%
+  \ifthirdargument%
+    \assertionSucceeded{#1}%
+  \else%
+    \assertionFailed{#1}{Expected a third argument}%
+  \fi
+}
+
+\def\assertNoThirdArgument#1{%
+  \ifthirdargument%
+    \assertionFailed{#1}{Expected no third argument}%
+  \else%
+    \assertionSucceeded{#1}%
+  \fi
+}
+
 \def\startMocking{%
   \directlua{thirddata.contests.startMocking()}%
   \begingroup%
