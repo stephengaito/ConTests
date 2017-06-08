@@ -684,30 +684,67 @@ The \type{\assertNoThirdArgument} assertion confirms that any previous
 
 \stopMkIVCode
 
+\startLuaTemplate
+addTemplate {
+  'ctmTexFormalArgs',
+  { 'anArg' },
+  '[#{{= anArg}}]'
+}
+
+addTemplate {
+  'ctmContextFormalArgs',
+  { 'anArg' },
+  '#{{= anArg}}'
+}
+
+addTemplate {
+  'ctmArgUse',
+  { 'anArg' },
+[=[
+        '#{{= anArg}}'
+]=]
+}
+
+addTemplate {
+  'ctmFormalArgs',
+  { 'anArg', 'argTemplate' },
+  [=[{{! [argTemplate], anArg }}]=]
+}
+
+addTemplate {
+  'ctmMain',
+  { 'macroName', 'argList', 'argType', 'argTemplate' },
+  [=[
+\let\old{{= macroName}}=\{{= macroName}}
+\def\{{= macroName}}{{| argList, '', ctmFormalArgs, argTemplate }}{%
+  \directlua{%
+    thirddata.contests.traceMacro(
+      '{{= macroName}}',
+      '{{= argType}}',
+      { 
+        {{| argList, ',\n', ctmArgUse }}
+      }
+    )
+  }
+}
+  ]=]
+}
+\stopLuaTemplate
+
 \startLuaCode
 function contests.createTraceMacro(macroName, numArgs, argType)
-  tex.print(sFmt('\let\old%s=\%s', macroName, macroName))
-  local defStr = sFmt('\def\%s', macroName)
-  if argType = 'context' then
-    for argNum = 1, numArgs, 1 do
-      defStr = defStr..'[#'..toStr(argNum)..']'
-    end
-  else
-    for argNum = 1, numArgs, 1 do
-      defStr = defStr..'#'..toStr(argNum)
-    end
+  local argTemplate = 'ctmTexFormalArgs'
+  if argType == 'context' then
+    argTemplate = 'ctmContextFormalArgs'
   end
-  tex.print(     defStr..'{%')
-  tex.print(    '  \directlua{%')
-  tex.print(sFmt('    thirddata.contests.traceMacro("%s", "%s", {',
-                  macroName, argType ))
+  local argList = { }
   for argNum = 1, numArgs, 1 do
-    tex.print(  '      "#'..toStr(argNum)..'",')
+    tInsert(argList, argNum)
   end
-  tex.print(    '    })')
-  tex.print(    '  }%')
-  tex.print(sFmt('  \\old%s%%'))
-  tex.print(    '}')
+  local result = 
+    templates.ctmMain(macroName, argList, argType, argTemplate)
+  result = templates.splitLines(result)
+  tex.print(result)
 end
 \stopLuaCode
 
@@ -934,8 +971,8 @@ We now define the \ConTeXt\ argument (\quote{optional}) calling patterns.
   \assertDefined{aContextMockSingle}{}
   \assertDefined{aContextMockDouble}{}
   \assertDefined{aContextMockTriple}{}
-  \assertDefined{startTracingMockCalls}{}
-  \assertDefined{stopTracingMockCalls}{}
+  \assertDefined{startTracingMockExpansions}{}
+  \assertDefined{stopTracingMockExpansions}{}
 \stopMocking
 \stopConTest
 \stopTestCase
