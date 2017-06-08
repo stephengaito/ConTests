@@ -667,6 +667,50 @@ The \type{\assertNoThirdArgument} assertion confirms that any previous
 \stopTestCase
 \stopTestSuite
 
+
+\section[title=Tracing \ConTeXt]
+
+\startMkIVCode
+\def\traceTexMacro#1#2{%
+  \directlua{%
+    thirddata.contests.createTraceMacro('#1', #2, 'tex')
+  }
+}
+\def\traceContextMacro#1#2{%
+  \directlua{%
+    thirddata.contests.createTraceMacro('#1', #2, 'context')
+  }
+}
+
+\stopMkIVCode
+
+\startLuaCode
+function contests.creaetTraceMacro(macroName, numArgs, argType)
+  tex.print(fmt('\let\old%s=\%s', macroName, macroName))
+  local defStr = fmt('\def\%s', macroName)
+  if argType = 'context' then
+    for argNum = 1, numArgs, 1 do
+      defStr = defStr..'[#'..toStr(argNum)..']'
+    end
+  else
+    for argNum = 1, numArgs, 1 do
+      defStr = defStr..'#'..toStr(argNum)
+    end
+  end
+  tex.print(     defStr..'{%')
+  tex.print(    '  \directlua{%')
+  tex.print(fmt('    thirddata.contests.traceMacro("%s", "%s", {',
+                  macroName, argType ))
+  for argNum = 1, numArgs, 1 do
+    tex.print(  '      "#'..toStr(argNum)..'",')
+  end
+  tex.print(    '    })')
+  tex.print(    '  }%')
+  tex.print(fmt('  \\old%s%%'))
+  tex.print(    '}')
+end
+\stopLuaCode
+
 \section[title=Mocking \ConTeXt]
 
 We sometimes need to assert that a given macro has been used with given 
