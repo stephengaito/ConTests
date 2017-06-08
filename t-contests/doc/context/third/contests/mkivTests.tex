@@ -37,13 +37,13 @@ function contests.addConTest(bufferName)
   local suite = tests.curSuite
   local case  = suite.curCase
   case.mkiv   = case.mkiv or {}
-  table_insert(case.mkiv, bufferContents)
+  tInsert(case.mkiv, bufferContents)
 end
 
 function contests.runCurMkIVTestCase(suite, case)
   case.passed = case.passed or true
   case.mkiv   = case.mkiv   or { }
-  local mkivChunk = table_concat(case.mkiv, '\n')
+  local mkivChunk = tConcat(case.mkiv, '\n')
   if not mkivChunk:match('^%s*$') then
     local caseStats = tests.stats.mkiv.cases
     caseStats.attempted = caseStats.attempted + 1
@@ -110,7 +110,7 @@ function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
       and aMessage:match(shouldFail.messagePattern) then
       -- do nothing
     else
-      theReason = fmt('Expected inner message [%s] to match [%s]',
+      theReason = sFmt('Expected inner message [%s] to match [%s]',
         innerMessage, shouldFail.messagePattern)
     end
     if theReason ~= nil
@@ -120,7 +120,7 @@ function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
       and theReason:match(shouldFail.reasonPattern) then
       -- do nothing
     else
-      theReason = fmt('Expected inner failure reason [%s] to match [%s]',
+      theReason = sFmt('Expected inner failure reason [%s] to match [%s]',
         innerReason, shouldFail.reasonPattern)
     end
     if theReason ~= nil then
@@ -143,14 +143,14 @@ function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
       curCase.desc,
       aMessage,
       theReason,
-      fmt("in file: %s between lines %s and %s",
+      sFmt("in file: %s between lines %s and %s",
         curCase.fileName,
         toStr(curCase.startLine),
         toStr(curCase.lastLine)
       )
     )
     reportFailure(failure, false)
-    table_insert(tests.failures, failure)
+    tInsert(tests.failures, failure)
   end
 end
 \stopLuaCode
@@ -686,8 +686,8 @@ The \type{\assertNoThirdArgument} assertion confirms that any previous
 
 \startLuaCode
 function contests.creaetTraceMacro(macroName, numArgs, argType)
-  tex.print(fmt('\let\old%s=\%s', macroName, macroName))
-  local defStr = fmt('\def\%s', macroName)
+  tex.print(sFmt('\let\old%s=\%s', macroName, macroName))
+  local defStr = sFmt('\def\%s', macroName)
   if argType = 'context' then
     for argNum = 1, numArgs, 1 do
       defStr = defStr..'[#'..toStr(argNum)..']'
@@ -699,14 +699,14 @@ function contests.creaetTraceMacro(macroName, numArgs, argType)
   end
   tex.print(     defStr..'{%')
   tex.print(    '  \directlua{%')
-  tex.print(fmt('    thirddata.contests.traceMacro("%s", "%s", {',
+  tex.print(sFmt('    thirddata.contests.traceMacro("%s", "%s", {',
                   macroName, argType ))
   for argNum = 1, numArgs, 1 do
     tex.print(  '      "#'..toStr(argNum)..'",')
   end
   tex.print(    '    })')
   tex.print(    '  }%')
-  tex.print(fmt('  \\old%s%%'))
+  tex.print(sFmt('  \\old%s%%'))
   tex.print(    '}')
 end
 \stopLuaCode
@@ -780,9 +780,9 @@ function contests.callMock(mockedMacro, mockedArguments, callType)
   mocks[mockedMacro] = mocks[mockedMacro] or { }
   mockedMacro = mocks[mockedMacro]
   mockedMacro.calls = mockedMacro.calls or { }
-  table_insert(mockedMacro.calls, { callType, mockedArguments})
+  tInsert(mockedMacro.calls, { callType, mockedArguments})
   mockedMacro.returns = mockedMacro.returns or { }
-  local result = table_remove(mockedMacro.returns, 1)
+  local result = tRemove(mockedMacro.returns, 1)
   if result and type(result) == 'string' and not result:match('^%s*$') then
     tex.print(result)
   end
@@ -798,7 +798,7 @@ function contests.addMockResult(mockedMacro, returnValue)
   mocks[mockedMacro] = mocks[mockedMacro] or { }
   mockedMacro = mocks[mockedMacro]
   mockedMacro.returns = mockedMacro.returns or { }
-  table_insert(mockedMacro.returns, returnValue)
+  tInsert(mockedMacro.returns, returnValue)
 end
 \stopLuaCode
 
@@ -1058,7 +1058,7 @@ function contests.assertMockArguments(mockedMacro,
       if aCall then
         local anArg = aCall[2][argNum]
         if anArg then
-          if str_match(anArg, aPattern) then
+          if sMatch(anArg, aPattern) then
             contests.reportMkIVAssertion(true, aMessage, '')
           else
             contests.reportMkIVAssertion(false, aMessage,

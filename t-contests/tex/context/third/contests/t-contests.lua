@@ -45,13 +45,13 @@ tests.stats.lua      = initStats()
 local luaStats       = tests.stats.lua
 local luaAssertions  = luaStats.assertions
 
-local table_insert = table.insert
-local table_concat = table.concat
-local table_remove = table.remove
-local table_sort   = table.sort
-local fmt          = string.format
-local toStr        = tostring
-local str_match    = string.match
+local tInsert = table.insert
+local tConcat = table.concat
+local tRemove = table.remove
+local tSort   = table.sort
+local sFmt    = string.format
+local sMatch  = string.match
+local toStr   = tostring
 
 local function initSuite()
   local curSuite = {}
@@ -66,7 +66,7 @@ function contests.startTestSuite(aDesc)
 end
 
 function contests.stopTestSuite()
-  table_insert(tests.suites, tests.curSuite)
+  tInsert(tests.suites, tests.curSuite)
   tests.curSuite = initSuite()
 end
 
@@ -86,7 +86,15 @@ function contests.stopTestCase()
   curCase.lastLine = status.linenumber
   contests.runCurMkIVTestCase(curSuite, curCase)
   contests.runCurLuaTestCase(curSuite, curCase)
-  table_insert(curSuite.cases, curCase)
+  tInsert(curSuite.cases, curCase)
+end
+
+function contests.skipTestCase()
+  local curSuite   = tests.curSuite
+  local curCase    = curSuite.curCase
+  curCase.lastLine = status.linenumber
+  tInsert(curSuite.cases, curCase)
+  tex.print('{\\magenta SKIPPED}')
 end
 
 function contests.reportStats(statsType)
@@ -150,8 +158,8 @@ function contests.reportFailures()
   end
 end
 
-local fmt   = string.format
-local toStr = tostring
+--local sFmt   = string.format
+--local toStr = tostring
 
 ------------------
 -- ConTest code --
@@ -162,13 +170,13 @@ function contests.addConTest(bufferName)
   local suite = tests.curSuite
   local case  = suite.curCase
   case.mkiv   = case.mkiv or {}
-  table_insert(case.mkiv, bufferContents)
+  tInsert(case.mkiv, bufferContents)
 end
 
 function contests.runCurMkIVTestCase(suite, case)
   case.passed = case.passed or true
   case.mkiv   = case.mkiv   or { }
-  local mkivChunk = table_concat(case.mkiv, '\n')
+  local mkivChunk = tConcat(case.mkiv, '\n')
   if not mkivChunk:match('^%s*$') then
     local caseStats = tests.stats.mkiv.cases
     caseStats.attempted = caseStats.attempted + 1
@@ -216,7 +224,7 @@ function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
       and aMessage:match(shouldFail.messagePattern) then
       -- do nothing
     else
-      theReason = fmt('Expected inner message [%s] to match [%s]',
+      theReason = sFmt('Expected inner message [%s] to match [%s]',
         innerMessage, shouldFail.messagePattern)
     end
     if theReason ~= nil
@@ -226,7 +234,7 @@ function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
       and theReason:match(shouldFail.reasonPattern) then
       -- do nothing
     else
-      theReason = fmt('Expected inner failure reason [%s] to match [%s]',
+      theReason = sFmt('Expected inner failure reason [%s] to match [%s]',
         innerReason, shouldFail.reasonPattern)
     end
     if theReason ~= nil then
@@ -249,14 +257,14 @@ function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
       curCase.desc,
       aMessage,
       theReason,
-      fmt("in file: %s between lines %s and %s",
+      sFmt("in file: %s between lines %s and %s",
         curCase.fileName,
         toStr(curCase.startLine),
         toStr(curCase.lastLine)
       )
     )
     reportFailure(failure, false)
-    table_insert(tests.failures, failure)
+    tInsert(tests.failures, failure)
   end
 end
 
@@ -296,9 +304,9 @@ function contests.callMock(mockedMacro, mockedArguments, callType)
   mocks[mockedMacro] = mocks[mockedMacro] or { }
   mockedMacro = mocks[mockedMacro]
   mockedMacro.calls = mockedMacro.calls or { }
-  table_insert(mockedMacro.calls, { callType, mockedArguments})
+  tInsert(mockedMacro.calls, { callType, mockedArguments})
   mockedMacro.returns = mockedMacro.returns or { }
-  local result = table_remove(mockedMacro.returns, 1)
+  local result = tRemove(mockedMacro.returns, 1)
   if result and type(result) == 'string' and not result:match('^%s*$') then
     tex.print(result)
   end
@@ -314,7 +322,7 @@ function contests.addMockResult(mockedMacro, returnValue)
   mocks[mockedMacro] = mocks[mockedMacro] or { }
   mockedMacro = mocks[mockedMacro]
   mockedMacro.returns = mockedMacro.returns or { }
-  table_insert(mockedMacro.returns, returnValue)
+  tInsert(mockedMacro.returns, returnValue)
 end
 
 function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
@@ -356,7 +364,7 @@ function contests.assertMockArguments(mockedMacro,
       if aCall then
         local anArg = aCall[2][argNum]
         if anArg then
-          if str_match(anArg, aPattern) then
+          if sMatch(anArg, aPattern) then
             contests.reportMkIVAssertion(true, aMessage, '')
           else
             contests.reportMkIVAssertion(false, aMessage,
@@ -390,26 +398,109 @@ end
 -- LuaTest code --
 ------------------
 
+-- nil, boolean, number, string, function, userdata, thread, and table
+
+local function compareKeyValues(a, b)
+  return (a[1] < b[1])
+end
+
+local function prettyPrint(anObj, indent)
+  local result = ""
+  indent = indent or ""
+  if type(anObj) == 'nil' then
+    result = 'nil'
+  elseif type(anObj) == 'boolean' then
+    if anObj then result = 'true' else result = 'false' end
+  elseif type(anObj) == 'number' then
+    result = toStr(anObj)
+  elseif type(anObj) == 'string' then
+    result = '"'..anObj..'"'
+  elseif type(anObj) == 'function' then
+    result = toStr(anObj)
+  elseif type(anObj) == 'userdata' then
+    result = toStr(anObj)
+  elseif type(anObj) == 'thread' then
+    result = toStr(anObj)
+  elseif type(anObj) == 'table' then
+    local origIndent = indent
+    indent = indent..'  '
+    result = '{\n'
+    for i, aValue in ipairs(anObj) do
+      result = result..indent..prettyPrint(aValue, indent)..',\n'
+    end
+    local theKeyValues = { }
+    for aKey, aValue in pairs(anObj) do
+      if type(aKey) ~= 'number' or aKey < 1 or #anObj < aKey then
+        tInsert(theKeyValues,
+          { prettyPrint(aKey), aKey, prettyPrint(aValue, indent) })
+      end
+    end
+    tSort(theKeyValues, compareKeyValues)
+    for i, aKeyValue in ipairs(theKeyValues) do
+      result = result..indent..'['..aKeyValue[1]..'] = '..aKeyValue[3]..',\n'
+    end
+    result = result..origIndent..'}'
+  else
+    result = 'UNKNOWN TYPE: ['..toStr(anObj)..']'
+  end
+  return result
+end
+
+contests.prettyPrint = prettyPrint
+
+function contests.showValue(aMessage, aValue)
+  texio.write_nl('-----------------------------------------------')
+  texio.write_nl(aMessage)
+  texio.write_nl(contests.prettyPrint(aValue))
+  texio.write_nl('-----------------------------------------------')
+end
+
 function contests.addLuaTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
   local suite = tests.curSuite
   local case  = suite.curCase
   case.lua    = case.lua or {}
-  table_insert(case.lua, bufferContents)
+  tInsert(case.lua, bufferContents)
+end
+
+local function buildLuaChunk(case)
+  case.lua = case.lua or { }
+  local luaChunk = tConcat(case.lua, '\n')
+  if luaChunk:match('^%s*$') then
+    luaChunk = nil
+  else
+    luaChunk = [=[
+---
+local assert    = thirddata.contests.assert
+local showValue = thirddata.contests.showValue
+---
+]=]..luaChunk..[=[
+
+---
+return true
+]=]
+  end
+  return luaChunk
+end
+
+function contests.showLuaTest()
+  texio.write_nl('-----------------------------------------------')
+  local luaChunk = buildLuaChunk(tests.curSuite.curCase)
+  if luaChunk then
+    texio.write_nl('Lua Test: ')
+    texio.write_nl(luaChunk)
+  else
+    texio.write_nl('NO Lua Test could be built')
+  end
+  texio.write_nl('-----------------------------------------------')
 end
 
 function contests.runCurLuaTestCase(suite, case)
   case.passed = case.passed or true
-  case.lua    = case.lua    or { }
-  local luaChunk = table_concat(case.lua, '\n')
-  if not luaChunk:match('^%s*$') then
+  local luaChunk = buildLuaChunk(case)
+  if luaChunk then
     local caseStats = tests.stats.lua.cases
     caseStats.attempted = caseStats.attempted + 1
-    luaChunk = [=[
-    local assert = thirddata.contests.assert
-    ]=]..luaChunk..[=[
-    return true
-    ]=]
     local luaFunc, errMessage = load(luaChunk)
     if luaFunc then
       local ok, errObj = pcall(luaFunc)
@@ -420,17 +511,22 @@ function contests.runCurLuaTestCase(suite, case)
         case.passed  = false
         suite.passed = false
         caseStats.failed = caseStats.failed + 1
+        texio.write_nl('LUA TEST FAILED')
+        texio.write_nl(prettyPrint(suite))
+        texio.write_nl(prettyPrint(case))
+        texio.write_nl(prettyPrint(erroObj))
+        texio.write_nl(prettyPrint(ok))
         local failure = logFailure(
           "LuaTest FAILED",
           suite.desc,
           case.desc,
           errObj.message,
           toStr(errObj.reason),
-          fmt("in file: %s between lines %s and %s",
+          sFmt("in file: %s between lines %s and %s",
             case.fileName, toStr(case.startLine), toStr(case.lastLine))
         )
         reportFailure(failure, false)
-        table_insert(tests.failures, failure)
+        tInsert(tests.failures, failure)
       end
     else
       case.passed  = false
@@ -442,11 +538,11 @@ function contests.runCurLuaTestCase(suite, case)
         case.desc,
         "",
         errMessage,
-        fmt("in file: %s between lines %s and %s",
+        sFmt("in file: %s between lines %s and %s",
           case.fileName, toStr(case.startLine), toStr(case.lastLine))
       )
       reportFailure(failure, false)
-      table_insert(tests.failures, failure)
+      tInsert(tests.failures, failure)
     end
   end
 end
@@ -481,7 +577,7 @@ function assert.throwsError(aFunction, aMessage, ...)
   return reportLuaAssertion(
     not ok,
     aMessage,
-    fmt("Expected %s to throw an error.", toStr(aFunction))
+    sFmt("Expected %s to throw an error.", toStr(aFunction))
   )
 end
 
@@ -497,7 +593,7 @@ function assert.throwsNoError(aFunction, aMessage, ...)
   return reportLuaAssertion(
     ok,
     aMessage,
-    fmt("Expected %s not to throw an error (%s).",
+    sFmt("Expected %s not to throw an error (%s).",
       toStr(aFunction), toStr(err))
   )
 end
@@ -522,7 +618,7 @@ function assert.isBoolean(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'boolean',
     aMessage,
-    fmt("Expected %s to be a boolean.", toStr(anObj))
+    sFmt("Expected %s to be a boolean.", toStr(anObj))
   )
 end
 
@@ -530,7 +626,7 @@ function assert.isNotBoolean(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'boolean',
     aMessage,
-    fmt("Expected %s to not be a boolean.", toStr(anObj))
+    sFmt("Expected %s to not be a boolean.", toStr(anObj))
   )
 end
 
@@ -538,7 +634,7 @@ function assert.isTrue(aBoolean, aMessage)
   return reportLuaAssertion(
     aBoolean,
     aMessage,
-    fmt("Expected true, got %s.", toStr(aBoolean))
+    sFmt("Expected true, got %s.", toStr(aBoolean))
   )
 end
 
@@ -546,7 +642,7 @@ function assert.isFalse(aBoolean, aMessage)
   return reportLuaAssertion(
     not aBoolean,
     aMessage,
-    fmt("Expected false, got %s.", toStr(aBoolean))
+    sFmt("Expected false, got %s.", toStr(aBoolean))
   )
 end
 
@@ -554,7 +650,7 @@ function assert.isNil(anObj, aMessage)
   return reportLuaAssertion(
     anObj == nil,
     aMessage,
-    fmt("Expected nil, got %s.", toStr(anObj))
+    sFmt("Expected nil, got %s.", toStr(anObj))
   )
 end
 
@@ -562,7 +658,7 @@ function assert.isNotNil(anObj, aMessage)
   return reportLuaAssertion(
     anObj ~= nil,
     aMessage,
-    fmt("Expected non-nil, got %s.", toStr(anObj))
+    sFmt("Expected non-nil, got %s.", toStr(anObj))
   )
 end
 
@@ -570,7 +666,7 @@ function assert.isEqual(objA, objB, aMessage)
   return reportLuaAssertion(
     objA == objB,
     aMessage,
-    fmt("Expected %s to equal %s.",
+    sFmt("Expected %s to equal %s.",
       toStr(objA), toStr(objB))
   )
 end
@@ -581,7 +677,7 @@ function assert.isEqualWithIn(numA, numB,
     type(numA) == 'number' and type(numB) == 'number'
     and math.abs(numA - numB) <= tolerance,
     aMessage,
-    fmt("Expected %s to equal %s with tolerance %s.",
+    sFmt("Expected %s to equal %s with tolerance %s.",
       toStr(numA), toStr(numB), toStr(tolerance))
   )
 end
@@ -590,7 +686,7 @@ function assert.isNotEqual(objA, objB, aMessage)
   return reportLuaAssertion(
     objA ~= objB,
     aMessage,
-    fmt("Expected %s to not equal %s.",
+    sFmt("Expected %s to not equal %s.",
       toStr(objA), toStr(objB))
   )
 end
@@ -600,7 +696,7 @@ function assert.isNotEqualWithIn(numA, numB, tolerance, aMessage)
     type(numA) ~= 'number' or type(numB) ~= 'number'
     or tolerance < math.abs(numA - numB),
     aMessage,
-    fmt("Expected %s to not equal %s with tolerance %s.",
+    sFmt("Expected %s to not equal %s with tolerance %s.",
       toStr(numA), toStr(numB), toStr(tolerance))
   )
 end
@@ -609,7 +705,7 @@ function assert.isNumber(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'number',
     aMessage,
-    fmt("Expected %s to be a number.", toStr(anObj))
+    sFmt("Expected %s to be a number.", toStr(anObj))
   )
 end
 
@@ -617,7 +713,7 @@ function assert.isGT(objA, objB, aMessage)
   return reportLuaAssertion(
     objA > objB,
     aMessage,
-    fmt("Expected %s > %s.", toStr(objA), toStr(objB))
+    sFmt("Expected %s > %s.", toStr(objA), toStr(objB))
   )
 end
 
@@ -625,7 +721,7 @@ function assert.isGTE(objA, objB, aMessage)
   return reportLuaAssertion(
     objA >= objB,
     aMessage,
-    fmt("Expected %s >= %s.", toStr(objA), toStr(objB))
+    sFmt("Expected %s >= %s.", toStr(objA), toStr(objB))
   )
 end
 
@@ -633,7 +729,7 @@ function assert.isLT(objA, objB, aMessage)
   return reportLuaAssertion(
     objA < objB,
     aMessage,
-    fmt("Expected %s < %s.", toStr(objA), toStr(objB))
+    sFmt("Expected %s < %s.", toStr(objA), toStr(objB))
   )
 end
 
@@ -641,7 +737,7 @@ function assert.isLTE(objA, objB, aMessage)
   return reportLuaAssertion(
     objA <= objB,
     aMessage,
-    fmt("Expected %s <= %s.", toStr(objA), toStr(objB))
+    sFmt("Expected %s <= %s.", toStr(objA), toStr(objB))
   )
 end
 
@@ -649,7 +745,7 @@ function assert.isNotNumber(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'number',
     aMessage,
-    fmt("Expected %s to be a number.", toStr(anObj))
+    sFmt("Expected %s to be a number.", toStr(anObj))
   )
 end
 
@@ -657,7 +753,7 @@ function assert.isString(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'string',
     aMessage,
-    fmt("Expected [%s] to be a string.", toStr(anObj))
+    sFmt("Expected [%s] to be a string.", toStr(anObj))
   )
 end
 
@@ -666,7 +762,7 @@ function assert.matches(anObj, aPattern, aMessage)
     type(anObj) == 'string' and type(aPattern) == 'string'
     and anObj:match(aPattern),
     aMessage,
-    fmt("Expected [%s] to match [%s].",
+    sFmt("Expected [%s] to match [%s].",
       toStr(anObj), toStr(aPattern))
   )
 end
@@ -676,7 +772,7 @@ function assert.doesNotMatch(anObj, aPattern, aMessage)
     type(anObj) ~= 'string' or type(aPattern) ~= 'string'
     or not anObj:match(aPattern),
     aMessage,
-    fmt("Expected [%s] to not match [%s].",
+    sFmt("Expected [%s] to not match [%s].",
       toStr(anObj), toStr(aPattern))
   )
 end
@@ -685,7 +781,7 @@ function assert.length(anObj, aLength, aMessage)
   return reportLuaAssertion(
     #anObj == aLength,
     aMessage,
-    fmt("Expected %s to have length %s.",
+    sFmt("Expected %s to have length %s.",
       toStr(anObj), toStr(aMessage))
   )
 end
@@ -694,7 +790,7 @@ function assert.isNotLength(anObj, aLength, aMessage)
   return reportLuaAssertion(
     #anObj ~= aLength,
     aMessage,
-    fmt("Expected %s to not have length %s.",
+    sFmt("Expected %s to not have length %s.",
       toStr(anObj), toStr(aMessage))
   )
 end
@@ -703,7 +799,7 @@ function assert.isNotString(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'string',
     aMessage,
-    fmt("Expected [%s] to not be a string.", toStr(anObj))
+    sFmt("Expected [%s] to not be a string.", toStr(anObj))
   )
 end
 
@@ -711,7 +807,7 @@ function assert.isTable(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'table',
     aMessage,
-    fmt("Expected %s to be a table.", toStr(anObj))
+    sFmt("Expected %s to be a table.", toStr(anObj))
   )
 end
 
@@ -719,7 +815,7 @@ function assert.hasKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'table' and anObj[aKey] ~= nil,
     aMessage,
-    fmt("Expected %s to have the key %s.",
+    sFmt("Expected %s to have the key %s.",
       toStr(anObj), toStr(aKey))
   )
 end
@@ -728,7 +824,7 @@ function assert.doesNotHaveKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'table' and anObj[aKey] == nil,
     aMessage,
-    fmt("Expected %s to not have the key %s.",
+    sFmt("Expected %s to not have the key %s.",
       toStr(anObj), toStr(aKey))
   )
 end
@@ -737,7 +833,7 @@ function assert.isNotTable(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'table',
     aMessage,
-    fmt("Expected %s to not be a table.", toStr(anObj))
+    sFmt("Expected %s to not be a table.", toStr(anObj))
   )
 end
 
@@ -745,7 +841,7 @@ function assert.isFunction(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'function',
     aMessage,
-    fmt("Expected %s to be a function.", toStr(anObj))
+    sFmt("Expected %s to be a function.", toStr(anObj))
   )
 end
 
@@ -753,7 +849,7 @@ function assert.isNotFunction(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'function',
     aMessage,
-    fmt("Expected %s to not be a function.", toStr(anObj))
+    sFmt("Expected %s to not be a function.", toStr(anObj))
   )
 end
 
@@ -761,7 +857,7 @@ function assert.hasMetaTable(anObj, aMessage)
   return reportLuaAssertion(
     getmetatable(anObj) ~= nil,
     aMessage,
-    fmt("Expected %s to have a meta table.", toStr(anObj))
+    sFmt("Expected %s to have a meta table.", toStr(anObj))
   )
 end
 
@@ -769,7 +865,7 @@ function assert.metaTableEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
     getmetatable(anObj) == aMetaTable,
     aMessage,
-    fmt("Expected %s to have the meta table %s.",
+    sFmt("Expected %s to have the meta table %s.",
       toStr(anObj), toStr(aMetaTable))
   )
 end
@@ -778,7 +874,7 @@ function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
     getmetatable(anObj) ~= aMetaTable,
     aMessage,
-    fmt("Expected %s to not have the meta-table %s.",
+    sFmt("Expected %s to not have the meta-table %s.",
       toStr(anObj), toStr(aMetaTable))
   )
 end
@@ -787,7 +883,7 @@ function assert.doesNotHaveMetaTable(anObj, aMessage)
   return reportLuaAssertion(
     getmetatable(anObj) == nil,
     aMessage,
-    fmt("Expected %s to not have a meta table.", toStr(anObj))
+    sFmt("Expected %s to not have a meta table.", toStr(anObj))
   )
 end
 
@@ -795,7 +891,7 @@ function assert.isThread(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'thread',
     aMessage,
-    fmt("Expected %s to be a thread.", toStr(anObj))
+    sFmt("Expected %s to be a thread.", toStr(anObj))
   )
 end
 
@@ -803,7 +899,7 @@ function assert.isNotThread(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'thread',
     aMessage,
-    fmt("Expected %s to not be a thread.", toStr(anObj))
+    sFmt("Expected %s to not be a thread.", toStr(anObj))
   )
 end
 
@@ -811,7 +907,7 @@ function assert.isUserData(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'userdata',
     aMessage,
-    fmt("Expected %s to be user data.", toStr(anObj))
+    sFmt("Expected %s to be user data.", toStr(anObj))
   )
 end
 
@@ -819,7 +915,7 @@ function assert.isNotUserData(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'userdata',
     aMessage,
-    fmt("Expected %s to not be user data.", toStr(anObj))
+    sFmt("Expected %s to not be user data.", toStr(anObj))
   )
 end
 
@@ -828,7 +924,7 @@ function contests.addCTest(bufferName)
   local suite = tests.curSuite
   local case  = suite.curCase
   case.ansiC  = case.ansiC or {}
-  table_insert(case.ansiC, bufferContents)
+  tInsert(case.ansiC, bufferContents)
 end
 
 function contests.collectCTest()

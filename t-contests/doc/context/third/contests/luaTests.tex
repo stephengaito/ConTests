@@ -14,6 +14,20 @@ While unit testing is critical, often while developing code the programmer
 needs to understand what has happened. To facilitate this understanding we 
 need some tools to report various values to the \ConTeXt\ log. 
 
+We are now able to use the pretty printing code above, to report arbitrary 
+values to the \ConTeXt\ log. 
+
+\startLuaCode
+function contests.showValue(aMessage, aValue)
+  texio.write_nl('-----------------------------------------------')
+  texio.write_nl(aMessage)
+  texio.write_nl(contests.prettyPrint(aValue))
+  texio.write_nl('-----------------------------------------------')
+end
+\stopLuaCode
+
+\startTestSuite[prettyPrint]
+
 \startLuaCode
 -- nil, boolean, number, string, function, userdata, thread, and table
 
@@ -48,10 +62,11 @@ function contests.prettyPrint(anObj, indent)
     local theKeyValues = { }
     for aKey, aValue in pairs(anObj) do
       if type(aKey) ~= 'number' or aKey < 1 or #anObj < aKey then
-        table_insert(theKeyValues, { prettyPrint(aKey), aKey, prettyPrint(aValue, indent) })
+        tInsert(theKeyValues,
+          { prettyPrint(aKey), aKey, prettyPrint(aValue, indent) })
       end
     end
-    table_sort(theKeyValues, compareKeyValues)
+    tSort(theKeyValues, compareKeyValues)
     for i, aKeyValue in ipairs(theKeyValues) do
       result = result..indent..'['..aKeyValue[1]..'] = '..aKeyValue[3]..',\n'
     end
@@ -63,17 +78,23 @@ function contests.prettyPrint(anObj, indent)
 end
 \stopLuaCode
 
-We are now able to use the pretty printing code above, to report arbitrary 
-values to the \ConTeXt\ log. 
+\startTestCase[test various examples]
+  
+\startLuaTest
+local pp = thirddata.contests.prettyPrint
 
-\startLuaCode
-function contests.reportValue(aMessage, aValue)
-  texio.write_nl('-----------------------------------------------')
-  texio.write_nl(aMessage)
-  texio.write_nl(contests.prettyPrint(aValue))
-  texio.write_nl('-----------------------------------------------')
-end
-\stopLuaCode
+assert.isEqual(pp(42),         '42')
+assert.isEqual(pp('a string'), '"a string"')
+assert.isEqual(pp(true),       'true')
+assert.isEqual(pp(false),      'false')
+assert.isEqual(pp({ 1, 2, 3}), '{\n  1,\n  2,\n  3,\n}')
+
+assert.isEqual(pp({ x = 'x', y = 'y'}),
+  '{\n  ["x"] = "x",\n  ["y"] = "y",\n}')
+\stopLuaTest
+\stopTestCase
+
+\stopTestSuite
 
 \section[title=Lua Test cases]
 
@@ -95,6 +116,10 @@ interface. We tailor these ideas for use \emph{inside} \ConTeXt.
   \directlua{thirddata.contests.addLuaTest('_typing_')}
 }
 
+\def\showLuaTest{%
+  \directlua{thirddata.contests.showLuaTest()}
+}
+
 \def\reportLuaStats{%
   \directlua{thirddata.contests.reportStats('lua')}
 }
@@ -113,21 +138,44 @@ function contests.addLuaTest(bufferName)
   local suite = tests.curSuite
   local case  = suite.curCase
   case.lua    = case.lua or {}
-  table_insert(case.lua, bufferContents)
+  tInsert(case.lua, bufferContents)
+end
+
+local function buildLuaChunk()
+  case.lua = case.lua or { }
+  local luaChunk = tConcat(case.lua, '\n')
+  if luaChunk:match('^%s*$') then
+    luaChunk = nil
+  else
+    luaChunk = [=[
+local assert = thirddata.contests.assert
+local showValue = thirddata.contests.showValue
+]=]..luaChunk..[=[
+
+return true
+]=]
+  end
+  return luaChunk
+end
+
+function contests.showLuaTest()
+  texio.write_nl('-----------------------------------------------')
+  local luaChunk = buildLuaChunk(tests.curSuite.curCase)
+  if luaChunk then
+    texio.write_nl('Lua Test: ')
+    texio.write_nl(luaChunk)
+  else
+    texio.write_nl('NO Lua Test could be built')
+  end
+  texio.write_nl('-----------------------------------------------')
 end
 
 function contests.runCurLuaTestCase(suite, case)
   case.passed = case.passed or true
-  case.lua    = case.lua    or { }  
-  local luaChunk = table_concat(case.lua, '\n')
-  if not luaChunk:match('^%s*$') then
+  local luaChunk = buildLuaChunk()
+  if luaChunk then
     local caseStats = tests.stats.lua.cases
     caseStats.attempted = caseStats.attempted + 1  
-    luaChunk = [=[
-    local assert = thirddata.contests.assert
-    ]=]..luaChunk..[=[
-    return true
-    ]=]
     local luaFunc, errMessage = load(luaChunk)
     if luaFunc then
       local ok, errObj = pcall(luaFunc)
@@ -144,11 +192,11 @@ function contests.runCurLuaTestCase(suite, case)
           case.desc,
           errObj.message,
           toStr(errObj.reason),
-          fmt("in file: %s between lines %s and %s",
+          sFmt("in file: %s between lines %s and %s",
             case.fileName, toStr(case.startLine), toStr(case.lastLine))
         )
         reportFailure(failure, false)
-        table_insert(tests.failures, failure)
+        tInsert(tests.failures, failure)
       end
     else
       case.passed  = false
@@ -160,11 +208,11 @@ function contests.runCurLuaTestCase(suite, case)
         case.desc,
         "",
         errMessage,
-        fmt("in file: %s between lines %s and %s",
+        sFmt("in file: %s between lines %s and %s",
           case.fileName, toStr(case.startLine), toStr(case.lastLine))
       )
       reportFailure(failure, false)
-      table_insert(tests.failures, failure)
+      tInsert(tests.failures, failure)
     end
   end
 end
@@ -201,7 +249,7 @@ function reportLuaAssertion(theCondition, aMessage, theReason)
 end
 \stopLuaCode
 
-Having defined both the \type{reportLuaAssertion} and the \type{fmt} 
+Having defined both the \type{reportLuaAssertion} and the \type{sFmt} 
 functions, we now work through each assertion in turn. For each assertion, 
 we begin by defining the lua code which implements the assertion, and then 
 the test cases which verify the assertion is working correctly. Typically 
@@ -237,7 +285,7 @@ function assert.throwsError(aFunction, aMessage, ...)
   return reportLuaAssertion(
     not ok,
     aMessage,
-    fmt("Expected %s to throw an error.", toStr(aFunction))
+    sFmt("Expected %s to throw an error.", toStr(aFunction))
   )
 end
 \stopLuaCode
@@ -321,7 +369,7 @@ function assert.throwsNoError(aFunction, aMessage, ...)
   return reportLuaAssertion(
     ok,
     aMessage,
-    fmt("Expected %s not to throw an error (%s).",
+    sFmt("Expected %s not to throw an error (%s).",
       toStr(aFunction), toStr(err))
   )
 end
@@ -419,7 +467,7 @@ function assert.isBoolean(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'boolean',
     aMessage,
-    fmt("Expected %s to be a boolean.", toStr(anObj))
+    sFmt("Expected %s to be a boolean.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -466,7 +514,7 @@ function assert.isNotBoolean(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'boolean',
     aMessage,
-    fmt("Expected %s to not be a boolean.", toStr(anObj))
+    sFmt("Expected %s to not be a boolean.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -512,7 +560,7 @@ function assert.isTrue(aBoolean, aMessage)
   return reportLuaAssertion(
     aBoolean,
     aMessage,
-    fmt("Expected true, got %s.", toStr(aBoolean))
+    sFmt("Expected true, got %s.", toStr(aBoolean))
   )
 end
 \stopLuaCode
@@ -552,7 +600,7 @@ function assert.isFalse(aBoolean, aMessage)
   return reportLuaAssertion(
     not aBoolean,
     aMessage,
-    fmt("Expected false, got %s.", toStr(aBoolean))
+    sFmt("Expected false, got %s.", toStr(aBoolean))
   )
 end
 \stopLuaCode
@@ -592,7 +640,7 @@ function assert.isNil(anObj, aMessage)
   return reportLuaAssertion(
     anObj == nil,
     aMessage,
-    fmt("Expected nil, got %s.", toStr(anObj))
+    sFmt("Expected nil, got %s.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -631,7 +679,7 @@ function assert.isNotNil(anObj, aMessage)
   return reportLuaAssertion(
     anObj ~= nil,
     aMessage,
-    fmt("Expected non-nil, got %s.", toStr(anObj))
+    sFmt("Expected non-nil, got %s.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -669,7 +717,7 @@ function assert.isEqual(objA, objB, aMessage)
   return reportLuaAssertion(
     objA == objB,
     aMessage,
-    fmt("Expected %s to equal %s.",
+    sFmt("Expected %s to equal %s.",
       toStr(objA), toStr(objB))
   )
 end
@@ -717,7 +765,7 @@ function assert.isEqualWithIn(numA, numB,
     type(numA) == 'number' and type(numB) == 'number'
     and math.abs(numA - numB) <= tolerance,
     aMessage,
-    fmt("Expected %s to equal %s with tolerance %s.",
+    sFmt("Expected %s to equal %s with tolerance %s.",
       toStr(numA), toStr(numB), toStr(tolerance))
   )
 end
@@ -774,7 +822,7 @@ function assert.isNotEqual(objA, objB, aMessage)
   return reportLuaAssertion(
     objA ~= objB,
     aMessage,
-    fmt("Expected %s to not equal %s.",
+    sFmt("Expected %s to not equal %s.",
       toStr(objA), toStr(objB))
   )
 end
@@ -816,7 +864,7 @@ function assert.isNotEqualWithIn(numA, numB, tolerance, aMessage)
     type(numA) ~= 'number' or type(numB) ~= 'number'
     or tolerance < math.abs(numA - numB), 
     aMessage,
-    fmt("Expected %s to not equal %s with tolerance %s.",
+    sFmt("Expected %s to not equal %s with tolerance %s.",
       toStr(numA), toStr(numB), toStr(tolerance))
   )
 end
@@ -866,7 +914,7 @@ function assert.isNumber(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'number',
     aMessage,
-    fmt("Expected %s to be a number.", toStr(anObj))
+    sFmt("Expected %s to be a number.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -904,7 +952,7 @@ function assert.isGT(objA, objB, aMessage)
   return reportLuaAssertion(
     objA > objB,
     aMessage,
-    fmt("Expected %s > %s.", toStr(objA), toStr(objB))
+    sFmt("Expected %s > %s.", toStr(objA), toStr(objB))
   )
 end
 \stopLuaCode
@@ -965,7 +1013,7 @@ function assert.isGTE(objA, objB, aMessage)
   return reportLuaAssertion(
     objA >= objB,
     aMessage,
-    fmt("Expected %s >= %s.", toStr(objA), toStr(objB))
+    sFmt("Expected %s >= %s.", toStr(objA), toStr(objB))
   )
 end
 \stopLuaCode
@@ -1006,7 +1054,7 @@ function assert.isLT(objA, objB, aMessage)
   return reportLuaAssertion(
     objA < objB,
     aMessage,
-    fmt("Expected %s < %s.", toStr(objA), toStr(objB))
+    sFmt("Expected %s < %s.", toStr(objA), toStr(objB))
   )
 end
 \stopLuaCode
@@ -1069,7 +1117,7 @@ function assert.isLTE(objA, objB, aMessage)
   return reportLuaAssertion(
     objA <= objB,
     aMessage,
-    fmt("Expected %s <= %s.", toStr(objA), toStr(objB))
+    sFmt("Expected %s <= %s.", toStr(objA), toStr(objB))
   )
 end
 \stopLuaCode
@@ -1130,7 +1178,7 @@ function assert.isNotNumber(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'number',
     aMessage,
-    fmt("Expected %s to be a number.", toStr(anObj))
+    sFmt("Expected %s to be a number.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -1167,7 +1215,7 @@ function assert.isString(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'string',
     aMessage,
-    fmt("Expected [%s] to be a string.", toStr(anObj))
+    sFmt("Expected [%s] to be a string.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -1206,7 +1254,7 @@ function assert.matches(anObj, aPattern, aMessage)
     type(anObj) == 'string' and type(aPattern) == 'string' 
     and anObj:match(aPattern),
     aMessage,
-    fmt("Expected [%s] to match [%s].",
+    sFmt("Expected [%s] to match [%s].",
       toStr(anObj), toStr(aPattern))
   )
 end
@@ -1256,7 +1304,7 @@ function assert.doesNotMatch(anObj, aPattern, aMessage)
     type(anObj) ~= 'string' or type(aPattern) ~= 'string' 
     or not anObj:match(aPattern),
     aMessage,
-    fmt("Expected [%s] to not match [%s].",
+    sFmt("Expected [%s] to not match [%s].",
       toStr(anObj), toStr(aPattern))
   )
 end
@@ -1304,7 +1352,7 @@ function assert.length(anObj, aLength, aMessage)
   return reportLuaAssertion(
     #anObj == aLength,
     aMessage,
-    fmt("Expected %s to have length %s.",
+    sFmt("Expected %s to have length %s.",
       toStr(anObj), toStr(aMessage))
   )
 end
@@ -1344,7 +1392,7 @@ function assert.isNotLength(anObj, aLength, aMessage)
   return reportLuaAssertion(
     #anObj ~= aLength,
     aMessage,
-    fmt("Expected %s to not have length %s.",
+    sFmt("Expected %s to not have length %s.",
       toStr(anObj), toStr(aMessage))
   )
 end
@@ -1392,7 +1440,7 @@ function assert.isNotString(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'string',
     aMessage,
-    fmt("Expected [%s] to not be a string.", toStr(anObj))
+    sFmt("Expected [%s] to not be a string.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -1429,7 +1477,7 @@ function assert.isTable(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'table',
     aMessage,
-    fmt("Expected %s to be a table.", toStr(anObj))
+    sFmt("Expected %s to be a table.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -1468,7 +1516,7 @@ function assert.hasKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'table' and anObj[aKey] ~= nil,
     aMessage,
-    fmt("Expected %s to have the key %s.",
+    sFmt("Expected %s to have the key %s.",
       toStr(anObj), toStr(aKey))
   )
 end
@@ -1519,7 +1567,7 @@ function assert.doesNotHaveKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'table' and anObj[aKey] == nil,
     aMessage,
-    fmt("Expected %s to not have the key %s.",
+    sFmt("Expected %s to not have the key %s.",
       toStr(anObj), toStr(aKey))
   )
 end
@@ -1571,7 +1619,7 @@ function assert.isNotTable(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'table',
     aMessage,
-    fmt("Expected %s to not be a table.", toStr(anObj))
+    sFmt("Expected %s to not be a table.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -1609,7 +1657,7 @@ function assert.isFunction(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'function',
     aMessage,
-    fmt("Expected %s to be a function.", toStr(anObj))
+    sFmt("Expected %s to be a function.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -1646,7 +1694,7 @@ function assert.isNotFunction(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'function',
     aMessage,
-    fmt("Expected %s to not be a function.", toStr(anObj))
+    sFmt("Expected %s to not be a function.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -1684,7 +1732,7 @@ function assert.hasMetaTable(anObj, aMessage)
   return reportLuaAssertion(
     getmetatable(anObj) ~= nil,
     aMessage,
-    fmt("Expected %s to have a meta table.", toStr(anObj))
+    sFmt("Expected %s to have a meta table.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -1720,7 +1768,7 @@ function assert.metaTableEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
     getmetatable(anObj) == aMetaTable,
     aMessage,
-    fmt("Expected %s to have the meta table %s.",
+    sFmt("Expected %s to have the meta table %s.",
       toStr(anObj), toStr(aMetaTable))
   )
 end
@@ -1760,7 +1808,7 @@ function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
     getmetatable(anObj) ~= aMetaTable,
     aMessage,
-    fmt("Expected %s to not have the meta-table %s.",
+    sFmt("Expected %s to not have the meta-table %s.",
       toStr(anObj), toStr(aMetaTable))
   )
 end
@@ -1798,7 +1846,7 @@ function assert.doesNotHaveMetaTable(anObj, aMessage)
   return reportLuaAssertion(
     getmetatable(anObj) == nil,
     aMessage,
-    fmt("Expected %s to not have a meta table.", toStr(anObj))
+    sFmt("Expected %s to not have a meta table.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -1833,7 +1881,7 @@ function assert.isThread(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'thread',
     aMessage,
-    fmt("Expected %s to be a thread.", toStr(anObj))
+    sFmt("Expected %s to be a thread.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -1872,7 +1920,7 @@ function assert.isNotThread(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'thread',
     aMessage,
-    fmt("Expected %s to not be a thread.", toStr(anObj))
+    sFmt("Expected %s to not be a thread.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -1912,7 +1960,7 @@ function assert.isUserData(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'userdata',
     aMessage,
-    fmt("Expected %s to be user data.", toStr(anObj))
+    sFmt("Expected %s to be user data.", toStr(anObj))
   )
 end
 \stopLuaCode
@@ -1946,7 +1994,7 @@ function assert.isNotUserData(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'userdata',
     aMessage,
-    fmt("Expected %s to not be user data.", toStr(anObj))
+    sFmt("Expected %s to not be user data.", toStr(anObj))
   )
 end
 \stopLuaCode

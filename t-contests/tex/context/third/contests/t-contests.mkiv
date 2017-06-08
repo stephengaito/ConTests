@@ -71,6 +71,11 @@
   \stoptextrule%
 }
 
+\def\skipTestCase{%
+  \directlua{thirddata.contests.skipTestCase()}
+  \stoptextrule%
+}
+
 \def\reportFailures{%
   \directlua{thirddata.contests.reportFailures()}
 }
@@ -342,6 +347,10 @@
 \def\stopLuaTest{%
   \oldStopLuaTest%
   \directlua{thirddata.contests.addLuaTest('_typing_')}
+}
+
+\def\showLuaTest{%
+  \directlua{thirddata.contests.showLuaTest()}
 }
 
 \def\reportLuaStats{%
