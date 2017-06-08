@@ -45,10 +45,12 @@ tests.stats.lua      = initStats()
 local luaStats       = tests.stats.lua
 local luaAssertions  = luaStats.assertions
 
-local pp = require('pl/pretty')
 local table_insert = table.insert
 local table_concat = table.concat
 local table_remove = table.remove
+local table_sort   = table.sort
+local fmt          = string.format
+local toStr        = tostring
 local str_match    = string.match
 
 local function initSuite()
