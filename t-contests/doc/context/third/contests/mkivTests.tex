@@ -685,7 +685,7 @@ The \type{\assertNoThirdArgument} assertion confirms that any previous
 \stopMkIVCode
 
 \startLuaCode
-function contests.creaetTraceMacro(macroName, numArgs, argType)
+function contests.createTraceMacro(macroName, numArgs, argType)
   tex.print(sFmt('\let\old%s=\%s', macroName, macroName))
   local defStr = sFmt('\def\%s', macroName)
   if argType = 'context' then

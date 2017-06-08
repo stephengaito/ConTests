@@ -158,9 +158,6 @@ function contests.reportFailures()
   end
 end
 
---local sFmt   = string.format
---local toStr = tostring
-
 ------------------
 -- ConTest code --
 ------------------
@@ -398,6 +395,13 @@ end
 -- LuaTest code --
 ------------------
 
+function contests.showValue(aMessage, aValue)
+  texio.write_nl('-----------------------------------------------')
+  texio.write_nl(aMessage)
+  texio.write_nl(contests.prettyPrint(aValue))
+  texio.write_nl('-----------------------------------------------')
+end
+
 -- nil, boolean, number, string, function, userdata, thread, and table
 
 local function compareKeyValues(a, b)
@@ -447,13 +451,6 @@ local function prettyPrint(anObj, indent)
 end
 
 contests.prettyPrint = prettyPrint
-
-function contests.showValue(aMessage, aValue)
-  texio.write_nl('-----------------------------------------------')
-  texio.write_nl(aMessage)
-  texio.write_nl(contests.prettyPrint(aValue))
-  texio.write_nl('-----------------------------------------------')
-end
 
 function contests.addLuaTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
@@ -511,11 +508,6 @@ function contests.runCurLuaTestCase(suite, case)
         case.passed  = false
         suite.passed = false
         caseStats.failed = caseStats.failed + 1
-        texio.write_nl('LUA TEST FAILED')
-        texio.write_nl(prettyPrint(suite))
-        texio.write_nl(prettyPrint(case))
-        texio.write_nl(prettyPrint(erroObj))
-        texio.write_nl(prettyPrint(ok))
         local failure = logFailure(
           "LuaTest FAILED",
           suite.desc,

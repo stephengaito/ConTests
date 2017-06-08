@@ -35,7 +35,7 @@ local function compareKeyValues(a, b)
   return (a[1] < b[1])
 end
 
-function contests.prettyPrint(anObj, indent)
+local function prettyPrint(anObj, indent)
   local result = ""
   indent = indent or ""
   if type(anObj) == 'nil' then
@@ -76,6 +76,8 @@ function contests.prettyPrint(anObj, indent)
   end
   return result
 end
+
+contests.prettyPrint = prettyPrint
 \stopLuaCode
 
 \startTestCase[test various examples]
@@ -141,17 +143,20 @@ function contests.addLuaTest(bufferName)
   tInsert(case.lua, bufferContents)
 end
 
-local function buildLuaChunk()
+local function buildLuaChunk(case)
   case.lua = case.lua or { }
   local luaChunk = tConcat(case.lua, '\n')
   if luaChunk:match('^%s*$') then
     luaChunk = nil
   else
     luaChunk = [=[
-local assert = thirddata.contests.assert
+---
+local assert    = thirddata.contests.assert
 local showValue = thirddata.contests.showValue
+---
 ]=]..luaChunk..[=[
 
+---
 return true
 ]=]
   end
@@ -172,7 +177,7 @@ end
 
 function contests.runCurLuaTestCase(suite, case)
   case.passed = case.passed or true
-  local luaChunk = buildLuaChunk()
+  local luaChunk = buildLuaChunk(case)
   if luaChunk then
     local caseStats = tests.stats.lua.cases
     caseStats.attempted = caseStats.attempted + 1  

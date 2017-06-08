@@ -28,6 +28,11 @@ Note that you can not use \type{"} in the \type{\startTestSuite} or
   \stoptextrule%
 }
 
+\def\skipTestCase{%
+  \directlua{thirddata.contests.skipTestCase()}
+  \stoptextrule%
+}
+
 \def\reportFailures{%
   \directlua{thirddata.contests.reportFailures()}
 }
@@ -49,7 +54,7 @@ function contests.startTestSuite(aDesc)
 end
 
 function contests.stopTestSuite()
-  table_insert(tests.suites, tests.curSuite)
+  tInsert(tests.suites, tests.curSuite)
   tests.curSuite = initSuite()
 end
 
@@ -69,7 +74,15 @@ function contests.stopTestCase()
   curCase.lastLine = status.linenumber
   contests.runCurMkIVTestCase(curSuite, curCase)
   contests.runCurLuaTestCase(curSuite, curCase)
-  table_insert(curSuite.cases, curCase)
+  tInsert(curSuite.cases, curCase)
+end
+
+function contests.skipTestCase()
+  local curSuite   = tests.curSuite
+  local curCase    = curSuite.curCase
+  curCase.lastLine = status.linenumber
+  tInsert(curSuite.cases, curCase)
+  tex.print('{\\magenta SKIPPED}')
 end
 
 function contests.reportStats(statsType)
@@ -132,10 +145,6 @@ function contests.reportFailures()
     tex.print("{\\green All test cases PASSED}")
   end
 end
-
-local fmt   = string.format
-local toStr = tostring
-
 \stopLuaCode
 
 \stopchapter

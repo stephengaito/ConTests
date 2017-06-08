@@ -33,7 +33,7 @@ function contests.addCTest(bufferName)
   local suite = tests.curSuite
   local case  = suite.curCase
   case.ansiC  = case.ansiC or {}
-  table_insert(case.ansiC, bufferContents)
+  tInsert(case.ansiC, bufferContents)
 end
 
 function contests.collectCTest()

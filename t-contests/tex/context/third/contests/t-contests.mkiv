@@ -201,6 +201,17 @@
   \fi
 }
 
+\def\traceTexMacro#1#2{%
+  \directlua{%
+    thirddata.contests.createTraceMacro('#1', #2, 'tex')
+  }
+}
+\def\traceContextMacro#1#2{%
+  \directlua{%
+    thirddata.contests.createTraceMacro('#1', #2, 'context')
+  }
+}
+
 \def\startMocking{%
   \directlua{thirddata.contests.startMocking()}%
   \begingroup%
