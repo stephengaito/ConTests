@@ -794,7 +794,7 @@ function assert.length(anObj, aLength, aMessage)
     #anObj == aLength,
     aMessage,
     sFmt("Expected %s to have length %s.",
-      toStr(anObj), toStr(aMessage))
+      toStr(anObj), toStr(aLength))
   )
 end
 
@@ -803,7 +803,7 @@ function assert.isNotLength(anObj, aLength, aMessage)
     #anObj ~= aLength,
     aMessage,
     sFmt("Expected %s to not have length %s.",
-      toStr(anObj), toStr(aMessage))
+      toStr(anObj), toStr(aLength))
   )
 end
 
