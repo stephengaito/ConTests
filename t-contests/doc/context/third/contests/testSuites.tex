@@ -127,7 +127,7 @@ local function reportFailure(aFailure, fullReport)
     tex.print(aFailure.caseDesc.."\\\\")
   end
   if aFailure.testMsg and 0 < #aFailure.testMsg then
-    tex.print(aFailure.testMsg)
+    tex.print(aFailure.testMsg.."\\\\")
   end
   tex.cprint(12, aFailure.errMsg)
   tex.print("\\\\"..aFailure.fileInfo)

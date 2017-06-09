@@ -139,7 +139,7 @@ local function reportFailure(aFailure, fullReport)
     tex.print(aFailure.caseDesc.."\\\\")
   end
   if aFailure.testMsg and 0 < #aFailure.testMsg then
-    tex.print(aFailure.testMsg)
+    tex.print(aFailure.testMsg.."\\\\")
   end
   tex.cprint(12, aFailure.errMsg)
   tex.print("\\\\"..aFailure.fileInfo)
@@ -395,9 +395,11 @@ end
 -- LuaTest code --
 ------------------
 
-function contests.showValue(aMessage, aValue)
+function contests.showValue(aValue, aMessage)
   texio.write_nl('-----------------------------------------------')
-  texio.write_nl(aMessage)
+  if aMessage and type(aMessage) == 'string' and 0 < #aMessage then
+    texio.write_nl(aMessage)
+  end
   texio.write_nl(contests.prettyPrint(aValue))
   texio.write_nl('-----------------------------------------------')
 end
@@ -508,6 +510,24 @@ function contests.runCurLuaTestCase(suite, case)
         case.passed  = false
         suite.passed = false
         caseStats.failed = caseStats.failed + 1
+        if type(errObj) == 'string' then
+          errObj = {
+            message = 'Could not execute the LuaTest.',
+            reason = errObj..'.'
+          }
+        end
+        if type(errObj) ~= 'table' then
+          errObj = {
+            message = 'Could not execute the LuaTest.',
+            reason = 'Is something unexpectedly nil?'
+          }
+        end
+        if errObj.message == nil then
+          errObj.message = 'Could not execute the LuaTest.'
+        end
+        if errObj.reason == nil then
+          errObj.reason = 'Is something unexpectedly nil?'
+        end
         local failure = logFailure(
           "LuaTest FAILED",
           suite.desc,
