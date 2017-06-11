@@ -8,6 +8,12 @@ if not modules then modules = { } end modules ['t-contests'] = {
     license   = "MIT License"
 }
 
+local pp = require('pl/pretty')
+texio.write_nl('t-contests.lua')
+texio.write_nl('-----------------------------------')
+texio.write_nl(pp.write(thirddata))
+texio.write_nl('-----------------------------------')
+
 thirddata          = thirddata          or {}
 thirddata.contests = thirddata.contests or {}
 
@@ -20,6 +26,9 @@ contests.assert = {}
 local assert    = contests.assert
 contests.mocks  = {}
 local mocks     = contests.mocks
+
+local litProgs     = thirddata.literateProgs
+litProgs.templates = {}
 
 local function initRawStats()
   local raw = {}
@@ -274,6 +283,33 @@ function contests.mkivAssertShouldFail(messagePattern, reasonPattern, aMessage)
   shouldFail.message        = aMessage
 end
 
+function contests.createTraceMacro(theMacroName, numArgs, theArgType)
+  local theArgList = { }
+  for argNum = 1, numArgs, 1 do
+    tInsert(theArgList, argNum)
+  end
+  local theArgTemplate = 'ctmTexFormalArgs'
+  if theArgType == 'context' then
+    theArgTemplate = 'ctmContextFormalArgs'
+  end
+  local theEnv  = {
+    macroName   = theMacroName,
+    argList     = theArgList,
+    argType     = theArgType,
+    argTemplate = theArgTemplate
+  }
+  texio.write_nl(litProgs.prettyPrint(theEnv))
+  local ctmMainPath = litProgs.parseTemplatePath('ctmMain', theEnv)
+  texio.write_nl(litProgs.prettyPrint(ctmMainPath))
+  texio.write_nl(litProgs.prettyPrint(litProgs.templates))
+  local ctmMain     = litProgs.navigateToTemplateTable(ctmMainPath)
+  texio.write_nl(litProgs.prettyPrint(ctmMain))
+  local result      = litProgs.renderer(ctmMain, theEnv)
+  texio.write_nl(result)
+  --result = templates.splitLines(result)
+  --tex.print(result)
+end
+
 function contests.startMocking()
   contests.mocks = { }
   mocks          = contests.mocks
@@ -400,59 +436,9 @@ function contests.showValue(aValue, aMessage)
   if aMessage and type(aMessage) == 'string' and 0 < #aMessage then
     texio.write_nl(aMessage)
   end
-  texio.write_nl(contests.prettyPrint(aValue))
+  texio.write_nl(litProgs.prettyPrint(aValue))
   texio.write_nl('-----------------------------------------------')
 end
-
--- nil, boolean, number, string, function, userdata, thread, and table
-
-local function compareKeyValues(a, b)
-  return (a[1] < b[1])
-end
-
-local function prettyPrint(anObj, indent)
-  local result = ""
-  indent = indent or ""
-  if type(anObj) == 'nil' then
-    result = 'nil'
-  elseif type(anObj) == 'boolean' then
-    if anObj then result = 'true' else result = 'false' end
-  elseif type(anObj) == 'number' then
-    result = toStr(anObj)
-  elseif type(anObj) == 'string' then
-    result = '"'..anObj..'"'
-  elseif type(anObj) == 'function' then
-    result = toStr(anObj)
-  elseif type(anObj) == 'userdata' then
-    result = toStr(anObj)
-  elseif type(anObj) == 'thread' then
-    result = toStr(anObj)
-  elseif type(anObj) == 'table' then
-    local origIndent = indent
-    indent = indent..'  '
-    result = '{\n'
-    for i, aValue in ipairs(anObj) do
-      result = result..indent..prettyPrint(aValue, indent)..',\n'
-    end
-    local theKeyValues = { }
-    for aKey, aValue in pairs(anObj) do
-      if type(aKey) ~= 'number' or aKey < 1 or #anObj < aKey then
-        tInsert(theKeyValues,
-          { prettyPrint(aKey), aKey, prettyPrint(aValue, indent) })
-      end
-    end
-    tSort(theKeyValues, compareKeyValues)
-    for i, aKeyValue in ipairs(theKeyValues) do
-      result = result..indent..'['..aKeyValue[1]..'] = '..aKeyValue[3]..',\n'
-    end
-    result = result..origIndent..'}'
-  else
-    result = 'UNKNOWN TYPE: ['..toStr(anObj)..']'
-  end
-  return result
-end
-
-contests.prettyPrint = prettyPrint
 
 function contests.addLuaTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")

@@ -670,6 +670,8 @@ The \type{\assertNoThirdArgument} assertion confirms that any previous
 
 \section[title=Tracing \ConTeXt]
 
+\startTestSuite[createTraceMacro]
+
 \startMkIVCode
 \def\traceTexMacro#1#2{%
   \directlua{%
@@ -732,21 +734,42 @@ addTemplate {
 \stopLuaTemplate
 
 \startLuaCode
-function contests.createTraceMacro(macroName, numArgs, argType)
-  local argTemplate = 'ctmTexFormalArgs'
-  if argType == 'context' then
-    argTemplate = 'ctmContextFormalArgs'
-  end
-  local argList = { }
+function contests.createTraceMacro(theMacroName, numArgs, theArgType)
+  local theArgList = { }
   for argNum = 1, numArgs, 1 do
     tInsert(argList, argNum)
   end
-  local result = 
-    templates.ctmMain(macroName, argList, argType, argTemplate)
-  result = templates.splitLines(result)
-  tex.print(result)
+  local theArgTemplate = 'ctmTexFormalArgs'
+  if theArgType == 'context' then
+    theArgTemplate = 'ctmContextFormalArgs'
+  end
+  local theEnv  = {
+    macroName   = theMacroName,
+    argList     = theArgList,
+    argType     = theArgType,
+    argTemplate = theArgTemplate
+  }
+  local ctmMainPath = parseTemplatePath('ctmMain', theEnv)
+  local ctmMain     = navigateToTemplateTable(ctmMainPath)
+  local result      = litProgs.renderer(ctmMain, theEnv)
+  texio.write_nl(result)
+  --result = templates.splitLines(result)
+  --tex.print(result)
 end
 \stopLuaCode
+
+\startTestCase[createTraceMacro should ...]
+\startLuaTest
+local createTraceMacro = thirddata.contests.createTraceMacro
+local macroBody = createTraceMacro('test', 3, 'context')
+showValue(macroBody)
+macroBody = createTraceMacro('test', 3, 'tex')
+showValue(macroBody)
+\stopLuaTest
+\showLuaTest
+\stopTestCase
+
+\stopTestSuite
 
 \section[title=Mocking \ConTeXt]
 

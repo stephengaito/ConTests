@@ -83,6 +83,10 @@ local assert    = contests.assert
 contests.mocks  = {}
 local mocks     = contests.mocks
 
+local litProgs     = thirddata.literateProgs
+litProgs.templates = {}
+local templates    = litProgs.templates
+
 local function initRawStats()
   local raw = {}
   raw.attempted  = 0
@@ -114,7 +118,36 @@ local tSort   = table.sort
 local sFmt    = string.format
 local sMatch  = string.match
 local toStr   = tostring
-
 \stopLuaCode
+
+\startLuaTemplate
+-- A Lua file of t-contests templates
+
+if not modules then modules = { } end
+modules ['t-contests-templates'] = {
+    version   = 1.000,
+    comment   = "ConTests Unit testing - templates",
+    author    = "PerceptiSys Ltd (Stephen Gaito)",
+    copyright = "PerceptiSys Ltd (Stephen Gaito)",
+    license   = "MIT License"
+}
+
+thirddata               = thirddata               or {}
+thirddata.literateProgs = thirddata.literateProgs or {}
+
+local litProgs          = thirddata.literateProgs
+litProgs.templates      = {}
+local templates         = litProgs.templates
+templates.mkiv          = {}
+templates.lua           = {}
+templates.templates     = {}
+templates.lakefile      = {}
+templates.litProgsTable = {}
+
+local tInsert = table.insert
+local tConcat = table.concat
+
+local addTemplate = litProgs.addTemplate
+\stopLuaTemplate
 
 \stopchapter
