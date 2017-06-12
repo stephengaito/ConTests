@@ -1,4 +1,8 @@
--- A Lua file of t-contests templates
+-- A Lua template file
+
+-- from file: preamble.tex starting line: 118
+
+-- t-contests templates
 
 if not modules then modules = { } end
 modules ['t-contests-templates'] = {
@@ -19,6 +23,8 @@ local tInsert = table.insert
 local tConcat = table.concat
 
 local addTemplate = litProgs.addTemplate
+
+-- from file: mkivTests.tex starting line: 689
 
 addTemplate(
   'ctmTexFormalArgs',
