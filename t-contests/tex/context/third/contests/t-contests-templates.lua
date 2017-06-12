@@ -1,6 +1,6 @@
 -- A Lua template file
 
--- from file: preamble.tex starting line: 116
+-- from file: preamble.tex after line: 100
 
 -- t-contests templates
 
@@ -24,7 +24,7 @@ local tConcat = table.concat
 
 local addTemplate = litProgs.addTemplate
 
--- from file: mkivTests.tex starting line: 689
+-- from file: mkivTests.tex after line: 675
 
 addTemplate(
   'ctmTexFormalArgs',
