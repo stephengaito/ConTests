@@ -28,7 +28,8 @@ contests.mocks  = {}
 local mocks     = contests.mocks
 
 local litProgs     = thirddata.literateProgs
-litProgs.templates = {}
+litProgs.templates = litProgs.templates or {}
+local templates    = litProgs.templates
 
 local function initRawStats()
   local raw = {}
@@ -302,7 +303,7 @@ function contests.createTraceMacro(theMacroName, numArgs, theArgType)
   local ctmMainPath = litProgs.parseTemplatePath('ctmMain', theEnv)
   texio.write_nl(litProgs.prettyPrint(ctmMainPath))
   texio.write_nl(litProgs.prettyPrint(litProgs.templates))
-  local ctmMain     = litProgs.navigateToTemplateTable(ctmMainPath)
+  local ctmMain     = litProgs.navigateToTemplate(ctmMainPath)
   texio.write_nl(litProgs.prettyPrint(ctmMain))
   local result      = litProgs.renderer(ctmMain, theEnv)
   texio.write_nl(result)

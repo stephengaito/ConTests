@@ -45,11 +45,7 @@
 %
 % end info
 
-%M \usemodule[literate-progs]
-%M \usemodule[contests]
-
 \usemodule[literate-progs]
-\usemodule[t-contests]
 
 \unprotect
 
@@ -70,6 +66,12 @@ if not modules then modules = { } end modules ['t-contests'] = {
     license   = "MIT License"
 }
 
+local pp = require('pl/pretty')
+texio.write_nl('t-contests.lua')
+texio.write_nl('-----------------------------------')
+texio.write_nl(pp.write(thirddata))
+texio.write_nl('-----------------------------------')
+
 thirddata          = thirddata          or {}
 thirddata.contests = thirddata.contests or {}
 
@@ -84,7 +86,7 @@ contests.mocks  = {}
 local mocks     = contests.mocks
 
 local litProgs     = thirddata.literateProgs
-litProgs.templates = {}
+litProgs.templates = litProgs.templates or {}
 local templates    = litProgs.templates
 
 local function initRawStats()
@@ -134,15 +136,9 @@ modules ['t-contests-templates'] = {
 
 thirddata               = thirddata               or {}
 thirddata.literateProgs = thirddata.literateProgs or {}
-
 local litProgs          = thirddata.literateProgs
-litProgs.templates      = {}
+litProgs.templates      = litProgs.templates      or {}
 local templates         = litProgs.templates
-templates.mkiv          = {}
-templates.lua           = {}
-templates.templates     = {}
-templates.lakefile      = {}
-templates.litProgsTable = {}
 
 local tInsert = table.insert
 local tConcat = table.concat
