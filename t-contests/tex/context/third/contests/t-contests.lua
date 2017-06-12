@@ -57,6 +57,8 @@ local sFmt    = string.format
 local sMatch  = string.match
 local toStr   = tostring
 
+-- from file: testSuites.tex starting line: 42
+
 local function initSuite()
   local curSuite = {}
   curSuite.passed = true
@@ -162,6 +164,8 @@ function contests.reportFailures()
   end
 end
 
+-- from file: mkivTests.tex starting line: 30
+
 ------------------
 -- ConTest code --
 ------------------
@@ -206,6 +210,8 @@ function contests.stopConTestImplementation()
     caseStats.failed = caseStats.failed + 1
   end
 end
+
+-- from file: mkivTests.tex starting line: 94
 
 function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
   local curSuite  = tests.curSuite
@@ -269,6 +275,8 @@ function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
   end
 end
 
+-- from file: mkivTests.tex starting line: 177
+
 function contests.mkivAssertShouldFail(messagePattern, reasonPattern, aMessage)
   local curCase = tests.curSuite.curCase
   curCase.shouldFail = { }
@@ -277,6 +285,8 @@ function contests.mkivAssertShouldFail(messagePattern, reasonPattern, aMessage)
   shouldFail.reasonPattern  = reasonPattern
   shouldFail.message        = aMessage
 end
+
+-- from file: mkivTests.tex starting line: 736
 
 function contests.createTraceMacro(theMacroName, numArgs, theArgType)
   local theArgList = { }
@@ -305,6 +315,8 @@ function contests.createTraceMacro(theMacroName, numArgs, theArgType)
   --tex.print(result)
 end
 
+-- from file: mkivTests.tex starting line: 814
+
 function contests.startMocking()
   contests.mocks = { }
   mocks          = contests.mocks
@@ -315,6 +327,8 @@ function contests.stopMocking()
   mocks            = contests.mocks
   mocks.traceCalls = false
 end
+
+-- from file: mkivTests.tex starting line: 830
 
 function contests.traceMockCalls(traceCalls)
   mocks.traceCalls = traceCalls
@@ -353,6 +367,8 @@ function contests.addMockResult(mockedMacro, returnValue)
   tInsert(mockedMacro.returns, returnValue)
 end
 
+-- from file: mkivTests.tex starting line: 1028
+
 function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
   local expectedMsg = 'Expected ['..mockedMacro..']'
   mockedMacro = mocks[mockedMacro]
@@ -377,6 +393,8 @@ function contests.assertMockNeverExpanded(mockedMacro, aMessage)
       toStr(callNum)..' times'
   )
 end
+
+-- from file: mkivTests.tex starting line: 1110
 
 function contests.assertMockArguments(mockedMacro,
                                       callNum,
@@ -422,9 +440,13 @@ function contests.assertMockArguments(mockedMacro,
   end
 end
 
+-- from file: luaTests.tex starting line: 5
+
 ------------------
 -- LuaTest code --
 ------------------
+
+-- from file: luaTests.tex starting line: 20
 
 function contests.showValue(aValue, aMessage)
   texio.write_nl('-----------------------------------------------')
@@ -434,6 +456,8 @@ function contests.showValue(aValue, aMessage)
   texio.write_nl(litProgs.prettyPrint(aValue))
   texio.write_nl('-----------------------------------------------')
 end
+
+-- from file: luaTests.tex starting line: 67
 
 function contests.addLuaTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
@@ -540,6 +564,8 @@ function contests.runCurLuaTestCase(suite, case)
   end
 end
 
+-- from file: luaTests.tex starting line: 185
+
 function reportLuaAssertion(theCondition, aMessage, theReason)
   local assertionStats = tests.stats.lua.assertions
   assertionStats.attempted = assertionStats.attempted + 1
@@ -558,6 +584,8 @@ function reportLuaAssertion(theCondition, aMessage, theReason)
   assertionStats.passed = assertionStats.passed + 1
 end
 
+-- from file: luaTests.tex starting line: 228
+
 function assert.throwsError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
   if not ok and type(err) == 'table' and err.reason ~= nil then
@@ -573,6 +601,8 @@ function assert.throwsError(aFunction, aMessage, ...)
     sFmt("Expected %s to throw an error.", toStr(aFunction))
   )
 end
+
+-- from file: luaTests.tex starting line: 312
 
 function assert.throwsNoError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
@@ -591,6 +621,8 @@ function assert.throwsNoError(aFunction, aMessage, ...)
   )
 end
 
+-- from file: luaTests.tex starting line: 367
+
 function assert.fail(aMessage)
   return reportLuaAssertion(
     false,
@@ -598,6 +630,8 @@ function assert.fail(aMessage)
     "(Failed)"
   )
 end
+
+-- from file: luaTests.tex starting line: 392
 
 function assert.succeed(aMessage)
   return reportLuaAssertion(
@@ -607,6 +641,8 @@ function assert.succeed(aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 418
+
 function assert.isBoolean(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'boolean',
@@ -614,6 +650,8 @@ function assert.isBoolean(anObj, aMessage)
     sFmt("Expected %s to be a boolean.", toStr(anObj))
   )
 end
+
+-- from file: luaTests.tex starting line: 465
 
 function assert.isNotBoolean(anObj, aMessage)
   return reportLuaAssertion(
@@ -623,6 +661,8 @@ function assert.isNotBoolean(anObj, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 511
+
 function assert.isTrue(aBoolean, aMessage)
   return reportLuaAssertion(
     aBoolean,
@@ -630,6 +670,8 @@ function assert.isTrue(aBoolean, aMessage)
     sFmt("Expected true, got %s.", toStr(aBoolean))
   )
 end
+
+-- from file: luaTests.tex starting line: 551
 
 function assert.isFalse(aBoolean, aMessage)
   return reportLuaAssertion(
@@ -639,6 +681,8 @@ function assert.isFalse(aBoolean, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 591
+
 function assert.isNil(anObj, aMessage)
   return reportLuaAssertion(
     anObj == nil,
@@ -646,6 +690,8 @@ function assert.isNil(anObj, aMessage)
     sFmt("Expected nil, got %s.", toStr(anObj))
   )
 end
+
+-- from file: luaTests.tex starting line: 630
 
 function assert.isNotNil(anObj, aMessage)
   return reportLuaAssertion(
@@ -655,6 +701,8 @@ function assert.isNotNil(anObj, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 668
+
 function assert.isEqual(objA, objB, aMessage)
   return reportLuaAssertion(
     objA == objB,
@@ -663,6 +711,8 @@ function assert.isEqual(objA, objB, aMessage)
       toStr(objA), toStr(objB))
   )
 end
+
+-- from file: luaTests.tex starting line: 714
 
 function assert.isEqualWithIn(numA, numB,
   tolerance, aMessage)
@@ -675,6 +725,8 @@ function assert.isEqualWithIn(numA, numB,
   )
 end
 
+-- from file: luaTests.tex starting line: 773
+
 function assert.isNotEqual(objA, objB, aMessage)
   return reportLuaAssertion(
     objA ~= objB,
@@ -683,6 +735,8 @@ function assert.isNotEqual(objA, objB, aMessage)
       toStr(objA), toStr(objB))
   )
 end
+
+-- from file: luaTests.tex starting line: 814
 
 function assert.isNotEqualWithIn(numA, numB, tolerance, aMessage)
   return reportLuaAssertion(
@@ -694,6 +748,8 @@ function assert.isNotEqualWithIn(numA, numB, tolerance, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 865
+
 function assert.isNumber(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'number',
@@ -701,6 +757,8 @@ function assert.isNumber(anObj, aMessage)
     sFmt("Expected %s to be a number.", toStr(anObj))
   )
 end
+
+-- from file: luaTests.tex starting line: 903
 
 function assert.isGT(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -710,6 +768,8 @@ function assert.isGT(objA, objB, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 964
+
 function assert.isGTE(objA, objB, aMessage)
   return reportLuaAssertion(
     objA >= objB,
@@ -717,6 +777,8 @@ function assert.isGTE(objA, objB, aMessage)
     sFmt("Expected %s >= %s.", toStr(objA), toStr(objB))
   )
 end
+
+-- from file: luaTests.tex starting line: 1005
 
 function assert.isLT(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -726,6 +788,8 @@ function assert.isLT(objA, objB, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1068
+
 function assert.isLTE(objA, objB, aMessage)
   return reportLuaAssertion(
     objA <= objB,
@@ -733,6 +797,8 @@ function assert.isLTE(objA, objB, aMessage)
     sFmt("Expected %s <= %s.", toStr(objA), toStr(objB))
   )
 end
+
+-- from file: luaTests.tex starting line: 1129
 
 function assert.isNotNumber(anObj, aMessage)
   return reportLuaAssertion(
@@ -742,6 +808,8 @@ function assert.isNotNumber(anObj, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1166
+
 function assert.isString(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'string',
@@ -749,6 +817,8 @@ function assert.isString(anObj, aMessage)
     sFmt("Expected [%s] to be a string.", toStr(anObj))
   )
 end
+
+-- from file: luaTests.tex starting line: 1204
 
 function assert.matches(anObj, aPattern, aMessage)
   return reportLuaAssertion(
@@ -760,6 +830,8 @@ function assert.matches(anObj, aPattern, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1254
+
 function assert.doesNotMatch(anObj, aPattern, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'string' or type(aPattern) ~= 'string'
@@ -770,6 +842,8 @@ function assert.doesNotMatch(anObj, aPattern, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1303
+
 function assert.length(anObj, aLength, aMessage)
   return reportLuaAssertion(
     #anObj == aLength,
@@ -778,6 +852,8 @@ function assert.length(anObj, aLength, aMessage)
       toStr(anObj), toStr(aLength))
   )
 end
+
+-- from file: luaTests.tex starting line: 1343
 
 function assert.isNotLength(anObj, aLength, aMessage)
   return reportLuaAssertion(
@@ -788,6 +864,8 @@ function assert.isNotLength(anObj, aLength, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1391
+
 function assert.isNotString(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'string',
@@ -796,6 +874,8 @@ function assert.isNotString(anObj, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1428
+
 function assert.isTable(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'table',
@@ -803,6 +883,8 @@ function assert.isTable(anObj, aMessage)
     sFmt("Expected %s to be a table.", toStr(anObj))
   )
 end
+
+-- from file: luaTests.tex starting line: 1467
 
 function assert.hasKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
@@ -813,6 +895,8 @@ function assert.hasKey(anObj, aKey, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1518
+
 function assert.doesNotHaveKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
     type(anObj) == 'table' and anObj[aKey] == nil,
@@ -822,6 +906,8 @@ function assert.doesNotHaveKey(anObj, aKey, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1570
+
 function assert.isNotTable(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'table',
@@ -829,6 +915,8 @@ function assert.isNotTable(anObj, aMessage)
     sFmt("Expected %s to not be a table.", toStr(anObj))
   )
 end
+
+-- from file: luaTests.tex starting line: 1608
 
 function assert.isFunction(anObj, aMessage)
   return reportLuaAssertion(
@@ -838,6 +926,8 @@ function assert.isFunction(anObj, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1645
+
 function assert.isNotFunction(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'function',
@@ -846,6 +936,8 @@ function assert.isNotFunction(anObj, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1683
+
 function assert.hasMetaTable(anObj, aMessage)
   return reportLuaAssertion(
     getmetatable(anObj) ~= nil,
@@ -853,6 +945,8 @@ function assert.hasMetaTable(anObj, aMessage)
     sFmt("Expected %s to have a meta table.", toStr(anObj))
   )
 end
+
+-- from file: luaTests.tex starting line: 1719
 
 function assert.metaTableEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
@@ -863,6 +957,8 @@ function assert.metaTableEqual(anObj, aMetaTable, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1759
+
 function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
     getmetatable(anObj) ~= aMetaTable,
@@ -872,6 +968,8 @@ function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1797
+
 function assert.doesNotHaveMetaTable(anObj, aMessage)
   return reportLuaAssertion(
     getmetatable(anObj) == nil,
@@ -879,6 +977,8 @@ function assert.doesNotHaveMetaTable(anObj, aMessage)
     sFmt("Expected %s to not have a meta table.", toStr(anObj))
   )
 end
+
+-- from file: luaTests.tex starting line: 1832
 
 function assert.isThread(anObj, aMessage)
   return reportLuaAssertion(
@@ -888,6 +988,8 @@ function assert.isThread(anObj, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1871
+
 function assert.isNotThread(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'thread',
@@ -895,6 +997,8 @@ function assert.isNotThread(anObj, aMessage)
     sFmt("Expected %s to not be a thread.", toStr(anObj))
   )
 end
+
+-- from file: luaTests.tex starting line: 1911
 
 function assert.isUserData(anObj, aMessage)
   return reportLuaAssertion(
@@ -904,6 +1008,8 @@ function assert.isUserData(anObj, aMessage)
   )
 end
 
+-- from file: luaTests.tex starting line: 1945
+
 function assert.isNotUserData(anObj, aMessage)
   return reportLuaAssertion(
     type(anObj) ~= 'userdata',
@@ -911,6 +1017,8 @@ function assert.isNotUserData(anObj, aMessage)
     sFmt("Expected %s to not be user data.", toStr(anObj))
   )
 end
+
+-- from file: cTests.tex starting line: 29
 
 function contests.addCTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
