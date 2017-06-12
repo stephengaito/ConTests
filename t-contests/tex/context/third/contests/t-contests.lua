@@ -292,7 +292,7 @@ end
 
 -- from file: mkivTests.tex after line: 725
 
-function contests.createTraceMacro(theMacroName, numArgs, theArgType)
+function contests.createTraceMacro(theMacroName, numArgs, theArgType, aTracingOn)
   local theArgList = { }
   for argNum = 1, numArgs, 1 do
     tInsert(theArgList, argNum)
@@ -301,22 +301,21 @@ function contests.createTraceMacro(theMacroName, numArgs, theArgType)
   if theArgType == 'context' then
     theArgTemplate = 'ctmContextFormalArgs'
   end
-  local theEnv  = {
-    macroName   = theMacroName,
-    argList     = theArgList,
-    argType     = theArgType,
-    argTemplate = theArgTemplate
+  local theEnv   = {
+    tracingOn    = aTracingOn,
+    macroName    = theMacroName,
+    argList      = theArgList,
+    argType      = theArgType,
+    argTemplate  = theArgTemplate,
+    emptyStr     = '',
+    commaNewLine = ',\n'
   }
-  texio.write_nl(litProgs.prettyPrint(theEnv))
   local ctmMainPath = litProgs.parseTemplatePath('ctmMain', theEnv)
-  texio.write_nl(litProgs.prettyPrint(ctmMainPath))
-  texio.write_nl(litProgs.prettyPrint(litProgs.templates))
   local ctmMain     = litProgs.navigateToTemplate(ctmMainPath)
-  texio.write_nl(litProgs.prettyPrint(ctmMain))
-  local result      = litProgs.renderer(ctmMain, theEnv)
-  texio.write_nl(result)
+  local result      = litProgs.renderer(ctmMain, theEnv, true)
   --result = templates.splitLines(result)
   --tex.print(result)
+  return result
 end
 
 -- from file: mkivTests.tex after line: 800
@@ -371,7 +370,7 @@ function contests.addMockResult(mockedMacro, returnValue)
   tInsert(mockedMacro.returns, returnValue)
 end
 
--- from file: mkivTests.tex after line: 1025
+-- from file: mkivTests.tex after line: 1000
 
 function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
   local expectedMsg = 'Expected ['..mockedMacro..']'

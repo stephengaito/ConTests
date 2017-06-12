@@ -702,39 +702,37 @@ addTemplate(
 addTemplate(
   'ctmArgUse',
   { 'anArg' },
-[=[
-        '#{{= anArg}}'
-]=]
+  '        #{{= anArg}}'
 )
 
 addTemplate(
   'ctmFormalArgs',
   { 'anArg', 'argTemplate' },
-  [=[{{! *argTemplate, anArg }}]=]
+  '{{! *argTemplate, anArg }}'
 )
 
 addTemplate(
   'ctmMain',
-  { 'macroName', 'argList', 'argType', 'argTemplate' },
+  { 'macroName', 'argList', 'argType', 'argTemplate', 'emptyStr', 'commaNewLine' },
   [=[
 \let\old{{= macroName}}=\{{= macroName}}
-\def\{{= macroName}}{{| argList, '', ctmFormalArgs, anArg, argTemplate }}{%
+\def\{{= macroName}}{{| argList, emptyStr, ctmFormalArgs, anArg, argTemplate }}{%
   \directlua{%
     thirddata.contests.traceMacro(
       '{{= macroName}}',
       '{{= argType}}',
       { 
-        {{| argList, ',\n', ctmArgUse }}
+{{| argList, commaNewLine, ctmArgUse, anArg }}
       }
     )
   }
 }
-  ]=]
+]=]
 )
 \stopLuaTemplate
 
 \startLuaCode
-function contests.createTraceMacro(theMacroName, numArgs, theArgType)
+function contests.createTraceMacro(theMacroName, numArgs, theArgType, aTracingOn)
   local theArgList = { }
   for argNum = 1, numArgs, 1 do
     tInsert(theArgList, argNum)
@@ -743,35 +741,34 @@ function contests.createTraceMacro(theMacroName, numArgs, theArgType)
   if theArgType == 'context' then
     theArgTemplate = 'ctmContextFormalArgs'
   end
-  local theEnv  = {
-    macroName   = theMacroName,
-    argList     = theArgList,
-    argType     = theArgType,
-    argTemplate = theArgTemplate
+  local theEnv   = {
+    tracingOn    = aTracingOn,
+    macroName    = theMacroName,
+    argList      = theArgList,
+    argType      = theArgType,
+    argTemplate  = theArgTemplate,
+    emptyStr     = '',
+    commaNewLine = ',\n'
   }
-  texio.write_nl(litProgs.prettyPrint(theEnv))
   local ctmMainPath = litProgs.parseTemplatePath('ctmMain', theEnv)
-  texio.write_nl(litProgs.prettyPrint(ctmMainPath))
-  texio.write_nl(litProgs.prettyPrint(litProgs.templates))
   local ctmMain     = litProgs.navigateToTemplate(ctmMainPath)
-  texio.write_nl(litProgs.prettyPrint(ctmMain))
-  local result      = litProgs.renderer(ctmMain, theEnv)
-  texio.write_nl(result)
-  --result = templates.splitLines(result)
-  --tex.print(result)
+  local result      = litProgs.renderer(ctmMain, theEnv, true)
+  result            = litProgs.splitLines(result)
+  tex.print(result)
+  return result
 end
 \stopLuaCode
 
 \startTestCase[createTraceMacro should ...]
 \startLuaTest
 local createTraceMacro = thirddata.contests.createTraceMacro
-local macroBody = createTraceMacro('test', 3, 'context')
+local macroBody = createTraceMacro('test', 3, 'context', true)
 showValue(macroBody)
 macroBody = createTraceMacro('test', 3, 'tex')
 showValue(macroBody)
 \stopLuaTest
 \showLuaTest
-\skipTestCase
+\stopTestCase
 
 \stopTestSuite
 

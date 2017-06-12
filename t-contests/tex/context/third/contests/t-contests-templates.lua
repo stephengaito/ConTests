@@ -41,32 +41,30 @@ addTemplate(
 addTemplate(
   'ctmArgUse',
   { 'anArg' },
-[=[
-        '#{{= anArg}}'
-]=]
+  '        #{{= anArg}}'
 )
 
 addTemplate(
   'ctmFormalArgs',
   { 'anArg', 'argTemplate' },
-  [=[{{! *argTemplate, anArg }}]=]
+  '{{! *argTemplate, anArg }}'
 )
 
 addTemplate(
   'ctmMain',
-  { 'macroName', 'argList', 'argType', 'argTemplate' },
+  { 'macroName', 'argList', 'argType', 'argTemplate', 'emptyStr', 'commaNewLine' },
   [=[
 \let\old{{= macroName}}=\{{= macroName}}
-\def\{{= macroName}}{{| argList, '', ctmFormalArgs, anArg, argTemplate }}{%
+\def\{{= macroName}}{{| argList, emptyStr, ctmFormalArgs, anArg, argTemplate }}{%
   \directlua{%
     thirddata.contests.traceMacro(
       '{{= macroName}}',
       '{{= argType}}',
       {
-        {{| argList, ',\n', ctmArgUse }}
+{{| argList, commaNewLine, ctmArgUse, anArg }}
       }
     )
   }
 }
-  ]=]
+]=]
 )
