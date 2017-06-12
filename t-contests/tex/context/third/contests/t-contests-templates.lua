@@ -1,6 +1,6 @@
 -- A Lua template file
 
--- from file: preamble.tex starting line: 118
+-- from file: preamble.tex starting line: 116
 
 -- t-contests templates
 

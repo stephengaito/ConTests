@@ -1,6 +1,6 @@
 -- A Lua file
 
--- from file: preamble.tex starting line: 57
+-- from file: preamble.tex starting line: 55
 
 -- This is the lua code associated with t-contests.mkiv
 
