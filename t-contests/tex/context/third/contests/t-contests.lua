@@ -1,4 +1,8 @@
--- A Lua file (the lua code associated with t-contests.mkiv)
+-- A Lua file
+
+-- from file: preamble.tex starting line: 57
+
+-- This is the lua code associated with t-contests.mkiv
 
 if not modules then modules = { } end modules ['t-contests'] = {
     version   = 1.000,
