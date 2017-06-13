@@ -313,12 +313,12 @@ function contests.createTraceMacro(theMacroName, numArgs, theArgType, aTracingOn
   local ctmMainPath = litProgs.parseTemplatePath('ctmMain', theEnv)
   local ctmMain     = litProgs.navigateToTemplate(ctmMainPath)
   local result      = litProgs.renderer(ctmMain, theEnv, true)
-  --result = templates.splitLines(result)
+  result            = litProgs.splitString(result)
   --tex.print(result)
   return result
 end
 
--- from file: mkivTests.tex after line: 800
+-- from file: mkivTests.tex after line: 825
 
 function contests.startMocking()
   contests.mocks = { }
@@ -331,7 +331,7 @@ function contests.stopMocking()
   mocks.traceCalls = false
 end
 
--- from file: mkivTests.tex after line: 825
+-- from file: mkivTests.tex after line: 850
 
 function contests.traceMockCalls(traceCalls)
   mocks.traceCalls = traceCalls
@@ -370,7 +370,7 @@ function contests.addMockResult(mockedMacro, returnValue)
   tInsert(mockedMacro.returns, returnValue)
 end
 
--- from file: mkivTests.tex after line: 1000
+-- from file: mkivTests.tex after line: 1050
 
 function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
   local expectedMsg = 'Expected ['..mockedMacro..']'
@@ -397,7 +397,7 @@ function contests.assertMockNeverExpanded(mockedMacro, aMessage)
   )
 end
 
--- from file: mkivTests.tex after line: 1100
+-- from file: mkivTests.tex after line: 1125
 
 function contests.assertMockArguments(mockedMacro,
                                       callNum,

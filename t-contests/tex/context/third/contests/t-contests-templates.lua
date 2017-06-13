@@ -29,19 +29,19 @@ local addTemplate = litProgs.addTemplate
 addTemplate(
   'ctmTexFormalArgs',
   { 'anArg' },
-  '[#{{= anArg}}]'
+  '#{{= anArg}}'
 )
 
 addTemplate(
   'ctmContextFormalArgs',
   { 'anArg' },
-  '#{{= anArg}}'
+  '[#{{= anArg}}]'
 )
 
 addTemplate(
   'ctmArgUse',
   { 'anArg' },
-  '        #{{= anArg}}'
+  "        '#{{= anArg}}'"
 )
 
 addTemplate(

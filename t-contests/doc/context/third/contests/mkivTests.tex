@@ -690,19 +690,19 @@ The \type{\assertNoThirdArgument} assertion confirms that any previous
 addTemplate(
   'ctmTexFormalArgs',
   { 'anArg' },
-  '[#{{= anArg}}]'
+  '#{{= anArg}}'
 )
 
 addTemplate(
   'ctmContextFormalArgs',
   { 'anArg' },
-  '#{{= anArg}}'
+  '[#{{= anArg}}]'
 )
 
 addTemplate(
   'ctmArgUse',
   { 'anArg' },
-  '        #{{= anArg}}'
+  "        '#{{= anArg}}'"
 )
 
 addTemplate(
@@ -753,8 +753,8 @@ function contests.createTraceMacro(theMacroName, numArgs, theArgType, aTracingOn
   local ctmMainPath = litProgs.parseTemplatePath('ctmMain', theEnv)
   local ctmMain     = litProgs.navigateToTemplate(ctmMainPath)
   local result      = litProgs.renderer(ctmMain, theEnv, true)
-  result            = litProgs.splitLines(result)
-  tex.print(result)
+  result            = litProgs.splitString(result)
+  --tex.print(result)
   return result
 end
 \stopLuaCode
@@ -764,8 +764,41 @@ end
 local createTraceMacro = thirddata.contests.createTraceMacro
 local macroBody = createTraceMacro('test', 3, 'context', true)
 showValue(macroBody)
-macroBody = createTraceMacro('test', 3, 'tex')
+assert.isTable(macroBody)
+assert.length(macroBody, 14)
+assert.isEqual(macroBody[1],  "\\let\\oldtest=\\test")
+assert.isEqual(macroBody[2],  "\\def\\test[#1][#2][#3]{%")
+assert.isEqual(macroBody[3],  "  \\directlua{%")
+assert.isEqual(macroBody[4],  "    thirddata.contests.traceMacro(")
+assert.isEqual(macroBody[5],  "      'test',")
+assert.isEqual(macroBody[6],  "      'context',")
+assert.isEqual(macroBody[7],  "      {")
+assert.isEqual(macroBody[8],  "        '#1',")
+assert.isEqual(macroBody[9],  "        '#2',")
+assert.isEqual(macroBody[10], "        '#3'")
+assert.isEqual(macroBody[11], "      }")
+assert.isEqual(macroBody[12], "    )")
+assert.isEqual(macroBody[13], "  }")
+assert.isEqual(macroBody[14], "}")
+--
+macroBody = createTraceMacro('test', 3, 'tex', true)
 showValue(macroBody)
+assert.isTable(macroBody)
+assert.length(macroBody, 14)
+assert.isEqual(macroBody[1],  "\\let\\oldtest=\\test")
+assert.isEqual(macroBody[2],  "\\def\\test#1#2#3{%")
+assert.isEqual(macroBody[3],  "  \\directlua{%")
+assert.isEqual(macroBody[4],  "    thirddata.contests.traceMacro(")
+assert.isEqual(macroBody[5],  "      'test',")
+assert.isEqual(macroBody[6],  "      'tex',")
+assert.isEqual(macroBody[7],  "      {")
+assert.isEqual(macroBody[8],  "        '#1',")
+assert.isEqual(macroBody[9],  "        '#2',")
+assert.isEqual(macroBody[10], "        '#3'")
+assert.isEqual(macroBody[11], "      }")
+assert.isEqual(macroBody[12], "    )")
+assert.isEqual(macroBody[13], "  }")
+assert.isEqual(macroBody[14], "}")
 \stopLuaTest
 \showLuaTest
 \stopTestCase
