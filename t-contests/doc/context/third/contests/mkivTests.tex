@@ -670,6 +670,27 @@ The \type{\assertNoThirdArgument} assertion confirms that any previous
 
 \section[title=Tracing \ConTeXt]
 
+While trying to understand what \TeX\ and \ConTeXt\ are doing while 
+expanding complex macros, it is useful to trace the expansion of 
+particular macros. We address this capability in this section by defining 
+the \type{\traceTexMacro} and \type{\traceContextMacro} macros. Both 
+macros will \type{\let} an existing macro to a different name and then 
+redefine the existing macro to call into Lua to record a trace of what has 
+been expanded together with what arguments were provided. Once this has 
+been done, then the original macro with its arguments are expanded as 
+normal. We have two distinct tracing macros to deal with the different 
+ways the \quote{standard} native \TeX\ macro and a \quote{standard} 
+\ConTeXt\ macros delimit their arguments. 
+
+While we could do this all in navtive \TeX\ or \ConTeXt, we find it easier 
+to make use the Lua based template renderer provided by the Literate 
+Programming \ConTeXt\ module. To do this we we define the 
+\type{\traceTexMacro} and \type{\traceContextMacro} to make use of 
+\type{\directlua} to call the Lua function \type{createTraceMacro}. This 
+\type{createTraceMacro} takes three arguments, the macro name, the number 
+of arguments expected by the macro, and the type of macro (either 
+\quote{tex} or \quote{context}).
+
 \startTestSuite[createTraceMacro]
 
 \startMkIVCode
@@ -686,6 +707,22 @@ The \type{\assertNoThirdArgument} assertion confirms that any previous
 
 \stopMkIVCode
 
+We now develop the Lua template which represents the \TeX\ macro used to 
+define the \emph{wrapped} \TeX\ or \ConTeXt\ macro. By using a Lua 
+template approach, we are following a \emph{meta-programming} approach. 
+Using this approach a simple call to the Lua method 
+\type{createTraceMacro} expands into the rather more complex \TeX\ macros 
+required to wrap the original macro into one that uses the Lua method 
+\type{traceMacro} to make a record of the fact that the original macro was 
+expanded with a particular collection of arguments. 
+
+We begin by providing simple Lua templates to deal with the two distinct 
+\quote{standard} \TeX\ and \ConTeXt\ argument patterns. In particular, the 
+\quote{standard} \ConTeXt\ macros wrap their \emph{optional} arguments in 
+pairs of \quote{[} and \quote{]} symbols. These two patterns are dealt 
+with in the two templates \type{ctmTexFormalArgs} and 
+\type{ctmContextFormalArgs} respectively. 
+
 \startLuaTemplate
 addTemplate(
   'ctmTexFormalArgs',
@@ -698,25 +735,50 @@ addTemplate(
   { 'anArg' },
   '[#{{= anArg}}]'
 )
+\stopLuaTemplate
 
-addTemplate(
-  'ctmArgUse',
-  { 'anArg' },
-  "        '#{{= anArg}}'"
-)
+The \type{ctmFormalArgs} template determines which of the above two 
+templates will be used to define the wrapper macro. Using Parr's 
+\quote{push semantics}, \cite{parr2004templateMVC}, we do this by using an 
+indirect template reference, using the template argument 
+\type{argTemplate} which was previously computed by the Lua 
+\type{createTraceMacro} before attempting to expand the templates. 
 
+\startLuaTemplate
 addTemplate(
   'ctmFormalArgs',
   { 'anArg', 'argTemplate' },
   '{{! *argTemplate, anArg }}'
 )
+\stopLuaTemplate
 
+Having defined how to deal with the two types of formal arguments, we now 
+define a simple template \type{ctmArgUse} which expands into the text 
+required to pass the actual arguments provided into the Lua 
+\type{traceMacro} method. Note that all of the original macro's arguments 
+are passed into Lua as Lua strings. 
+
+\startLuaTemplate
+addTemplate(
+  'ctmArgUse',
+  { 'anArg' },
+  "        '#{{= anArg}}'"
+)
+\stopLuaTemplate
+
+We can now provide the main template, \type{ctmMain}, which represents the 
+actual \TeX\ macros required to provide a tracing wrapper to the particular 
+\TeX\ macro to be traced. 
+
+\startLuaTemplate
 addTemplate(
   'ctmMain',
-  { 'macroName', 'argList', 'argType', 'argTemplate', 'emptyStr', 'commaNewLine' },
+  { 'macroName', 'argList', 'argType', 'argTemplate',
+    'emptyStr', 'commaNewLine' },
   [=[
 \let\old{{= macroName}}=\{{= macroName}}
-\def\{{= macroName}}{{| argList, emptyStr, ctmFormalArgs, anArg, argTemplate }}{%
+\def\{{= macroName}}{{| argList, emptyStr, ctmFormalArgs,
+                        anArg, argTemplate }}{%
   \directlua{%
     thirddata.contests.traceMacro(
       '{{= macroName}}',
@@ -731,6 +793,30 @@ addTemplate(
 )
 \stopLuaTemplate
 
+Finally, we provide the Lua \type{createTraceMacro} itself. this method 
+has four principle sections.
+
+Since we are using Parr's \emph{push semantics}, 
+\cite{parr2004templateMVC}, the first section precomputes all of the 
+template arguments required for the full template expansion. In particular 
+this means we must build the \type{argList} which is a list of the \TeX\ 
+argument numbers corresponding to the number of arguments the original 
+\TeX\ or \ConTeXt\ macro is defined to consume. We must also determine 
+which of the two formal argument templates will be used to render the 
+formal arguments require to re-define the wrapped macro. 
+
+The last three sections then build the template environment, find and 
+render the \type{ctmMain} template and then split the resulting rendered 
+text into single lines to be fed back to \TeX\ to process. Finally we 
+return the rendered text split into individual lines to allow for ConTest 
+testing. 
+
+When true, the \type{aTracingOn} argument to the \type{createTraceMacro} 
+provides a trace, using \type{texio.write_nl} of the template expansion 
+itself. When true, this allows the template developer to visual verify 
+that the template has expanded as expected. Typically the 
+\type{createTraceMacro} will be called with \type{aTracingOn} as false. 
+
 \startLuaCode
 function contests.createTraceMacro(theMacroName, numArgs, theArgType, aTracingOn)
   local theArgList = { }
@@ -741,6 +827,7 @@ function contests.createTraceMacro(theMacroName, numArgs, theArgType, aTracingOn
   if theArgType == 'context' then
     theArgTemplate = 'ctmContextFormalArgs'
   end
+  --
   local theEnv   = {
     tracingOn    = aTracingOn,
     macroName    = theMacroName,
@@ -750,20 +837,22 @@ function contests.createTraceMacro(theMacroName, numArgs, theArgType, aTracingOn
     emptyStr     = '',
     commaNewLine = ',\n'
   }
+  --
   local ctmMainPath = litProgs.parseTemplatePath('ctmMain', theEnv)
   local ctmMain     = litProgs.navigateToTemplate(ctmMainPath)
   local result      = litProgs.renderer(ctmMain, theEnv, true)
+  --
   result            = litProgs.splitString(result)
-  --tex.print(result)
+  tex.print(result)
   return result
 end
 \stopLuaCode
 
-\startTestCase[createTraceMacro should ...]
+\startTestCase[createTraceMacro should create the required TeX or ConTeXt macros]
+
 \startLuaTest
 local createTraceMacro = thirddata.contests.createTraceMacro
-local macroBody = createTraceMacro('test', 3, 'context', true)
-showValue(macroBody)
+local macroBody = createTraceMacro('test', 3, 'context')
 assert.isTable(macroBody)
 assert.length(macroBody, 14)
 assert.isEqual(macroBody[1],  "\\let\\oldtest=\\test")
@@ -781,8 +870,7 @@ assert.isEqual(macroBody[12], "    )")
 assert.isEqual(macroBody[13], "  }")
 assert.isEqual(macroBody[14], "}")
 --
-macroBody = createTraceMacro('test', 3, 'tex', true)
-showValue(macroBody)
+macroBody = createTraceMacro('test', 3, 'tex')
 assert.isTable(macroBody)
 assert.length(macroBody, 14)
 assert.isEqual(macroBody[1],  "\\let\\oldtest=\\test")
@@ -800,7 +888,6 @@ assert.isEqual(macroBody[12], "    )")
 assert.isEqual(macroBody[13], "  }")
 assert.isEqual(macroBody[14], "}")
 \stopLuaTest
-\showLuaTest
 \stopTestCase
 
 \stopTestSuite

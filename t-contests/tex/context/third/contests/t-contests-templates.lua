@@ -24,7 +24,7 @@ local tConcat = table.concat
 
 local addTemplate = litProgs.addTemplate
 
--- from file: mkivTests.tex after line: 675
+-- from file: mkivTests.tex after line: 700
 
 addTemplate(
   'ctmTexFormalArgs',
@@ -38,11 +38,7 @@ addTemplate(
   '[#{{= anArg}}]'
 )
 
-addTemplate(
-  'ctmArgUse',
-  { 'anArg' },
-  "        '#{{= anArg}}'"
-)
+-- from file: mkivTests.tex after line: 700
 
 addTemplate(
   'ctmFormalArgs',
@@ -50,12 +46,24 @@ addTemplate(
   '{{! *argTemplate, anArg }}'
 )
 
+-- from file: mkivTests.tex after line: 750
+
+addTemplate(
+  'ctmArgUse',
+  { 'anArg' },
+  "        '#{{= anArg}}'"
+)
+
+-- from file: mkivTests.tex after line: 750
+
 addTemplate(
   'ctmMain',
-  { 'macroName', 'argList', 'argType', 'argTemplate', 'emptyStr', 'commaNewLine' },
+  { 'macroName', 'argList', 'argType', 'argTemplate',
+    'emptyStr', 'commaNewLine' },
   [=[
 \let\old{{= macroName}}=\{{= macroName}}
-\def\{{= macroName}}{{| argList, emptyStr, ctmFormalArgs, anArg, argTemplate }}{%
+\def\{{= macroName}}{{| argList, emptyStr, ctmFormalArgs,
+                        anArg, argTemplate }}{%
   \directlua{%
     thirddata.contests.traceMacro(
       '{{= macroName}}',

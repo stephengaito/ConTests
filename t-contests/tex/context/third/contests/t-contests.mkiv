@@ -100,7 +100,7 @@
   \directlua{thirddata.contests.reportStats('mkiv')}
 }
 
-% from file: mkivTests.tex after line: 75
+% from file: mkivTests.tex after line: 50
 
 \def\assertionFailed#1#2{%
   \directlua{thirddata.contests.reportMkIVAssertion(false, '#1', '#2')}
@@ -118,7 +118,7 @@
 
 \def\stopAssertShouldFail{\relax}
 
-% from file: mkivTests.tex after line: 225
+% from file: mkivTests.tex after line: 200
 
 \def\assertFail#1{\assertionFailed{#1}{(Failed)}}
 
@@ -126,7 +126,7 @@
 
 \def\assertSucceed#1{\assertionSucceeded{#1}}
 
-% from file: mkivTests.tex after line: 275
+% from file: mkivTests.tex after line: 250
 
 \def\assertDefined#1#2{%
   \expandafter\ifx\csname#1\endcsname\relax%
@@ -159,7 +159,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 375
+% from file: mkivTests.tex after line: 350
 
 \def\assertStringDoesNotMatch#1#2#3{%
   \edef\aString{#1}
@@ -172,7 +172,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 425
+% from file: mkivTests.tex after line: 400
 
 \def\assertFirstArgument#1{%
   \iffirstargument%
@@ -212,7 +212,7 @@
   \fi
 }
 
-% from file: mkivTests.tex after line: 575
+% from file: mkivTests.tex after line: 550
 
 \def\assertThirdArgument#1{%
   \ifthirdargument%
@@ -222,7 +222,7 @@
   \fi
 }
 
-% from file: mkivTests.tex after line: 625
+% from file: mkivTests.tex after line: 600
 
 \def\assertNoThirdArgument#1{%
   \ifthirdargument%
@@ -232,7 +232,7 @@
   \fi
 }
 
-% from file: mkivTests.tex after line: 675
+% from file: mkivTests.tex after line: 650
 
 \def\traceTexMacro#1#2{%
   \directlua{%
@@ -245,7 +245,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 800
+% from file: mkivTests.tex after line: 900
 
 \def\startMocking{%
   \directlua{thirddata.contests.startMocking()}%
@@ -256,7 +256,7 @@
   \directlua{thirddata.contests.stopMocking()}
 }
 
-% from file: mkivTests.tex after line: 825
+% from file: mkivTests.tex after line: 900
 
 \def\startTracingMockExpansions{%
   \directlua{thirddata.contests.traceMockCalls(true)}
@@ -265,7 +265,7 @@
   \directlua{thirddata.contests.traceMockCalls(false)}
 }
 
-% from file: mkivTests.tex after line: 900
+% from file: mkivTests.tex after line: 1000
 
 \def\callTexMockZero#1{%
   \directlua{%
@@ -307,7 +307,7 @@
   \setevalue{#1}{\noexpand\callTexMockThree{#1}}%
 }
 
-% from file: mkivTests.tex after line: 975
+% from file: mkivTests.tex after line: 1050
 
 \def\callContextMockNone#1[#2][#3][#4]{%
     \directlua{%
@@ -351,7 +351,7 @@
   \setuevalue{#1None}  {\noexpand\callContextMockNone #1}%
 }
 
-% from file: mkivTests.tex after line: 1025
+% from file: mkivTests.tex after line: 1100
 
 \def\assertMockExpanded#1#2{%
   \directlua{%
@@ -369,7 +369,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 1125
+% from file: mkivTests.tex after line: 1200
 
 \def\assertMockNthArgumentOnMthExpansionMatches#1#2#3#4#5{%
   \directlua{%
@@ -379,7 +379,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 1225
+% from file: mkivTests.tex after line: 1300
 
 \def\addMockResult#1#2{%
   \directlua{%
@@ -387,7 +387,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 1275
+% from file: mkivTests.tex after line: 1350
 
 \def\mockErrMessage{%
   \defTexMockOneArg{errmessage}
@@ -396,7 +396,7 @@
   \assertMockExpanded{errmessage}{#1}
 }
 
-% from file: luaTests.tex after line: 25
+% from file: luaTests.tex after line: 0
 
 %%%%%%%%%%%%%%%%
 % LuaTest code %
