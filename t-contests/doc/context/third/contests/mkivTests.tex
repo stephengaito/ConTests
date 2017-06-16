@@ -6,12 +6,21 @@ We provide an evolving collection of unit test assertions in \ConTeXt.
 
 \section[title=Test cases]
 
+We base our ConTest unit tests on the \ConTeXt\ typing environment, so we 
+begin by defining a new typing environment using \type{\definetyping}. 
+Typing environments, use Lua code to capture the contents of the 
+environment and place them into a Lua string variable called a 
+\quote{buffer}. At the end of our ConTest environment, we use the Lua 
+method \type{addConTest} to capture the contents of the \type{_tying_} 
+buffer for execution at the end of the test case which contains the 
+current ConTest environment. To do this we need to wrap the 
+\type{\stopConTest} macro which was created by the \type{\definetyping} 
+macro. Our wrapped \type{\stopConTest} macro expands the old version of 
+the \type{\stopConTest} \TeX\ macro and then calls the Lua 
+\type{addConTest} method with the \type{bufferName} set to 
+\type{_typing_}. 
+
 \startMkIVCode
-
-%%%%%%%%%%%%%%%%
-% ConTest code %
-%%%%%%%%%%%%%%%%
-
 \definetyping[ConTest]
 \setuptyping[ConTest][option=context]
 
@@ -20,18 +29,15 @@ We provide an evolving collection of unit test assertions in \ConTeXt.
   \oldStopConTest%
   \directlua{thirddata.contests.addConTest('_typing_')}
 }
-
-\def\reportMkIVStats{%
-  \directlua{thirddata.contests.reportStats('mkiv')}
-}
-
 \stopMkIVCode
 
-\startLuaCode
-------------------
--- ConTest code --
-------------------
+The \type{addConTest} Lua method starts by ensuring that the contents of 
+the \type{bufferName} buffer has \TeX\ friendly end of line characters. 
+The method then appends the buffer string to the end of the 
+\type{case.mkiv} array for the current test case in the current test 
+suite. 
 
+\startLuaCode
 function contests.addConTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
   local suite = tests.curSuite

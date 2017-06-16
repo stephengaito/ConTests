@@ -61,7 +61,7 @@ local sFmt    = string.format
 local sMatch  = string.match
 local toStr   = tostring
 
--- from file: testSuites.tex after line: 0
+-- from file: testSuites.tex after line: 50
 
 local function initSuite()
   local curSuite = {}
@@ -79,6 +79,8 @@ function contests.stopTestSuite()
   tInsert(tests.suites, tests.curSuite)
   tests.curSuite = initSuite()
 end
+
+-- from file: testSuites.tex after line: 150
 
 function contests.startTestCase(aDesc)
   local suite       = tests.curSuite
@@ -107,6 +109,52 @@ function contests.skipTestCase()
   tex.print('{\\magenta SKIPPED}')
 end
 
+-- from file: testSuites.tex after line: 150
+
+local function logFailure(reason, suiteDesc, caseDesc,
+                          testMsg, errMsg, fileInfo)
+  local failure = {}
+  failure.reason    = reason
+  failure.suiteDesc = suiteDesc
+  failure.caseDesc  = caseDesc
+  failure.testMsg   = testMsg
+  failure.errMsg    = errMsg
+  failure.fileInfo  = fileInfo
+  return failure
+end
+
+-- from file: testSuites.tex after line: 200
+
+local function reportFailure(aFailure, fullReport)
+  tex.print("\\noindent{\\red "..aFailure.reason.."}:\\\\")
+  if fullReport then
+    tex.print(aFailure.suiteDesc.."\\\\")
+    tex.print(aFailure.caseDesc.."\\\\")
+  end
+  if aFailure.testMsg and 0 < #aFailure.testMsg then
+    tex.print(aFailure.testMsg.."\\\\")
+  end
+  tex.cprint(12, aFailure.errMsg)
+  tex.print("\\\\"..aFailure.fileInfo)
+end
+
+-- from file: testSuites.tex after line: 200
+
+function contests.reportFailures()
+  if 0 < #tests.failures then
+    tex.print("\\startitemize ")
+    for i, aFailure in ipairs(tests.failures) do
+      tex.print("\\item ")
+      reportFailure(aFailure, true)
+    end
+    tex.print("\\stopitemize ")
+  else
+    tex.print("{\\green All test cases PASSED}")
+  end
+end
+
+-- from file: testSuites.tex after line: 250
+
 function contests.reportStats(statsType)
   local stats = tests.stats[statsType]
   local rows = { 'cases', 'assertions' }
@@ -130,49 +178,7 @@ function contests.reportStats(statsType)
   tex.print("}")
 end
 
-local function logFailure(reason, suiteDesc, caseDesc,
-                          testMsg, errMsg, fileInfo)
-  local failure = {}
-  failure.reason    = reason
-  failure.suiteDesc = suiteDesc
-  failure.caseDesc  = caseDesc
-  failure.testMsg   = testMsg
-  failure.errMsg    = errMsg
-  failure.fileInfo  = fileInfo
-  return failure
-end
-
-local function reportFailure(aFailure, fullReport)
-  tex.print("\\noindent{\\red "..aFailure.reason.."}:\\\\")
-  if fullReport then
-    tex.print(aFailure.suiteDesc.."\\\\")
-    tex.print(aFailure.caseDesc.."\\\\")
-  end
-  if aFailure.testMsg and 0 < #aFailure.testMsg then
-    tex.print(aFailure.testMsg.."\\\\")
-  end
-  tex.cprint(12, aFailure.errMsg)
-  tex.print("\\\\"..aFailure.fileInfo)
-end
-
-function contests.reportFailures()
-  if 0 < #tests.failures then
-    tex.print("\\startitemize ")
-    for i, aFailure in ipairs(tests.failures) do
-      tex.print("\\item ")
-      reportFailure(aFailure, true)
-    end
-    tex.print("\\stopitemize ")
-  else
-    tex.print("{\\green All test cases PASSED}")
-  end
-end
-
 -- from file: mkivTests.tex after line: 0
-
-------------------
--- ConTest code --
-------------------
 
 function contests.addConTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
@@ -215,7 +221,7 @@ function contests.stopConTestImplementation()
   end
 end
 
--- from file: mkivTests.tex after line: 50
+-- from file: mkivTests.tex after line: 100
 
 function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
   local curSuite  = tests.curSuite
@@ -334,7 +340,7 @@ function contests.stopMocking()
   mocks.traceCalls = false
 end
 
--- from file: mkivTests.tex after line: 900
+-- from file: mkivTests.tex after line: 950
 
 function contests.traceMockCalls(traceCalls)
   mocks.traceCalls = traceCalls
@@ -373,7 +379,7 @@ function contests.addMockResult(mockedMacro, returnValue)
   tInsert(mockedMacro.returns, returnValue)
 end
 
--- from file: mkivTests.tex after line: 1100
+-- from file: mkivTests.tex after line: 1150
 
 function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
   local expectedMsg = 'Expected ['..mockedMacro..']'
@@ -445,12 +451,6 @@ function contests.assertMockArguments(mockedMacro,
       expectedMsg..'to be defined')
   end
 end
-
--- from file: luaTests.tex after line: 0
-
-------------------
--- LuaTest code --
-------------------
 
 -- from file: luaTests.tex after line: 0
 
@@ -608,7 +608,7 @@ function assert.throwsError(aFunction, aMessage, ...)
   )
 end
 
--- from file: luaTests.tex after line: 300
+-- from file: luaTests.tex after line: 250
 
 function assert.throwsNoError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
@@ -667,7 +667,7 @@ function assert.isNotBoolean(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 500
+-- from file: luaTests.tex after line: 450
 
 function assert.isTrue(aBoolean, aMessage)
   return reportLuaAssertion(
@@ -677,7 +677,7 @@ function assert.isTrue(aBoolean, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 550
+-- from file: luaTests.tex after line: 500
 
 function assert.isFalse(aBoolean, aMessage)
   return reportLuaAssertion(
@@ -718,7 +718,7 @@ function assert.isEqual(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 700
+-- from file: luaTests.tex after line: 650
 
 function assert.isEqualWithIn(numA, numB,
   tolerance, aMessage)
@@ -742,7 +742,7 @@ function assert.isNotEqual(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 800
+-- from file: luaTests.tex after line: 750
 
 function assert.isNotEqualWithIn(numA, numB, tolerance, aMessage)
   return reportLuaAssertion(
@@ -764,7 +764,7 @@ function assert.isNumber(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 900
+-- from file: luaTests.tex after line: 850
 
 function assert.isGT(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -774,7 +774,7 @@ function assert.isGT(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 950
+-- from file: luaTests.tex after line: 900
 
 function assert.isGTE(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -784,7 +784,7 @@ function assert.isGTE(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1000
+-- from file: luaTests.tex after line: 950
 
 function assert.isLT(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -824,7 +824,7 @@ function assert.isString(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1200
+-- from file: luaTests.tex after line: 1150
 
 function assert.matches(anObj, aPattern, aMessage)
   return reportLuaAssertion(
@@ -836,7 +836,7 @@ function assert.matches(anObj, aPattern, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1250
+-- from file: luaTests.tex after line: 1200
 
 function assert.doesNotMatch(anObj, aPattern, aMessage)
   return reportLuaAssertion(
@@ -848,7 +848,7 @@ function assert.doesNotMatch(anObj, aPattern, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1300
+-- from file: luaTests.tex after line: 1250
 
 function assert.length(anObj, aLength, aMessage)
   return reportLuaAssertion(
@@ -922,7 +922,7 @@ function assert.isNotTable(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1600
+-- from file: luaTests.tex after line: 1550
 
 function assert.isFunction(anObj, aMessage)
   return reportLuaAssertion(
@@ -963,7 +963,7 @@ function assert.metaTableEqual(anObj, aMetaTable, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1750
+-- from file: luaTests.tex after line: 1700
 
 function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
@@ -1004,7 +1004,7 @@ function assert.isNotThread(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1900
+-- from file: luaTests.tex after line: 1850
 
 function assert.isUserData(anObj, aMessage)
   return reportLuaAssertion(

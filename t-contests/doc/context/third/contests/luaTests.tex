@@ -2,12 +2,6 @@
 
 \startchapter[title=Lua Unit Testing]
 
-\startLuaCode
-------------------
--- LuaTest code --
-------------------
-\stopLuaCode
-
 \section[title=Reporting what has happened]
 
 While unit testing is critical, often while developing code the programmer 
@@ -35,10 +29,6 @@ testing framework which is in turn inspired by the LUnit assertion
 interface. We tailor these ideas for use \emph{inside} \ConTeXt. 
 
 \startMkIVCode
-%%%%%%%%%%%%%%%%
-% LuaTest code %
-%%%%%%%%%%%%%%%%
-
 \definetyping[LuaTest]
 \setuptyping[LuaTest][option=lua]
 
@@ -51,11 +41,6 @@ interface. We tailor these ideas for use \emph{inside} \ConTeXt.
 \def\showLuaTest{%
   \directlua{thirddata.contests.showLuaTest()}
 }
-
-\def\reportLuaStats{%
-  \directlua{thirddata.contests.reportStats('lua')}
-}
-
 \stopMkIVCode
 
 We provide local names for both \type{string.format} and \type{tostring}. 

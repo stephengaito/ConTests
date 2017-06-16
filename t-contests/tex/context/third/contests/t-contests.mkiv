@@ -52,14 +52,16 @@
 % from file: testSuites.tex after line: 0
 
 \def\startTestSuite[#1]{%
-  \startsubsection[title=Test Suite: #1]
+  \subsection[title=Test Suite: #1]
   \directlua{thirddata.contests.startTestSuite("#1")}
 }
 
 \def\stopTestSuite{%
-  \stopsubsection%
+  %\stopsubsection%
   \directlua{thirddata.contests.stopTestSuite()}
 }
+
+% from file: testSuites.tex after line: 100
 
 \def\startTestCase[#1]{%
   \starttextrule{Test case}
@@ -77,15 +79,23 @@
   \stoptextrule%
 }
 
+% from file: testSuites.tex after line: 200
+
 \def\reportFailures{%
   \directlua{thirddata.contests.reportFailures()}
 }
 
-% from file: mkivTests.tex after line: 0
+% from file: testSuites.tex after line: 250
 
-%%%%%%%%%%%%%%%%
-% ConTest code %
-%%%%%%%%%%%%%%%%
+\def\reportMkIVStats{%
+  \directlua{thirddata.contests.reportStats('mkiv')}
+}
+
+\def\reportLuaStats{%
+  \directlua{thirddata.contests.reportStats('lua')}
+}
+
+% from file: mkivTests.tex after line: 0
 
 \definetyping[ConTest]
 \setuptyping[ConTest][option=context]
@@ -94,10 +104,6 @@
 \def\stopConTest{%
   \oldStopConTest%
   \directlua{thirddata.contests.addConTest('_typing_')}
-}
-
-\def\reportMkIVStats{%
-  \directlua{thirddata.contests.reportStats('mkiv')}
 }
 
 % from file: mkivTests.tex after line: 50
@@ -232,7 +238,7 @@
   \fi
 }
 
-% from file: mkivTests.tex after line: 650
+% from file: mkivTests.tex after line: 700
 
 \def\traceTexMacro#1#2{%
   \directlua{%
@@ -398,10 +404,6 @@
 
 % from file: luaTests.tex after line: 0
 
-%%%%%%%%%%%%%%%%
-% LuaTest code %
-%%%%%%%%%%%%%%%%
-
 \definetyping[LuaTest]
 \setuptyping[LuaTest][option=lua]
 
@@ -413,10 +415,6 @@
 
 \def\showLuaTest{%
   \directlua{thirddata.contests.showLuaTest()}
-}
-
-\def\reportLuaStats{%
-  \directlua{thirddata.contests.reportStats('lua')}
 }
 
 % from file: cTests.tex after line: 0
