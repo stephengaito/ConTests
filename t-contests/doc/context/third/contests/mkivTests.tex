@@ -45,7 +45,11 @@ function contests.addConTest(bufferName)
   case.mkiv   = case.mkiv or {}
   tInsert(case.mkiv, bufferContents)
 end
+\stopLuaCode
 
+TODO discuss \type{runCurMkIVTestCase}.
+
+\startLuaCode
 function contests.runCurMkIVTestCase(suite, case)
   case.passed = case.passed or true
   case.mkiv   = case.mkiv   or { }
@@ -164,12 +168,17 @@ end
 \startTestSuite[assertShouldFail environment]
 
 The \type{assertShouldFail} environment provides a way to confirm that 
-some \quote{inner} ConTest assertions have failed. The 
-\type{\startAssertShouldFaile} command takes three arguments, a lua 
-pattern to match against the inner message, a lua pattern to match against 
-the inner reason, and an \quote{outer} message to be used by the 
-\type{assertShouldFail} commands themselves. Upon successfully detecting 
-the inner failure, the inner failure reports are removed. 
+some ConTest assertions located inside the \type{assertShouldFail} 
+environment, have failed. The \type{\startAssertShouldFail} command takes 
+three arguments, a lua pattern to match against the inner message, a lua 
+pattern to match against the inner reason, and an \quote{outer} message to 
+be used by the \type{assertShouldFail} commands themselves. Upon 
+successfully detecting the inner failure, the inner failure reports are 
+removed. 
+
+The primary purpose of the \type{assertShouldFail} environment, is to 
+provide a way to test that various assertions fail, without those failures 
+representing failures of the overall test suite. 
 
 \startMkIVCode
 \def\startAssertShouldFail#1#2#3{%
@@ -674,11 +683,102 @@ The \type{\assertNoThirdArgument} assertion confirms that any previous
 \stopTestSuite
 
 
-\section[title=Tracing \ConTeXt]
+\section[title=Tracing and Mocking \ConTeXt]
 
 While trying to understand what \TeX\ and \ConTeXt\ are doing while 
 expanding complex macros, it is useful to trace the expansion of 
-particular macros. We address this capability in this section by defining 
+particular macros. We can do this by either directly wrapping a given 
+macro with our own marco or indirectly by providing a \quote{mock} version 
+of the macro. Often in unit testing scenarios it is important that 
+interactions between complex sub-parts of a system be isolated. We use 
+\quote{mocked} versions of macros to provide this isolation for testing 
+purposes. 
+
+We do this over the following collection of test suites. In the first 
+three test suites we use meta-programming to define either tracing 
+existing macros or mocking either \TeX\ or \ConTeXt\ macros. The 
+subsequent test suites provide detailed assertions that traced or mocked 
+macros were expanded a given number of times with particular arguemnts. 
+Finally the last test suite provides an important example of the use of 
+mocked macros by mocking the standard \TeX\ \type{\errmessage} macro. 
+
+\startTestSuite[Lua tracing methods]
+
+We begin by specifying the Lua methods used by the \TeX\ and \ConTeXt\ 
+tracing and mocking macros. 
+
+We sometimes need to assert that a given macro has been used with given 
+arguments. For example we might want to assert that a macro does or does 
+not \quote{throw} an \type{\errmessage}.
+
+Equally sometimes we need a given 
+macro to return a mock result for the overall \ConTeXt\ process to work. 
+
+On the lua side, both \type{startMocking} and \type{stopMocking} simply 
+empty the mocks table so that any previous mocking data is cleared. 
+
+\startLuaCode
+function contests.startMocking()
+  contests.mocks = { }
+  mocks          = contests.mocks
+end
+
+function contests.stopMocking()
+  contests.mocks   = { }
+  mocks            = contests.mocks
+  mocks.traceCalls = false
+end
+\stopLuaCode
+
+We next define the lua code which will capture the information used to 
+eventually test the mocked macros. 
+
+\startLuaCode
+function contests.traceMockCalls(traceCalls)
+  mocks.traceCalls = traceCalls
+  texio.write_nl('-----------------------------------------------------')
+end
+
+function contests.callMock(mockedMacro, mockedArguments, callType)
+  if mocks.traceCalls then
+    texio.write_nl('MOCKED '..callType..' macro expanded ['..mockedMacro..']')
+    for i, anArg in ipairs(mockedArguments) do
+      texio.write_nl('  args['..toStr(i)..'] = ['..toStr(anArg)..']')
+    end
+  end
+  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  mocks[mockedMacro] = mocks[mockedMacro] or { }
+  mockedMacro = mocks[mockedMacro]
+  mockedMacro.calls = mockedMacro.calls or { }
+  tInsert(mockedMacro.calls, { callType, mockedArguments})
+  mockedMacro.returns = mockedMacro.returns or { }
+  local result = tRemove(mockedMacro.returns, 1)
+  if result and type(result) == 'string' and not result:match('^%s*$') then
+    tex.print(result)
+  end
+end
+\stopLuaCode
+
+\startLuaCode
+function contests.defMock(mockedMacro)
+  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  mocks[mockedMacro] = { }
+end
+
+function contests.addMockResult(mockedMacro, returnValue)
+  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  mocks[mockedMacro] = mocks[mockedMacro] or { }
+  mockedMacro = mocks[mockedMacro]
+  mockedMacro.returns = mockedMacro.returns or { }
+  tInsert(mockedMacro.returns, returnValue)
+end
+\stopLuaCode
+
+\stopTestSuite
+
+\startTestSuite[the trace macros]
+
+We address this capability in this section by defining 
 the \type{\traceTexMacro} and \type{\traceContextMacro} macros. Both 
 macros will \type{\let} an existing macro to a different name and then 
 redefine the existing macro to call into Lua to record a trace of what has 
@@ -688,7 +788,7 @@ normal. We have two distinct tracing macros to deal with the different
 ways the \quote{standard} native \TeX\ macro and a \quote{standard} 
 \ConTeXt\ macros delimit their arguments. 
 
-While we could do this all in navtive \TeX\ or \ConTeXt, we find it easier 
+While we could do this all in native \TeX\ or \ConTeXt, we find it easier 
 to make use the Lua based template renderer provided by the Literate 
 Programming \ConTeXt\ module. To do this we we define the 
 \type{\traceTexMacro} and \type{\traceContextMacro} to make use of 
@@ -696,8 +796,6 @@ Programming \ConTeXt\ module. To do this we we define the
 \type{createTraceMacro} takes three arguments, the macro name, the number 
 of arguments expected by the macro, and the type of macro (either 
 \quote{tex} or \quote{context}).
-
-\startTestSuite[createTraceMacro]
 
 \startMkIVCode
 \def\traceTexMacro#1#2{%
@@ -898,12 +996,7 @@ assert.isEqual(macroBody[14], "}")
 
 \stopTestSuite
 
-\section[title=Mocking \ConTeXt]
-
-We sometimes need to assert that a given macro has been used with given 
-arguments. For example we might want to assert that a macro does or does 
-not \quote{throw} an \type{\errmessage}. Equally sometimes we need a given 
-macro to return a mock result for the overall \ConTeXt\ process to work. 
+\startTestSuite[The mocking environment]
 We solve both of these use cases by making use of \TeX's 
 \type{\begingroup}, \type{\endgroup} environment to provide local 
 namespaces in which we can temporarily redefine a macro to ensure the 
@@ -931,63 +1024,7 @@ We begin by defining \type{\startMocking} and \type{\stopMocking} commands.
 }
 \stopMkIVCode
 
-On the lua side, both \type{startMocking} and \type{stopMocking} simply 
-empty the mocks table so that any previous mocking data is cleared. 
-
-\startLuaCode
-function contests.startMocking()
-  contests.mocks = { }
-  mocks          = contests.mocks
-end
-
-function contests.stopMocking()
-  contests.mocks   = { }
-  mocks            = contests.mocks
-  mocks.traceCalls = false
-end
-\stopLuaCode
-
-We next define the lua code which will capture the information used to 
-eventually test the mocked macros. 
-
-\startLuaCode
-function contests.traceMockCalls(traceCalls)
-  mocks.traceCalls = traceCalls
-  texio.write_nl('-----------------------------------------------------')
-end
-
-function contests.callMock(mockedMacro, mockedArguments, callType)
-  if mocks.traceCalls then
-    texio.write_nl('MOCKED '..callType..' macro expanded ['..mockedMacro..']')
-    for i, anArg in ipairs(mockedArguments) do
-      texio.write_nl('  args['..toStr(i)..'] = ['..toStr(anArg)..']')
-    end
-  end
-  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
-  mocks[mockedMacro] = mocks[mockedMacro] or { }
-  mockedMacro = mocks[mockedMacro]
-  mockedMacro.calls = mockedMacro.calls or { }
-  tInsert(mockedMacro.calls, { callType, mockedArguments})
-  mockedMacro.returns = mockedMacro.returns or { }
-  local result = tRemove(mockedMacro.returns, 1)
-  if result and type(result) == 'string' and not result:match('^%s*$') then
-    tex.print(result)
-  end
-end
-
-function contests.defMock(mockedMacro)
-  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
-  mocks[mockedMacro] = { }
-end
-
-function contests.addMockResult(mockedMacro, returnValue)
-  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
-  mocks[mockedMacro] = mocks[mockedMacro] or { }
-  mockedMacro = mocks[mockedMacro]
-  mockedMacro.returns = mockedMacro.returns or { }
-  tInsert(mockedMacro.returns, returnValue)
-end
-\stopLuaCode
+\stopTestSuite
 
 \startTestSuite[Defining TeX mock macros]
 
