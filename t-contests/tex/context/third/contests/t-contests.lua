@@ -15,15 +15,15 @@ if not modules then modules = { } end modules ['t-contests'] = {
 thirddata          = thirddata          or {}
 thirddata.contests = thirddata.contests or {}
 
-local contests  = thirddata.contests
-contests.tests  = {}
-local tests     = contests.tests
-tests.suites    = {}
-tests.failures  = {}
-contests.assert = {}
-local assert    = contests.assert
-contests.mocks  = {}
-local mocks     = contests.mocks
+local contests   = thirddata.contests
+contests.tests   = {}
+local tests      = contests.tests
+tests.suites     = {}
+tests.failures   = {}
+contests.assert  = {}
+local assert     = contests.assert
+contests.expInfo = {}
+local expInfo    = contests.expInfo
 
 local litProgs     = thirddata.literateProgs
 litProgs.templates = litProgs.templates or {}
@@ -188,6 +188,8 @@ function contests.addConTest(bufferName)
   tInsert(case.mkiv, bufferContents)
 end
 
+-- from file: mkivTests.tex after line: 50
+
 function contests.runCurMkIVTestCase(suite, case)
   case.passed = case.passed or true
   case.mkiv   = case.mkiv   or { }
@@ -296,9 +298,105 @@ function contests.mkivAssertShouldFail(messagePattern, reasonPattern, aMessage)
   shouldFail.message        = aMessage
 end
 
+-- from file: mkivTests.tex after line: 700
+
+local function clearAllExpansionInfo()
+  contests.expansionInfo = { }
+  expInfo                = contests.expansionInfo
+  expInfo.logginOn       = false
+end
+
+contests.clearAllExpansionInfo = clearAllExpansionInfo
+
+-- from file: mkivTests.tex after line: 700
+
+local function clearExpansionInfoFor(expandedMacro)
+  expandedMacro = expandedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  expInfo[expandedMacro] = { }
+end
+
+contests.clearExpansionInfoFor = clearExpansionInfoFor
+
+-- from file: mkivTests.tex after line: 700
+
+local function setExpansionLogging(logExpansion)
+  expInfo.loggingOn = logExpansion
+  texio.write_nl('----------------------------------------------')
+end
+
+contests.setExpansionLogging = setExpansionLogging
+
+-- from file: mkivTests.tex after line: 750
+
+local function recordExpansion(expandedMacro,
+                               macroArguments,
+                               callType)
+  if expInfo.loggingOn then
+    texio.write_nl(
+      'EXPANSION '..callType..
+      ' macro expanded ['..expandedMacro..']'
+    )
+    for i, anArg in ipairs(macroArguments) do
+      texio.write_nl(
+        '  args['..toStr(i)..'] = ['..toStr(anArg)..']'
+      )
+    end
+  end
+  expandedMacro = expandedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  expInfo[expandedMacro] = expInfo[expandedMacro] or { }
+  expandedMacro          = expInfo[expandedMacro]
+  expandedMacro.calls    = expandedMacro.calls or { }
+  tInsert(expandedMacro.calls, { callType, macroArguments})
+  return expandedMacro
+end
+
+contests.recordExpansion = recordExpansion
+
+-- from file: mkivTests.tex after line: 750
+
+local function returnMockedResults(expandedMacro)
+  expandedMacro.returns = expandedMacro.returns or { }
+  local result = tRemove(expandedMacro.returns, 1)
+  if result and
+     type(result) == 'string' and
+     not result:match('^%s*$') then
+    tex.print(result)
+  end
+end
+
+contests.returnMockedResults = returnMockedResults
+
 -- from file: mkivTests.tex after line: 800
 
-function contests.createTraceMacro(theMacroName, numArgs, theArgType, aTracingOn)
+local function addMockResult(mockedMacro, returnValue)
+  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  expInfo[mockedMacro] = expInfo[mockedMacro] or { }
+  mockedMacro          = expInfo[mockedMacro]
+  mockedMacro.returns  = mockedMacro.returns or { }
+  tInsert(mockedMacro.returns, returnValue)
+end
+
+contests.addMockResult = addMockResult
+
+-- from file: mkivTests.tex after line: 800
+
+local function mockExpansion(expandedMacro,
+                               macroArguments,
+                               callType)
+  expandedMacro = recordExpansion(expandedMacro,
+                               macroArguments,
+                               callType)
+  returnMockedResults(expandedMacro)
+end
+
+contests.mockExpansion = mockExpansion
+
+-- from file: mkivTests.tex after line: 1000
+
+local function createTraceMacro(theMacroName,
+                                numArgs,
+                                theArgType,
+                                aTracingOn)
   local theArgList = { }
   for argNum = 1, numArgs, 1 do
     tInsert(theArgList, argNum)
@@ -327,63 +425,13 @@ function contests.createTraceMacro(theMacroName, numArgs, theArgType, aTracingOn
   return result
 end
 
--- from file: mkivTests.tex after line: 900
+contests.createTraceMacro = createTraceMacro
 
-function contests.startMocking()
-  contests.mocks = { }
-  mocks          = contests.mocks
-end
-
-function contests.stopMocking()
-  contests.mocks   = { }
-  mocks            = contests.mocks
-  mocks.traceCalls = false
-end
-
--- from file: mkivTests.tex after line: 950
-
-function contests.traceMockCalls(traceCalls)
-  mocks.traceCalls = traceCalls
-  texio.write_nl('-----------------------------------------------------')
-end
-
-function contests.callMock(mockedMacro, mockedArguments, callType)
-  if mocks.traceCalls then
-    texio.write_nl('MOCKED '..callType..' macro expanded ['..mockedMacro..']')
-    for i, anArg in ipairs(mockedArguments) do
-      texio.write_nl('  args['..toStr(i)..'] = ['..toStr(anArg)..']')
-    end
-  end
-  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
-  mocks[mockedMacro] = mocks[mockedMacro] or { }
-  mockedMacro = mocks[mockedMacro]
-  mockedMacro.calls = mockedMacro.calls or { }
-  tInsert(mockedMacro.calls, { callType, mockedArguments})
-  mockedMacro.returns = mockedMacro.returns or { }
-  local result = tRemove(mockedMacro.returns, 1)
-  if result and type(result) == 'string' and not result:match('^%s*$') then
-    tex.print(result)
-  end
-end
-
-function contests.defMock(mockedMacro)
-  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
-  mocks[mockedMacro] = { }
-end
-
-function contests.addMockResult(mockedMacro, returnValue)
-  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
-  mocks[mockedMacro] = mocks[mockedMacro] or { }
-  mockedMacro = mocks[mockedMacro]
-  mockedMacro.returns = mockedMacro.returns or { }
-  tInsert(mockedMacro.returns, returnValue)
-end
-
--- from file: mkivTests.tex after line: 1150
+-- from file: mkivTests.tex after line: 1250
 
 function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
   local expectedMsg = 'Expected ['..mockedMacro..']'
-  mockedMacro = mocks[mockedMacro]
+  mockedMacro = expInfo[mockedMacro]
   contests.reportMkIVAssertion(
     mockedMacro ~= nil
     and mockedMacro.calls ~= nil
@@ -396,7 +444,7 @@ end
 
 function contests.assertMockNeverExpanded(mockedMacro, aMessage)
   local expectedMsg = 'Expected ['..mockedMacro..']'
-  mockedMacro = mocks[mockedMacro]
+  mockedMacro = expInfo[mockedMacro]
   contests.reportMkIVAssertion(
     mockedMacro ~= nil
     and mockedMacro.calls == nil,
@@ -406,7 +454,7 @@ function contests.assertMockNeverExpanded(mockedMacro, aMessage)
   )
 end
 
--- from file: mkivTests.tex after line: 1200
+-- from file: mkivTests.tex after line: 1300
 
 function contests.assertMockArguments(mockedMacro,
                                       callNum,
@@ -414,7 +462,7 @@ function contests.assertMockArguments(mockedMacro,
                                       aPattern,
                                       aMessage)
   local expectedMsg = 'Expected ['..mockedMacro..'] '
-  mockedMacro = mocks[mockedMacro]
+  mockedMacro = expInfo[mockedMacro]
   if mockedMacro then
     local calls = mockedMacro.calls
     if calls then

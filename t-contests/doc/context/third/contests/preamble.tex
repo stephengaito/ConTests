@@ -66,15 +66,15 @@ if not modules then modules = { } end modules ['t-contests'] = {
 thirddata          = thirddata          or {}
 thirddata.contests = thirddata.contests or {}
 
-local contests  = thirddata.contests
-contests.tests  = {}
-local tests     = contests.tests
-tests.suites    = {}
-tests.failures  = {}
-contests.assert = {}
-local assert    = contests.assert
-contests.mocks  = {}
-local mocks     = contests.mocks
+local contests   = thirddata.contests
+contests.tests   = {}
+local tests      = contests.tests
+tests.suites     = {}
+tests.failures   = {}
+contests.assert  = {}
+local assert     = contests.assert
+contests.expInfo = {}
+local expInfo    = contests.expInfo
 
 local litProgs     = thirddata.literateProgs
 litProgs.templates = litProgs.templates or {}

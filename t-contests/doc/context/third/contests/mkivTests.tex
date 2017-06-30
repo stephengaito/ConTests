@@ -694,108 +694,189 @@ interactions between complex sub-parts of a system be isolated. We use
 \quote{mocked} versions of macros to provide this isolation for testing 
 purposes. 
 
-We do this over the following collection of test suites. In the first 
-three test suites we use meta-programming to define either tracing 
-existing macros or mocking either \TeX\ or \ConTeXt\ macros. The 
-subsequent test suites provide detailed assertions that traced or mocked 
-macros were expanded a given number of times with particular arguemnts. 
-Finally the last test suite provides an important example of the use of 
-mocked macros by mocking the standard \TeX\ \type{\errmessage} macro. 
+We will build this tracing and mocking capability over the following 
+collection of test suites. In the first test suite we define the Lua 
+methods which implement both the tracing and mocking. In the next three 
+test suites we use meta-programming to define either tracing existing 
+macros or mocking either \TeX\ or \ConTeXt\ macros. The subsequent test 
+suites provide detailed assertions that traced or mocked macros were 
+expanded a given number of times with particular arguemnts. Finally the 
+last test suite provides an important example of the use of mocked macros 
+by mocking the standard \TeX\ \type{\errmessage} macro. 
 
-\startTestSuite[Lua tracing methods]
+\startTestSuite[Lua tracing and mocking methods]
 
-We begin by specifying the Lua methods used by the \TeX\ and \ConTeXt\ 
-tracing and mocking macros. 
-
-We sometimes need to assert that a given macro has been used with given 
-arguments. For example we might want to assert that a macro does or does 
-not \quote{throw} an \type{\errmessage}.
-
-Equally sometimes we need a given 
-macro to return a mock result for the overall \ConTeXt\ process to work. 
-
-On the lua side, both \type{startMocking} and \type{stopMocking} simply 
-empty the mocks table so that any previous mocking data is cleared. 
+In this test suite we specify the Lua methods used by the \TeX\ and 
+\ConTeXt\ tracing and mocking macros. We begin by clearing the current 
+expansion information for \emph{all} traced or mocked macros. 
 
 \startLuaCode
-function contests.startMocking()
-  contests.mocks = { }
-  mocks          = contests.mocks
+local function clearAllExpansionInfo()
+  contests.expansionInfo = { }
+  expInfo                = contests.expansionInfo
+  expInfo.logginOn       = false
 end
 
-function contests.stopMocking()
-  contests.mocks   = { }
-  mocks            = contests.mocks
-  mocks.traceCalls = false
-end
+contests.clearAllExpansionInfo = clearAllExpansionInfo
 \stopLuaCode
 
-We next define the lua code which will capture the information used to 
-eventually test the mocked macros. 
+Sometimes we want to clear the expansion information for a particular 
+traced or mocked macro. 
 
 \startLuaCode
-function contests.traceMockCalls(traceCalls)
-  mocks.traceCalls = traceCalls
-  texio.write_nl('-----------------------------------------------------')
+local function clearExpansionInfoFor(expandedMacro)
+  expandedMacro = expandedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  expInfo[expandedMacro] = { }
 end
 
-function contests.callMock(mockedMacro, mockedArguments, callType)
-  if mocks.traceCalls then
-    texio.write_nl('MOCKED '..callType..' macro expanded ['..mockedMacro..']')
-    for i, anArg in ipairs(mockedArguments) do
-      texio.write_nl('  args['..toStr(i)..'] = ['..toStr(anArg)..']')
+contests.clearExpansionInfoFor = clearExpansionInfoFor
+\stopLuaCode
+
+By default traced or mocked macro expansions are not reported to the 
+\LuaTeX\ \type{texio} log. The \type{setExpansionLogging} method starts or 
+stops the expansion logging. 
+
+\startLuaCode
+local function setExpansionLogging(logExpansion)
+  expInfo.loggingOn = logExpansion
+  texio.write_nl('----------------------------------------------')
+end
+
+contests.setExpansionLogging = setExpansionLogging
+\stopLuaCode
+
+We provide the following \TeX\ convenience macros to start and stop 
+logging: 
+
+\startMkIVCode
+\def\startLoggingExpansions{%
+  \directlua{thirddata.contests.setExpansionLogging(true)}
+}
+\def\stopLoggingExpansions{%
+  \directlua{thirddata.contests.setExpansionLogging(false)}
+}
+\stopMkIVCode
+
+We next define the Lua code which will capture the information used to 
+eventually test the expansion patterns of traced or mocked macros. Note 
+that we use a lazy initialization strategy for any particular traced or 
+mocked macro. 
+
+\startLuaCode
+local function recordExpansion(expandedMacro,
+                               macroArguments,
+                               callType)
+  if expInfo.loggingOn then
+    texio.write_nl(
+      'EXPANSION '..callType..
+      ' macro expanded ['..expandedMacro..']'
+    )
+    for i, anArg in ipairs(macroArguments) do
+      texio.write_nl(
+        '  args['..toStr(i)..'] = ['..toStr(anArg)..']'
+      )
     end
   end
-  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
-  mocks[mockedMacro] = mocks[mockedMacro] or { }
-  mockedMacro = mocks[mockedMacro]
-  mockedMacro.calls = mockedMacro.calls or { }
-  tInsert(mockedMacro.calls, { callType, mockedArguments})
-  mockedMacro.returns = mockedMacro.returns or { }
-  local result = tRemove(mockedMacro.returns, 1)
-  if result and type(result) == 'string' and not result:match('^%s*$') then
+  expandedMacro = expandedMacro:gsub('^%s+', ''):gsub('%s+$', '')
+  expInfo[expandedMacro] = expInfo[expandedMacro] or { }
+  expandedMacro          = expInfo[expandedMacro]
+  expandedMacro.calls    = expandedMacro.calls or { }
+  tInsert(expandedMacro.calls, { callType, macroArguments})
+  return expandedMacro
+end
+
+contests.recordExpansion = recordExpansion
+\stopLuaCode
+
+Unlike traced macros, to simulate existing complex macros, some For mocked 
+macros will need to return \quote{canned} results. To do this we call the 
+\type{returnMockedResults} Lua method. \type{returnMockedResult}'s only 
+argument is the expansion info table associated with the given 
+expandedMacro's name as returned by \type{recordExpansion} method defined 
+above. 
+
+\startLuaCode
+local function returnMockedResults(expandedMacro)
+  expandedMacro.returns = expandedMacro.returns or { }
+  local result = tRemove(expandedMacro.returns, 1)
+  if result and 
+     type(result) == 'string' and
+     not result:match('^%s*$') then
     tex.print(result)
   end
 end
+
+contests.returnMockedResults = returnMockedResults
 \stopLuaCode
+
+Before any mocked results will be returned, the \quote{canned} results 
+must be added to the mocked macro's expansion info table. 
 
 \startLuaCode
-function contests.defMock(mockedMacro)
+local function addMockResult(mockedMacro, returnValue)
   mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
-  mocks[mockedMacro] = { }
-end
-
-function contests.addMockResult(mockedMacro, returnValue)
-  mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
-  mocks[mockedMacro] = mocks[mockedMacro] or { }
-  mockedMacro = mocks[mockedMacro]
-  mockedMacro.returns = mockedMacro.returns or { }
+  expInfo[mockedMacro] = expInfo[mockedMacro] or { }
+  mockedMacro          = expInfo[mockedMacro]
+  mockedMacro.returns  = mockedMacro.returns or { }
   tInsert(mockedMacro.returns, returnValue)
 end
+
+contests.addMockResult = addMockResult
 \stopLuaCode
+
+We define the \type{\addMockResult} macro which adds a return 
+value to the appropriate mocked macro. 
+
+\startMkIVCode
+\def\addMockResult#1#2{%
+  \directlua{%
+    thirddata.contests.addMockResult('#1', '#2')
+  }
+}
+\stopMkIVCode
+
+Lastly we provide a convenience method which both records a given 
+expansion and then returns any mocked results. 
+
+\startLuaCode
+local function mockExpansion(expandedMacro,
+                               macroArguments,
+                               callType)
+  expandedMacro = recordExpansion(expandedMacro,
+                               macroArguments,
+                               callType)
+  returnMockedResults(expandedMacro)
+end
+
+contests.mockExpansion = mockExpansion
+\stopLuaCode
+
+At the moment, we actually only implicitly test these Lua methods via the 
+test suites defined below. 
 
 \stopTestSuite
 
-\startTestSuite[the trace macros]
+\startTestSuite[The trace macros]
 
-We address this capability in this section by defining 
-the \type{\traceTexMacro} and \type{\traceContextMacro} macros. Both 
-macros will \type{\let} an existing macro to a different name and then 
-redefine the existing macro to call into Lua to record a trace of what has 
-been expanded together with what arguments were provided. Once this has 
-been done, then the original macro with its arguments are expanded as 
-normal. We have two distinct tracing macros to deal with the different 
-ways the \quote{standard} native \TeX\ macro and a \quote{standard} 
-\ConTeXt\ macros delimit their arguments. 
+In this section we provide the ability to \quote{wrap} an existing macro 
+in order to record expansion tracing patterns. We do this by defining the 
+\type{\traceTexMacro} and \type{\traceContextMacro} macros. Both macros 
+will \type{\let} an existing macro to a different name and then redefine 
+the existing macro to call into Lua to record a trace of what has been 
+expanded together with what arguments were provided. Once this has been 
+done, then the original macro with its arguments are expanded as normal. 
+We have two distinct tracing macros to deal with the different ways the 
+\quote{standard} native \TeX\ macro and a \quote{standard} \ConTeXt\ 
+macros delimit their arguments. 
 
-While we could do this all in native \TeX\ or \ConTeXt, we find it easier 
-to make use the Lua based template renderer provided by the Literate 
-Programming \ConTeXt\ module. To do this we we define the 
+While we could do all of this in native \TeX\ or \ConTeXt, we find it 
+easier to make use the Lua based template renderer provided by the 
+Literate Programming \ConTeXt\ module. To do this we we define the 
 \type{\traceTexMacro} and \type{\traceContextMacro} to make use of 
-\type{\directlua} to call the Lua function \type{createTraceMacro}. This 
-\type{createTraceMacro} takes three arguments, the macro name, the number 
-of arguments expected by the macro, and the type of macro (either 
-\quote{tex} or \quote{context}).
+\type{\directlua} to call the Lua function \type{createTraceMacro}. The 
+Lua \type{createTraceMacro} method takes three arguments, the macro name, 
+the number of arguments expected by the macro, and the type of macro 
+(either \quote{tex} or \quote{context}). 
 
 \startMkIVCode
 \def\traceTexMacro#1#2{%
@@ -808,7 +889,6 @@ of arguments expected by the macro, and the type of macro (either
     thirddata.contests.createTraceMacro('#1', #2, 'context')
   }
 }
-
 \stopMkIVCode
 
 We now develop the Lua template which represents the \TeX\ macro used to 
@@ -817,8 +897,8 @@ template approach, we are following a \emph{meta-programming} approach.
 Using this approach a simple call to the Lua method 
 \type{createTraceMacro} expands into the rather more complex \TeX\ macros 
 required to wrap the original macro into one that uses the Lua method 
-\type{traceMacro} to make a record of the fact that the original macro was 
-expanded with a particular collection of arguments. 
+\type{recordExpansion} to make a record of the fact that the original 
+macro was expanded with a particular collection of arguments. 
 
 We begin by providing simple Lua templates to deal with the two distinct 
 \quote{standard} \TeX\ and \ConTeXt\ argument patterns. In particular, the 
@@ -859,8 +939,8 @@ addTemplate(
 Having defined how to deal with the two types of formal arguments, we now 
 define a simple template \type{ctmArgUse} which expands into the text 
 required to pass the actual arguments provided into the Lua 
-\type{traceMacro} method. Note that all of the original macro's arguments 
-are passed into Lua as Lua strings. 
+\type{recordExpansion} method. Note that all of the original macro's 
+arguments are passed into Lua as Lua strings. 
 
 \startLuaTemplate
 addTemplate(
@@ -884,7 +964,7 @@ addTemplate(
 \def\{{= macroName}}{{| argList, emptyStr, ctmFormalArgs,
                         anArg, argTemplate }}{%
   \directlua{%
-    thirddata.contests.traceMacro(
+    thirddata.contests.recordExpansion(
       '{{= macroName}}',
       '{{= argType}}',
       { 
@@ -922,7 +1002,10 @@ that the template has expanded as expected. Typically the
 \type{createTraceMacro} will be called with \type{aTracingOn} as false. 
 
 \startLuaCode
-function contests.createTraceMacro(theMacroName, numArgs, theArgType, aTracingOn)
+local function createTraceMacro(theMacroName,
+                                numArgs,
+                                theArgType,
+                                aTracingOn)
   local theArgList = { }
   for argNum = 1, numArgs, 1 do
     tInsert(theArgList, argNum)
@@ -950,6 +1033,8 @@ function contests.createTraceMacro(theMacroName, numArgs, theArgType, aTracingOn
   tex.print(result)
   return result
 end
+
+contests.createTraceMacro = createTraceMacro
 \stopLuaCode
 
 \startTestCase[createTraceMacro should create the required TeX or ConTeXt macros]
@@ -962,7 +1047,7 @@ assert.length(macroBody, 14)
 assert.isEqual(macroBody[1],  "\\let\\oldtest=\\test")
 assert.isEqual(macroBody[2],  "\\def\\test[#1][#2][#3]{%")
 assert.isEqual(macroBody[3],  "  \\directlua{%")
-assert.isEqual(macroBody[4],  "    thirddata.contests.traceMacro(")
+assert.isEqual(macroBody[4],  "    thirddata.contests.recordExpansion(")
 assert.isEqual(macroBody[5],  "      'test',")
 assert.isEqual(macroBody[6],  "      'context',")
 assert.isEqual(macroBody[7],  "      {")
@@ -980,7 +1065,7 @@ assert.length(macroBody, 14)
 assert.isEqual(macroBody[1],  "\\let\\oldtest=\\test")
 assert.isEqual(macroBody[2],  "\\def\\test#1#2#3{%")
 assert.isEqual(macroBody[3],  "  \\directlua{%")
-assert.isEqual(macroBody[4],  "    thirddata.contests.traceMacro(")
+assert.isEqual(macroBody[4],  "    thirddata.contests.recordExpansion(")
 assert.isEqual(macroBody[5],  "      'test',")
 assert.isEqual(macroBody[6],  "      'tex',")
 assert.isEqual(macroBody[7],  "      {")
@@ -996,33 +1081,6 @@ assert.isEqual(macroBody[14], "}")
 
 \stopTestSuite
 
-\startTestSuite[The mocking environment]
-We solve both of these use cases by making use of \TeX's 
-\type{\begingroup}, \type{\endgroup} environment to provide local 
-namespaces in which we can temporarily redefine a macro to ensure the 
-mocked macro interacts with the assertion system. 
-
-We begin by defining \type{\startMocking} and \type{\stopMocking} commands.
-
-\startMkIVCode
-\def\startMocking{%
-  \directlua{thirddata.contests.startMocking()}%
-  \begingroup%
-}
-\def\stopMocking{%
-  \endgroup%
-  \directlua{thirddata.contests.stopMocking()}
-}
-\stopMkIVCode
-
-\startMkIVCode
-\def\startTracingMockExpansions{%
-  \directlua{thirddata.contests.traceMockCalls(true)}
-}
-\def\stopTracingMockExpansions{%
-  \directlua{thirddata.contests.traceMockCalls(false)}
-}
-\stopMkIVCode
 
 \stopTestSuite
 
@@ -1043,41 +1101,41 @@ marco's first argument.
 \startMkIVCode
 \def\callTexMockZero#1{%
   \directlua{%
-    thirddata.contests.callMock('#1', { }, 'tex')
+    thirddata.contests.mockExpansion('#1', { }, 'tex')
   }
 }
 \def\defTexMockZeroArgs#1{%
-  \directlua{thirddata.contests.defMock('#1')}%
+  \directlua{thirddata.contests.clearExpansionInfoFor('#1')}%
   \setevalue{#1}{\noexpand\callTexMockZero{#1}}%
 }
 
 \def\callTexMockOne#1#2{%
   \directlua{%
-    thirddata.contests.callMock('#1', { '#2' }, 'tex')
+    thirddata.contests.mockExpansion('#1', { '#2' }, 'tex')
   }
 }
 \def\defTexMockOneArg#1{%
-  \directlua{thirddata.contests.defMock('#1')}%
+  \directlua{thirddata.contests.clearExpansionInfoFor('#1')}%
   \setevalue{#1}{\noexpand\callTexMockOne{#1}}%
 }
 
 \def\callTexMockTwo#1#2#3{%
   \directlua{%
-    thirddata.contests.callMock('#1', { '#2', '#3' }, 'tex')
+    thirddata.contests.mockExpansion('#1', { '#2', '#3' }, 'tex')
   }
 }
 \def\defTexMockTwoArgs#1{%
-  \directlua{thirddata.contests.defMock('#1')}%
+  \directlua{thirddata.contests.clearExpansionInfoFor('#1')}%
   \setevalue{#1}{\noexpand\callTexMockTwo{#1}}%
 }
 
 \def\callTexMockThree#1#2#3#4{%
   \directlua{%
-    thirddata.contests.callMock('#1', { '#2', '#3', '#4' }, 'tex')
+    thirddata.contests.mockExpansion('#1', { '#2', '#3', '#4' }, 'tex')
   }
 }
 \def\defTexMockThreeArgs#1{%
-  \directlua{thirddata.contests.defMock('#1')}%
+  \directlua{thirddata.contests.clearExpansionInfoFor('#1')}%
   \setevalue{#1}{\noexpand\callTexMockThree{#1}}%
 }
 \stopMkIVCode
@@ -1085,7 +1143,7 @@ marco's first argument.
 \startTestCase[should define macros]
 
 \startConTest
-\startMocking
+\begingroup
   \defTexMockZeroArgs{aTexMockZeroArgs}
   \assertDefined{aTexMockZeroArgs}{}
   \defTexMockOneArg{aTexMockOneArg}
@@ -1094,7 +1152,7 @@ marco's first argument.
   \assertDefined{aTexMockTwoArgs}{}
   \defTexMockThreeArgs{aTexMockThreeArgs}
   \assertDefined{aTexMockThreeArgs}{}
-\stopMocking
+\endgroup
 \stopConTest
 \stopTestCase
 
@@ -1107,26 +1165,26 @@ We now define the \ConTeXt\ argument (\quote{optional}) calling patterns.
 \startMkIVCode
 \def\callContextMockNone#1[#2][#3][#4]{%
     \directlua{%
-      thirddata.contests.callMock('#1', { }, 'context')
+      thirddata.contests.mockExpansion('#1', { }, 'context')
     }
 }
 \def\callContextMockSingle#1[#2][#3][#4]{%
     \directlua{%
-      thirddata.contests.callMock('#1', { '#2' }, 'context')
+      thirddata.contests.mockExpansion('#1', { '#2' }, 'context')
     }
 }
 \def\callContextMockDouble#1[#2][#3][#4]{%
     \directlua{%
-      thirddata.contests.callMock('#1', { '#2', '#3' }, 'context')
+      thirddata.contests.mockExpansion('#1', { '#2', '#3' }, 'context')
     }
 }
 \def\callContextMockTriple#1[#2][#3][#4]{%
     \directlua{%
-      thirddata.contests.callMock('#1', { '#2', '#3', '#4' }, 'context')
+      thirddata.contests.mockExpansion('#1', { '#2', '#3', '#4' }, 'context')
     }
 }
 \def\defContextMock#1{%
-  \directlua{thirddata.contests.defMock('#1')}
+  \directlua{thirddata.contests.clearExpansionInfoFor('#1')}
   \setuevalue{#1}{%
     \noexpand\dotripleempty\getvalue{#1Direct}%
   }
@@ -1151,21 +1209,28 @@ We now define the \ConTeXt\ argument (\quote{optional}) calling patterns.
 \startTestCase[should define macros]
 
 \startConTest
-\startMocking
+\begingroup
   \defContextMock{aContextMock}
   \assertDefined{aContextMock}{}
   \assertDefined{aContextMockNone}{}
   \assertDefined{aContextMockSingle}{}
   \assertDefined{aContextMockDouble}{}
   \assertDefined{aContextMockTriple}{}
-  \assertDefined{startTracingMockExpansions}{}
-  \assertDefined{stopTracingMockExpansions}{}
-\stopMocking
+  \assertDefined{startLoggingExpansions}{}
+  \assertDefined{startLoggingExpansions}{}
+\endgroup
 \stopConTest
 \stopTestCase
 \stopTestSuite
 
 \startTestSuite[assertMockExpanded assertMockNeverExpanded and assertMockExpandedNTimes]
+
+We sometimes need to assert that a given macro has been used with given 
+arguments. For example we might want to assert that a macro does or does 
+not \quote{throw} an \type{\errmessage}.
+
+Equally sometimes we need a given 
+macro to return a mock result for the overall \ConTeXt\ process to work. 
 
 \startMkIVCode
 \def\assertMockExpanded#1#2{%
@@ -1188,7 +1253,7 @@ We now define the \ConTeXt\ argument (\quote{optional}) calling patterns.
 \startLuaCode
 function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
   local expectedMsg = 'Expected ['..mockedMacro..']'
-  mockedMacro = mocks[mockedMacro]
+  mockedMacro = expInfo[mockedMacro]
   contests.reportMkIVAssertion(
     mockedMacro ~= nil
     and mockedMacro.calls ~= nil
@@ -1201,7 +1266,7 @@ end
 
 function contests.assertMockNeverExpanded(mockedMacro, aMessage)
   local expectedMsg = 'Expected ['..mockedMacro..']'
-  mockedMacro = mocks[mockedMacro]
+  mockedMacro = expInfo[mockedMacro]
   contests.reportMkIVAssertion(
     mockedMacro ~= nil
     and mockedMacro.calls == nil,
@@ -1221,7 +1286,7 @@ succeed if it has been expanded the specified number of times. The
 macros has never been expanded. 
 
 \startConTest
-\startMocking
+\begingroup
   \defTexMockZeroArgs{aTexMockZeroArgs}
   \aTexMockZeroArgs
   \assertMockExpanded{aTexMockZeroArgs}{}
@@ -1229,14 +1294,14 @@ macros has never been expanded.
     \assertMockNeverExpanded{aTexMockZeroArgs}{}
   \stopAssertShouldFail
   \assertMockExpandedNTimes{aTexMockZeroArgs}{1}{}
-\stopMocking
+\endgroup
 \stopConTest
 
 \stopTestCase
 
 \startTestCase[mocked macro never expanded]
 \startConTest
-\startMocking
+\begingroup
   \defContextMock{aContextMock}
   \startAssertShouldFail{}{}{}
     \assertMockExpanded{aContextMock}{}
@@ -1250,7 +1315,7 @@ macros has never been expanded.
   \startAssertShouldFail{}{}{}
     \assertMockExpandedNTimes{aContextMock}{2}{}
   \stopAssertShouldFail
-\stopMocking
+\endgroup
 \stopConTest
 \stopTestCase
 \stopTestSuite
@@ -1274,7 +1339,7 @@ function contests.assertMockArguments(mockedMacro,
                                       aPattern,
                                       aMessage)
   local expectedMsg = 'Expected ['..mockedMacro..'] '
-  mockedMacro = mocks[mockedMacro]
+  mockedMacro = expInfo[mockedMacro]
   if mockedMacro then
     local calls = mockedMacro.calls
     if calls then
@@ -1321,7 +1386,7 @@ of the mocked macro has been expanded with arguments which match the given
 pattern. 
 
 \startConTest
-\startMocking
+\begingroup
   \defTexMockTwoArgs{aTexMockTwoArgs}
   \aTexMockTwoArgs%
     {first arg first expansion}{second arg first expansion}
@@ -1335,14 +1400,14 @@ pattern.
     {aTexMockTwoArgs}{2}{1}{second arg first expansion}{}
   \assertMockNthArgumentOnMthExpansionMatches%
     {aTexMockTwoArgs}{2}{2}{second arg second expansion}{}
-\stopMocking
+\endgroup
 \stopConTest
 
 \stopTestCase
 
 \startTestCase[should fail if mocked macro never expanded]
 \startConTest
-\startMocking
+\begingroup
   \defContextMock{aContextMock}
   \aContextMock%
     [only arg first expansion]
@@ -1361,24 +1426,13 @@ pattern.
   \stopAssertShouldFail
   \assertMockNthArgumentOnMthExpansionMatches%
     {aContextMock}{2}{2}{second arg second expansion}{}
-\stopMocking
+\endgroup
 \stopConTest
 \stopTestCase
 
 \stopTestSuite
 
 \startTestSuite[Adding mock results]
-
-Finally we define the \type{\addMockResult} macro which adds a return 
-value to the appropriate mocked macro. 
-
-\startMkIVCode
-\def\addMockResult#1#2{%
-  \directlua{%
-    thirddata.contests.addMockResult('#1', '#2')
-  }
-}
-\stopMkIVCode
 
 \startTestCase[should return result provided]
 
@@ -1392,7 +1446,7 @@ why we explicitly expand the \type{\aContextMock[anArg]} into
 % a “… doesn't match its definition” problem, that I don't understand
 
 \startConTest
-\startMocking
+\begingroup
   \defTexMockZeroArgs{aTexMockZeroArgs}
   \addMockResult{aTexMockZeroArgs}{aResult}
   \assertStringMatches{\aTexMockZeroArgs}{aResult}{}
@@ -1401,7 +1455,7 @@ why we explicitly expand the \type{\aContextMock[anArg]} into
   \assertStringMatches%
     {\callContextMockSingle{aContextMock}[anArg][][]}%
     {anotherResult}{}
-\stopMocking
+\endgroup
 \stopConTest
 \stopTestCase
 
@@ -1428,11 +1482,11 @@ We want to show that if a command throws a \TeX\ \type{\errmessage}, then
 the associated test case fails. 
 
 \startConTest
-\startMocking
+\begingroup
   \mockErrMessage
   \errmessage{Throw this message}
   \assertErrorThrown{aMessage}
-\stopMocking
+\endgroup
 \stopConTest
 \stopTestCase
 
@@ -1442,12 +1496,12 @@ Conversely we need to show that the \type{\assertErrorThrown} assertion
 fails if not error is thrown. 
 
 \startConTest
-\startMocking
+\begingroup
   \mockErrMessage
   \startAssertShouldFail{aMessage}{}{}
     \assertErrorThrown{aMessage}
   \stopAssertShouldFail
-\stopMocking
+\endgroup
 \stopConTest
 
 \stopTestCase
