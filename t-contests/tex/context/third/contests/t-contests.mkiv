@@ -259,99 +259,26 @@
 
 \def\traceTexMacro#1#2{%
   \directlua{%
-    thirddata.contests.createTraceMacro('#1', #2, 'tex')
+    thirddata.contests.createMacro('#1', #2, 'tex', 'trace')
   }
 }
+
 \def\traceContextMacro#1#2{%
   \directlua{%
-    thirddata.contests.createTraceMacro('#1', #2, 'context')
+    thirddata.contests.createMacro('#1', #2, 'context', 'trace')
   }
 }
 
-% from file: mkivTests.tex after line: 1100
-
-\def\callTexMockZero#1{%
+\def\mockTexMacro#1#2{%
   \directlua{%
-    thirddata.contests.mockExpansion('#1', { }, 'tex')
+    thirddata.contests.createMacro('#1', #2, 'tex', 'mock')
   }
 }
-\def\defTexMockZeroArgs#1{%
-  \directlua{thirddata.contests.clearExpansionInfoFor('#1')}%
-  \setevalue{#1}{\noexpand\callTexMockZero{#1}}%
-}
 
-\def\callTexMockOne#1#2{%
+\def\mockContextMacro#1#2{%
   \directlua{%
-    thirddata.contests.mockExpansion('#1', { '#2' }, 'tex')
+    thirddata.contests.createMacro('#1', #2, 'context', 'mock')
   }
-}
-\def\defTexMockOneArg#1{%
-  \directlua{thirddata.contests.clearExpansionInfoFor('#1')}%
-  \setevalue{#1}{\noexpand\callTexMockOne{#1}}%
-}
-
-\def\callTexMockTwo#1#2#3{%
-  \directlua{%
-    thirddata.contests.mockExpansion('#1', { '#2', '#3' }, 'tex')
-  }
-}
-\def\defTexMockTwoArgs#1{%
-  \directlua{thirddata.contests.clearExpansionInfoFor('#1')}%
-  \setevalue{#1}{\noexpand\callTexMockTwo{#1}}%
-}
-
-\def\callTexMockThree#1#2#3#4{%
-  \directlua{%
-    thirddata.contests.mockExpansion('#1', { '#2', '#3', '#4' }, 'tex')
-  }
-}
-\def\defTexMockThreeArgs#1{%
-  \directlua{thirddata.contests.clearExpansionInfoFor('#1')}%
-  \setevalue{#1}{\noexpand\callTexMockThree{#1}}%
-}
-
-% from file: mkivTests.tex after line: 1150
-
-\def\callContextMockNone#1[#2][#3][#4]{%
-    \directlua{%
-      thirddata.contests.mockExpansion('#1', { }, 'context')
-    }
-}
-\def\callContextMockSingle#1[#2][#3][#4]{%
-    \directlua{%
-      thirddata.contests.mockExpansion('#1', { '#2' }, 'context')
-    }
-}
-\def\callContextMockDouble#1[#2][#3][#4]{%
-    \directlua{%
-      thirddata.contests.mockExpansion('#1', { '#2', '#3' }, 'context')
-    }
-}
-\def\callContextMockTriple#1[#2][#3][#4]{%
-    \directlua{%
-      thirddata.contests.mockExpansion('#1', { '#2', '#3', '#4' }, 'context')
-    }
-}
-\def\defContextMock#1{%
-  \directlua{thirddata.contests.clearExpansionInfoFor('#1')}
-  \setuevalue{#1}{%
-    \noexpand\dotripleempty\getvalue{#1Direct}%
-  }
-  \setuevalue{#1Direct}{%
-    \noexpand\ifthirdargument%
-      \noexpand\expandafter\getvalue{#1Triple}
-    \noexpand\else\noexpand\ifsecondargument%
-      \noexpand\expandafter\getvalue{#1Double}
-    \noexpand\else\noexpand\iffirstargument%
-      \noexpand\expandafter\getvalue{#1Single}
-    \noexpand\else%
-      \noexpand\expandafter\getvalue{#1None}
-    \noexpand\fi\noexpand\fi\noexpand\fi%
-  }
-  \setuevalue{#1Triple}{\noexpand\callContextMockTriple #1}%
-  \setuevalue{#1Double}{\noexpand\callContextMockDouble #1}%
-  \setuevalue{#1Single}{\noexpand\callContextMockSingle #1}%
-  \setuevalue{#1None}  {\noexpand\callContextMockNone #1}%
 }
 
 % from file: mkivTests.tex after line: 1200
@@ -385,7 +312,8 @@
 % from file: mkivTests.tex after line: 1450
 
 \def\mockErrMessage{%
-  \defTexMockOneArg{errmessage}
+  %\defTexMockOneArg{errmessage}
+  \def\errmessage{\relax}
 }
 \def\assertErrorThrown#1{%
   \assertMockExpanded{errmessage}{#1}

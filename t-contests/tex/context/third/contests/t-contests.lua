@@ -352,7 +352,7 @@ end
 
 contests.recordExpansion = recordExpansion
 
--- from file: mkivTests.tex after line: 750
+-- from file: mkivTests.tex after line: 800
 
 local function returnMockedResults(expandedMacro)
   expandedMacro.returns = expandedMacro.returns or { }
@@ -391,19 +391,20 @@ end
 
 contests.mockExpansion = mockExpansion
 
--- from file: mkivTests.tex after line: 1000
+-- from file: mkivTests.tex after line: 1050
 
-local function createTraceMacro(theMacroName,
-                                numArgs,
-                                theArgType,
-                                aTracingOn)
+local function createMacro(theMacroName,
+                           numArgs,
+                           theArgType,
+                           theActionType,
+                           aTracingOn)
   local theArgList = { }
   for argNum = 1, numArgs, 1 do
     tInsert(theArgList, argNum)
   end
-  local theArgTemplate = 'ctmTexFormalArgs'
+  local theArgTemplate = 'cmTexFormalArgs'
   if theArgType == 'context' then
-    theArgTemplate = 'ctmContextFormalArgs'
+    theArgTemplate = 'cmContextFormalArgs'
   end
   --
   local theEnv   = {
@@ -416,18 +417,22 @@ local function createTraceMacro(theMacroName,
     commaNewLine = ',\n'
   }
   --
-  local ctmMainPath = litProgs.parseTemplatePath('ctmMain', theEnv)
-  local ctmMain     = litProgs.navigateToTemplate(ctmMainPath)
-  local result      = litProgs.renderer(ctmMain, theEnv, true)
+  local mainName   = 'ctmMain'
+  if theActionType == 'mock' then
+    mainName = 'cmmMain'
+  end
+  local mainPath     = litProgs.parseTemplatePath(mainName, theEnv)
+  local mainTemplate = litProgs.navigateToTemplate(mainPath)
+  local result       = litProgs.renderer(mainTemplate, theEnv, true)
   --
   result            = litProgs.splitString(result)
-  tex.print(result)
+  --tex.print(result)
   return result
 end
 
-contests.createTraceMacro = createTraceMacro
+contests.createMacro = createMacro
 
--- from file: mkivTests.tex after line: 1250
+-- from file: mkivTests.tex after line: 1200
 
 function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
   local expectedMsg = 'Expected ['..mockedMacro..']'

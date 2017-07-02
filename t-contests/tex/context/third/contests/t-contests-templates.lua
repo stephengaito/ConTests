@@ -27,29 +27,29 @@ local addTemplate = litProgs.addTemplate
 -- from file: mkivTests.tex after line: 900
 
 addTemplate(
-  'ctmTexFormalArgs',
+  'cmTexFormalArgs',
   { 'anArg' },
   '#{{= anArg}}'
 )
 
 addTemplate(
-  'ctmContextFormalArgs',
+  'cmContextFormalArgs',
   { 'anArg' },
   '[#{{= anArg}}]'
 )
 
--- from file: mkivTests.tex after line: 900
+-- from file: mkivTests.tex after line: 950
 
 addTemplate(
-  'ctmFormalArgs',
+  'cmFormalArgs',
   { 'anArg', 'argTemplate' },
   '{{! *argTemplate, anArg }}'
 )
 
--- from file: mkivTests.tex after line: 900
+-- from file: mkivTests.tex after line: 950
 
 addTemplate(
-  'ctmArgUse',
+  'cmArgUse',
   { 'anArg' },
   "        '#{{= anArg}}'"
 )
@@ -62,14 +62,37 @@ addTemplate(
     'emptyStr', 'commaNewLine' },
   [=[
 \let\old{{= macroName}}=\{{= macroName}}
-\def\{{= macroName}}{{| argList, emptyStr, ctmFormalArgs,
+\def\{{= macroName}}{{| argList, emptyStr, cmFormalArgs,
                         anArg, argTemplate }}{%
   \directlua{%
     thirddata.contests.recordExpansion(
       '{{= macroName}}',
       '{{= argType}}',
       {
-{{| argList, commaNewLine, ctmArgUse, anArg }}
+{{| argList, commaNewLine, cmArgUse, anArg }}
+      }
+    )
+  }
+}
+]=]
+)
+
+-- from file: mkivTests.tex after line: 1000
+
+addTemplate(
+  'cmmMain',
+  { 'macroName', 'argList', 'argType', 'argTemplate',
+    'emptyStr', 'commaNewLine' },
+  [=[
+\let\old{{= macroName}}=\{{= macroName}}
+\def\{{= macroName}}{{| argList, emptyStr, cmFormalArgs,
+                        anArg, argTemplate }}{%
+  \directlua{%
+    thirddata.contests.mockExpansion(
+      '{{= macroName}}',
+      '{{= argType}}',
+      {
+{{| argList, commaNewLine, cmArgUse, anArg }}
       }
     )
   }
