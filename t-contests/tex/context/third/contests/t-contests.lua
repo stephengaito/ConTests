@@ -225,7 +225,7 @@ end
 
 -- from file: mkivTests.tex after line: 100
 
-function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
+function reportMkIVAssertion(theCondition, aMessage, theReason)
   local curSuite  = tests.curSuite
   local curCase   = curSuite.curCase
   mkivAssertions.attempted = mkivAssertions.attempted + 1
@@ -287,6 +287,8 @@ function contests.reportMkIVAssertion(theCondition, aMessage, theReason)
   end
 end
 
+contests.reportMkIVAssertion = reportMkIVAssertion
+
 -- from file: mkivTests.tex after line: 150
 
 function contests.mkivAssertShouldFail(messagePattern, reasonPattern, aMessage)
@@ -317,37 +319,46 @@ end
 
 contests.clearExpansionInfoFor = clearExpansionInfoFor
 
--- from file: mkivTests.tex after line: 700
+-- from file: mkivTests.tex after line: 750
 
 local function setExpansionLogging(logExpansion)
   expInfo.loggingOn = logExpansion
-  texio.write_nl('----------------------------------------------')
+  if logExpansion then
+    texio.write_nl('>>---------------------------------------->>')
+    texio.write_nl('AT: '..status.filename..'::'..status.linenumber)
+    texio.write_nl('>>---------------------------------------->>')
+  else
+    texio.write_nl('<<----------------------------------------<<')
+    texio.write_nl('AT: '..status.filename..'::'..status.linenumber)
+    texio.write_nl('<<----------------------------------------<<')
+  end
 end
 
 contests.setExpansionLogging = setExpansionLogging
 
 -- from file: mkivTests.tex after line: 750
 
-local function recordExpansion(expandedMacro,
-                               macroArguments,
-                               callType)
+local function recordExpansion(macroName,
+                               callType,
+                               macroArguments)
   if expInfo.loggingOn then
     texio.write_nl(
       'EXPANSION '..callType..
-      ' macro expanded ['..expandedMacro..']'
+      ' macro expanded ['..macroName..']'
     )
     for i, anArg in ipairs(macroArguments) do
       texio.write_nl(
         '  args['..toStr(i)..'] = ['..toStr(anArg)..']'
       )
     end
+    texio.write_nl('AT: '..status.filename..'::'..status.linenumber)
   end
-  expandedMacro = expandedMacro:gsub('^%s+', ''):gsub('%s+$', '')
-  expInfo[expandedMacro] = expInfo[expandedMacro] or { }
-  expandedMacro          = expInfo[expandedMacro]
-  expandedMacro.calls    = expandedMacro.calls or { }
-  tInsert(expandedMacro.calls, { callType, macroArguments})
-  return expandedMacro
+  macroName = macroName:gsub('^%s+', ''):gsub('%s+$', '')
+  expInfo[macroName] = expInfo[macroName] or { }
+  local macroInfo    = expInfo[macroName]
+  macroInfo.calls    = macroInfo.calls or { }
+  tInsert(macroInfo.calls, { callType, macroArguments})
+  return macroInfo
 end
 
 contests.recordExpansion = recordExpansion
@@ -378,7 +389,7 @@ end
 
 contests.addMockResult = addMockResult
 
--- from file: mkivTests.tex after line: 800
+-- from file: mkivTests.tex after line: 850
 
 local function mockExpansion(expandedMacro,
                                macroArguments,
@@ -391,7 +402,7 @@ end
 
 contests.mockExpansion = mockExpansion
 
--- from file: mkivTests.tex after line: 1050
+-- from file: mkivTests.tex after line: 1100
 
 local function createMacro(theMacroName,
                            numArgs,
@@ -406,15 +417,20 @@ local function createMacro(theMacroName,
   if theArgType == 'context' then
     theArgTemplate = 'cmContextFormalArgs'
   end
+  local theArgUseTemplate = 'cmTexUseArgs'
+  if theArgType == 'context' then
+    theArgUseTemplate = 'cmContextFormalArgs'
+  end
   --
-  local theEnv   = {
-    tracingOn    = aTracingOn,
-    macroName    = theMacroName,
-    argList      = theArgList,
-    argType      = theArgType,
-    argTemplate  = theArgTemplate,
-    emptyStr     = '',
-    commaNewLine = ',\n'
+  local theEnv     = {
+    tracingOn      = aTracingOn,
+    macroName      = theMacroName,
+    argList        = theArgList,
+    argType        = theArgType,
+    argTemplate    = theArgTemplate,
+    argUseTemplate = theArgUseTemplate,
+    emptyStr       = '',
+    commaNewLine   = ',\n'
   }
   --
   local mainName   = 'ctmMain'
@@ -432,89 +448,97 @@ end
 
 contests.createMacro = createMacro
 
--- from file: mkivTests.tex after line: 1250
+-- from file: mkivTests.tex after line: 1300
 
-function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
-  local expectedMsg = 'Expected ['..mockedMacro..']'
-  mockedMacro = expInfo[mockedMacro]
+function assertMacroExpanded(macroName, callNum, aMessage)
+  local expectedMsg = 'Expected ['..macroName..']'
+  local macroInfo   = expInfo[macroName]
   contests.reportMkIVAssertion(
-    mockedMacro ~= nil
-    and mockedMacro.calls ~= nil
-    and mockedMacro.calls[callNum] ~= nil,
+    macroInfo ~= nil
+    and macroInfo.calls ~= nil
+    and macroInfo.calls[callNum] ~= nil,
     aMessage,
-    expectedMsg..'to have been expanded at least '..
+    expectedMsg..' to have been expanded at least '..
       toStr(callNum)..' times'
   )
 end
 
-function contests.assertMockNeverExpanded(mockedMacro, aMessage)
-  local expectedMsg = 'Expected ['..mockedMacro..']'
-  mockedMacro = expInfo[mockedMacro]
+contests.assertMacroExpanded = assertMacroExpanded
+
+function assertMacroNeverExpanded(macroName, aMessage)
+  local expectedMsg = 'Expected ['..macroName..']'
+  local macroInfo   = expInfo[macroName]
   contests.reportMkIVAssertion(
-    mockedMacro ~= nil
-    and mockedMacro.calls == nil,
+    macroInfo == nil
+    or macroInfo.calls == nil,
     aMessage,
-    expectedMsg..'to have been expanded at least '..
-      toStr(callNum)..' times'
+    expectedMsg..' to have never been expanded.'
   )
 end
 
--- from file: mkivTests.tex after line: 1350
+contests.assertMacroNeverExpanded = assertMacroNeverExpanded
 
-function contests.assertMockArguments(mockedMacro,
-                                      callNum,
-                                      argNum,
-                                      aPattern,
-                                      aMessage)
-  local expectedMsg = 'Expected ['..mockedMacro..'] '
-  mockedMacro = expInfo[mockedMacro]
-  if mockedMacro then
-    local calls = mockedMacro.calls
+-- from file: mkivTests.tex after line: 1400
+
+function assertMacroArguments(macroName,
+                              callNum,
+                              argNum,
+                              aPattern,
+                              aMessage)
+  local expectedMsg = 'Expected ['..macroName..'] '
+  local macroInfo = expInfo[macroName]
+  if macroInfo then
+    local calls = macroInfo.calls
     if calls then
       local aCall = calls[callNum]
       if aCall then
         local anArg = aCall[2][argNum]
         if anArg then
           if sMatch(anArg, aPattern) then
-            contests.reportMkIVAssertion(true, aMessage, '')
+            reportMkIVAssertion(true, aMessage, '')
           else
-            contests.reportMkIVAssertion(false, aMessage,
+            reportMkIVAssertion(false, aMessage,
               expectedMsg..'the '..
               toStr(argNum)..' argument on the '..
               toStr(callNum)..' expansion to match ['..
               aPattern..']')
           end
         else
-          contests.reportMkIVAssertion(false, aMessage,
+          reportMkIVAssertion(false, aMessage,
             expectedMsg..'to have supplied '..
             toStr(argNum)..' arguments on the '..
             toStr(callNum)..' expansion')
         end
       else
-        contests.reportMkIVAssertion(false, aMessage,
+        reportMkIVAssertion(false, aMessage,
           expectedMsg..'to have been expanded '..
           toStr(callNum)..' times')
       end
     else
-      contests.reportMkIVAssertion(false, aMessage,
+      reportMkIVAssertion(false, aMessage,
         expectedMsg..'to have been expanded')
     end
   else
-    contests.reportMkIVAssertion(false, aMessage,
+    reportMkIVAssertion(false, aMessage,
       expectedMsg..'to be defined')
   end
 end
 
+contests.assertMacroArguments = assertMacroArguments
+
 -- from file: luaTests.tex after line: 0
 
-function contests.showValue(aValue, aMessage)
+function showValue(aValue, aMessage)
   texio.write_nl('-----------------------------------------------')
   if aMessage and type(aMessage) == 'string' and 0 < #aMessage then
     texio.write_nl(aMessage)
   end
   texio.write_nl(litProgs.prettyPrint(aValue))
+  texio.write_nl('AT: '..status.filename..'::'..status.linenumber)
   texio.write_nl('-----------------------------------------------')
 end
+
+contests.showValue = showValue
 
 -- from file: luaTests.tex after line: 50
 
@@ -555,6 +579,7 @@ function contests.showLuaTest()
   else
     texio.write_nl('NO Lua Test could be built')
   end
+  texio.write_nl('AT: '..status.filename..'::'..status.linenumber)
   texio.write_nl('-----------------------------------------------')
 end
 
@@ -661,7 +686,7 @@ function assert.throwsError(aFunction, aMessage, ...)
   )
 end
 
--- from file: luaTests.tex after line: 250
+-- from file: luaTests.tex after line: 300
 
 function assert.throwsNoError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
@@ -720,7 +745,7 @@ function assert.isNotBoolean(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 450
+-- from file: luaTests.tex after line: 500
 
 function assert.isTrue(aBoolean, aMessage)
   return reportLuaAssertion(
@@ -771,7 +796,7 @@ function assert.isEqual(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 650
+-- from file: luaTests.tex after line: 700
 
 function assert.isEqualWithIn(numA, numB,
   tolerance, aMessage)
@@ -795,7 +820,7 @@ function assert.isNotEqual(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 750
+-- from file: luaTests.tex after line: 800
 
 function assert.isNotEqualWithIn(numA, numB, tolerance, aMessage)
   return reportLuaAssertion(
@@ -817,7 +842,7 @@ function assert.isNumber(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 850
+-- from file: luaTests.tex after line: 900
 
 function assert.isGT(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -827,7 +852,7 @@ function assert.isGT(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 900
+-- from file: luaTests.tex after line: 950
 
 function assert.isGTE(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -837,7 +862,7 @@ function assert.isGTE(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 950
+-- from file: luaTests.tex after line: 1000
 
 function assert.isLT(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -877,7 +902,7 @@ function assert.isString(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1150
+-- from file: luaTests.tex after line: 1200
 
 function assert.matches(anObj, aPattern, aMessage)
   return reportLuaAssertion(
@@ -889,7 +914,7 @@ function assert.matches(anObj, aPattern, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1200
+-- from file: luaTests.tex after line: 1250
 
 function assert.doesNotMatch(anObj, aPattern, aMessage)
   return reportLuaAssertion(
@@ -901,7 +926,7 @@ function assert.doesNotMatch(anObj, aPattern, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1250
+-- from file: luaTests.tex after line: 1300
 
 function assert.length(anObj, aLength, aMessage)
   return reportLuaAssertion(
@@ -975,7 +1000,7 @@ function assert.isNotTable(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1550
+-- from file: luaTests.tex after line: 1600
 
 function assert.isFunction(anObj, aMessage)
   return reportLuaAssertion(
@@ -1016,7 +1041,7 @@ function assert.metaTableEqual(anObj, aMetaTable, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1700
+-- from file: luaTests.tex after line: 1750
 
 function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
@@ -1057,7 +1082,7 @@ function assert.isNotThread(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1850
+-- from file: luaTests.tex after line: 1900
 
 function assert.isUserData(anObj, aMessage)
   return reportLuaAssertion(

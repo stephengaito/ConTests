@@ -24,12 +24,18 @@ local tConcat = table.concat
 
 local addTemplate = litProgs.addTemplate
 
--- from file: mkivTests.tex after line: 900
+-- from file: mkivTests.tex after line: 950
 
 addTemplate(
   'cmTexFormalArgs',
   { 'anArg' },
   '#{{= anArg}}'
+)
+
+addTemplate(
+  'cmTexUseArgs',
+  { 'anArg' },
+  '{#{{= anArg}}}'
 )
 
 addTemplate(
@@ -46,22 +52,24 @@ addTemplate(
   '{{! *argTemplate, anArg }}'
 )
 
--- from file: mkivTests.tex after line: 950
+-- from file: mkivTests.tex after line: 1000
 
 addTemplate(
-  'cmArgUse',
+  'cmLuaArgUse',
   { 'anArg' },
   "        '#{{= anArg}}'"
 )
 
--- from file: mkivTests.tex after line: 950
+-- from file: mkivTests.tex after line: 1000
 
 addTemplate(
   'ctmMain',
-  { 'macroName', 'argList', 'argType', 'argTemplate',
+  { 'macroName', 'argList', 'argType',
+    'argTemplate', 'argUseTemplate',
     'emptyStr', 'commaNewLine' },
   [=[
 \let\old{{= macroName}}=\{{= macroName}}
+\clearExpansionInfoFor{ {{= macroName}} }
 \def\{{= macroName}}{{| argList, emptyStr, cmFormalArgs,
                         anArg, argTemplate }}{%
   \directlua{%
@@ -69,22 +77,26 @@ addTemplate(
       '{{= macroName}}',
       '{{= argType}}',
       {
-{{| argList, commaNewLine, cmArgUse, anArg }}
+{{| argList, commaNewLine, cmLuaArgUse, anArg }}
       }
     )
   }
+  \old{{= macroName}}{{| argList, emptyStr, cmFormalArgs,
+                         anArg, argUseTemplate }}
 }
 ]=]
 )
 
--- from file: mkivTests.tex after line: 1000
+-- from file: mkivTests.tex after line: 1050
 
 addTemplate(
   'cmmMain',
-  { 'macroName', 'argList', 'argType', 'argTemplate',
+  { 'macroName', 'argList', 'argType',
+    'argTemplate', 'argUseTemplate',
     'emptyStr', 'commaNewLine' },
   [=[
 \let\old{{= macroName}}=\{{= macroName}}
+\clearExpansionInfoFor{ {{= macroName}} }
 \def\{{= macroName}}{{| argList, emptyStr, cmFormalArgs,
                         anArg, argTemplate }}{%
   \directlua{%
@@ -92,7 +104,7 @@ addTemplate(
       '{{= macroName}}',
       '{{= argType}}',
       {
-{{| argList, commaNewLine, cmArgUse, anArg }}
+{{| argList, commaNewLine, cmLuaArgUse, anArg }}
       }
     )
   }

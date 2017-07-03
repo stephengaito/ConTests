@@ -12,15 +12,26 @@ We are now able to use the pretty printing code above, to report arbitrary
 values to the \ConTeXt\ log. 
 
 \startLuaCode
-function contests.showValue(aValue, aMessage)
+function showValue(aValue, aMessage)
   texio.write_nl('-----------------------------------------------')
   if aMessage and type(aMessage) == 'string' and 0 < #aMessage then
     texio.write_nl(aMessage)
   end
   texio.write_nl(litProgs.prettyPrint(aValue))
+  texio.write_nl('AT: '..status.filename..'::'..status.linenumber)
   texio.write_nl('-----------------------------------------------')
 end
+
+contests.showValue = showValue
 \stopLuaCode
+
+\startMkIVCode
+\def\showLuaValue#1#2{%
+  \directlua{%
+    thirddata.contests.showValue(#1, '#2')
+  }
+}
+\stopMkIVCode
 
 \section[title=Lua Test cases]
 
@@ -87,6 +98,7 @@ function contests.showLuaTest()
   else
     texio.write_nl('NO Lua Test could be built')
   end
+  texio.write_nl('AT: '..status.filename..'::'..status.linenumber)
   texio.write_nl('-----------------------------------------------')
 end
 
