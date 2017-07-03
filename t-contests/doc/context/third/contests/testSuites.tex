@@ -173,6 +173,14 @@ function contests.skipTestCase()
   local curCase    = curSuite.curCase
   curCase.lastLine = status.linenumber
   tInsert(curSuite.cases, curCase)
+  if curCase.mkiv and 0 < #curCase.mkiv then
+    local caseStats = mkivStats.cases
+    caseStats.skipped = caseStats.skipped + 1
+  end
+  if curCase.lua and 0 < #curCase.lua then
+    local caseStats = luaStats.cases
+    caseStats.skipped = caseStats.skipped + 1
+  end
   tex.print('{\\magenta SKIPPED}')
 end
 \stopLuaCode
@@ -285,10 +293,10 @@ function contests.reportStats(statsType)
   local stats = tests.stats[statsType]
   local rows = { 'cases', 'assertions' }
   local cols =
-    { 'attempted', 'passed', 'failed' }
-  local colCol = { '', '\\green', '\\red' }
+    { 'attempted', 'passed', 'failed', 'skipped' }
+  local colCol = { '', '\\green', '\\red', '\\magenta' }
   tex.print("\\placetable[force,none]{}{%")
-  tex.print("\\starttabulate[|r|c|c|c|]\\HL\\NC")
+  tex.print("\\starttabulate[|r|c|c|c|c|]\\HL\\NC")
   for j, col in ipairs(cols) do
     tex.print("\\NC "..colCol[j]..' '..col)
   end

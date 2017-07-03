@@ -34,6 +34,7 @@ local function initRawStats()
   raw.attempted  = 0
   raw.passed     = 0
   raw.failed     = 0
+  raw.skipped    = 0
   return raw
 end
 
@@ -106,10 +107,18 @@ function contests.skipTestCase()
   local curCase    = curSuite.curCase
   curCase.lastLine = status.linenumber
   tInsert(curSuite.cases, curCase)
+  if curCase.mkiv and 0 < #curCase.mkiv then
+    local caseStats = mkivStats.cases
+    caseStats.skipped = caseStats.skipped + 1
+  end
+  if curCase.lua and 0 < #curCase.lua then
+    local caseStats = luaStats.cases
+    caseStats.skipped = caseStats.skipped + 1
+  end
   tex.print('{\\magenta SKIPPED}')
 end
 
--- from file: testSuites.tex after line: 150
+-- from file: testSuites.tex after line: 200
 
 local function logFailure(reason, suiteDesc, caseDesc,
                           testMsg, errMsg, fileInfo)
@@ -138,7 +147,7 @@ local function reportFailure(aFailure, fullReport)
   tex.print("\\\\"..aFailure.fileInfo)
 end
 
--- from file: testSuites.tex after line: 200
+-- from file: testSuites.tex after line: 250
 
 function contests.reportFailures()
   if 0 < #tests.failures then
@@ -159,10 +168,10 @@ function contests.reportStats(statsType)
   local stats = tests.stats[statsType]
   local rows = { 'cases', 'assertions' }
   local cols =
-    { 'attempted', 'passed', 'failed' }
-  local colCol = { '', '\\green', '\\red' }
+    { 'attempted', 'passed', 'failed', 'skipped' }
+  local colCol = { '', '\\green', '\\red', '\\magenta' }
   tex.print("\\placetable[force,none]{}{%")
-  tex.print("\\starttabulate[|r|c|c|c|]\\HL\\NC")
+  tex.print("\\starttabulate[|r|c|c|c|c|]\\HL\\NC")
   for j, col in ipairs(cols) do
     tex.print("\\NC "..colCol[j]..' '..col)
   end
