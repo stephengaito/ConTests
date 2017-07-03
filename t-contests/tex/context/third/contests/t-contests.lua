@@ -426,13 +426,13 @@ local function createMacro(theMacroName,
   local result       = litProgs.renderer(mainTemplate, theEnv, true)
   --
   result            = litProgs.splitString(result)
-  --tex.print(result)
+  tex.print(result)
   return result
 end
 
 contests.createMacro = createMacro
 
--- from file: mkivTests.tex after line: 1200
+-- from file: mkivTests.tex after line: 1250
 
 function contests.assertMockExpanded(mockedMacro, callNum, aMessage)
   local expectedMsg = 'Expected ['..mockedMacro..']'
@@ -459,7 +459,7 @@ function contests.assertMockNeverExpanded(mockedMacro, aMessage)
   )
 end
 
--- from file: mkivTests.tex after line: 1300
+-- from file: mkivTests.tex after line: 1350
 
 function contests.assertMockArguments(mockedMacro,
                                       callNum,
