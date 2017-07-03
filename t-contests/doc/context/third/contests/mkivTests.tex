@@ -780,8 +780,13 @@ logging:
 \def\startLoggingExpansions{%
   \directlua{thirddata.contests.setExpansionLogging(true)}
 }
+
 \def\stopLoggingExpansions{%
   \directlua{thirddata.contests.setExpansionLogging(false)}
+}
+
+\def\logMessage#1{%
+  \writestatus{contests}{#1}#1\\
 }
 \stopMkIVCode
 
@@ -1394,6 +1399,7 @@ mocked macros have never been expanded.
 \endgroup
 \stopConTest
 \stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assertMacroNthArgumentOnMthExpansionMatches]
@@ -1503,6 +1509,22 @@ pattern.
   \stopAssertShouldFail
   \assertMacroNthArgumentOnMthExpansionMatches%
     {aContextMock}{2}{2}{second arg second expansion}{}
+\endgroup
+\stopConTest
+\stopTestCase
+
+\startTestCase[Traced inner and outer tex macros]
+
+\startConTest
+\begingroup
+  \mockTexMacro{innerTexMacro}{1}
+  \def\aTexMacro#1{\innerTexMacro{#1}}
+  \traceTexMacro{aTexMacro}{1}
+  \aTexMacro{anArgument}
+  \assertMacroNthArgumentOnMthExpansionMatches%
+    {innerTexMacro}{1}{1}{anArgument}{}
+  \assertMacroNthArgumentOnMthExpansionMatches%
+    {aTexMacro}{1}{1}{anArgument}{}
 \endgroup
 \stopConTest
 \stopTestCase
