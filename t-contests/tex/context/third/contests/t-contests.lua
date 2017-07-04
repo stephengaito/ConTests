@@ -457,7 +457,7 @@ end
 
 contests.createMacro = createMacro
 
--- from file: mkivTests.tex after line: 1300
+-- from file: mkivTests.tex after line: 1250
 
 function assertMacroExpanded(macroName, callNum, aMessage)
   local expectedMsg = 'Expected ['..macroName..']'
@@ -468,26 +468,28 @@ function assertMacroExpanded(macroName, callNum, aMessage)
     and macroInfo.calls[callNum] ~= nil,
     aMessage,
     expectedMsg..' to have been expanded at least '..
-      toStr(callNum)..' times'
+      toStr(callNum)..' times.'
   )
 end
 
 contests.assertMacroExpanded = assertMacroExpanded
 
-function assertMacroNeverExpanded(macroName, aMessage)
+function assertMacroNeverExpanded(macroName, callNum, aMessage)
   local expectedMsg = 'Expected ['..macroName..']'
   local macroInfo   = expInfo[macroName]
   contests.reportMkIVAssertion(
     macroInfo == nil
-    or macroInfo.calls == nil,
+    or macroInfo.calls == nil
+    or macroInfo.calls[callNum] == nil,
     aMessage,
-    expectedMsg..' to have never been expanded.'
+    expectedMsg..' to have never been expanded '..
+      toStr(callNum)..' times.'
   )
 end
 
 contests.assertMacroNeverExpanded = assertMacroNeverExpanded
 
--- from file: mkivTests.tex after line: 1400
+-- from file: mkivTests.tex after line: 1350
 
 function assertMacroArguments(macroName,
                               callNum,

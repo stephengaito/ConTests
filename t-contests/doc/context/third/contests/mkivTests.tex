@@ -1241,67 +1241,6 @@ At the moment we do not need to deal with either tracing or mocking macros
 with an optional number of arguments, so we postpone developing this 
 capability until sometime in the future. 
 
-%We now define the \ConTeXt\ argument (\quote{optional}) calling patterns. 
-%
-%\startMkIVCode
-%\def\callContextMockNone#1[#2][#3][#4]{%
-%    \directlua{%
-%      thirddata.contests.mockExpansion('#1', { }, 'context')
-%    }
-%}
-%\def\callContextMockSingle#1[#2][#3][#4]{%
-%    \directlua{%
-%      thirddata.contests.mockExpansion('#1', { '#2' }, 'context')
-%    }
-%}
-%\def\callContextMockDouble#1[#2][#3][#4]{%
-%    \directlua{%
-%      thirddata.contests.mockExpansion('#1', { '#2', '#3' }, 'context')
-%    }
-%}
-%\def\callContextMockTriple#1[#2][#3][#4]{%
-%    \directlua{%
-%      thirddata.contests.mockExpansion('#1', { '#2', '#3', '#4' }, 'context')
-%    }
-%}
-%\def\defContextMock#1{%
-%  \directlua{thirddata.contests.clearExpansionInfoFor('#1')}
-%  \setuevalue{#1}{%
-%    \noexpand\dotripleempty\getvalue{#1Direct}%
-%  }
-%  \setuevalue{#1Direct}{%
-%    \noexpand\ifthirdargument%
-%      \noexpand\expandafter\getvalue{#1Triple}
-%    \noexpand\else\noexpand\ifsecondargument%
-%      \noexpand\expandafter\getvalue{#1Double}
-%    \noexpand\else\noexpand\iffirstargument%
-%      \noexpand\expandafter\getvalue{#1Single}
-%    \noexpand\else%
-%      \noexpand\expandafter\getvalue{#1None}
-%    \noexpand\fi\noexpand\fi\noexpand\fi%
-%  }
-%  \setuevalue{#1Triple}{\noexpand\callContextMockTriple #1}%
-%  \setuevalue{#1Double}{\noexpand\callContextMockDouble #1}%
-%  \setuevalue{#1Single}{\noexpand\callContextMockSingle #1}%
-%  \setuevalue{#1None}  {\noexpand\callContextMockNone #1}%
-%}
-%\stopMkIVCode
-%
-%\startTestCase[should define macros]
-%
-%\startConTest
-%\begingroup
-%  \defContextMock{aContextMock}
-%  \assertDefined{aContextMock}{}
-%  \assertDefined{aContextMockNone}{}
-%  \assertDefined{aContextMockSingle}{}
-%  \assertDefined{aContextMockDouble}{}
-%  \assertDefined{aContextMockTriple}{}
-%  \assertDefined{startLoggingExpansions}{}
-%  \assertDefined{startLoggingExpansions}{}
-%\endgroup
-%\stopConTest
-%\stopTestCase
 \stopTestSuite
 
 \startTestSuite[assertMockExpanded assertMockNeverExpanded and assertMockExpandedNTimes]
@@ -1316,14 +1255,22 @@ not \quote{throw} an \type{\errmessage}.
     thirddata.contests.assertMacroExpanded('#1', 1, '#2')
   }
 }
+
 \def\assertMacroNeverExpanded#1#2{%
   \directlua{%
-    thirddata.contests.assertMacroNeverExpanded('#1', '#2')
+    thirddata.contests.assertMacroNeverExpanded('#1', 1, '#2')
   }
 }
+
 \def\assertMacroExpandedNTimes#1#2#3{%
   \directlua{%
     thirddata.contests.assertMacroExpanded('#1', #2, '#3')
+  }
+}
+
+\def\assertMacroNeverExpandedNTimes#1#2#3{%
+  \directlua{%
+    thirddata.contests.assertMacroNeverExpanded('#1', #2, '#3')
   }
 }
 \stopMkIVCode
@@ -1338,20 +1285,22 @@ function assertMacroExpanded(macroName, callNum, aMessage)
     and macroInfo.calls[callNum] ~= nil,
     aMessage,
     expectedMsg..' to have been expanded at least '..
-      toStr(callNum)..' times'
+      toStr(callNum)..' times.'
   )
 end
 
 contests.assertMacroExpanded = assertMacroExpanded
 
-function assertMacroNeverExpanded(macroName, aMessage)
+function assertMacroNeverExpanded(macroName, callNum, aMessage)
   local expectedMsg = 'Expected ['..macroName..']'
   local macroInfo   = expInfo[macroName]
   contests.reportMkIVAssertion(
     macroInfo == nil
-    or macroInfo.calls == nil,
+    or macroInfo.calls == nil
+    or macroInfo.calls[callNum] == nil,
     aMessage,
-    expectedMsg..' to have never been expanded.'
+    expectedMsg..' to have never been expanded '..
+      toStr(callNum)..' times.'
   )
 end
 
@@ -1396,6 +1345,7 @@ mocked macros have never been expanded.
   \startAssertShouldFail{}{}{}
     \assertMacroExpandedNTimes{aContextMock}{2}{}
   \stopAssertShouldFail
+  \assertMacroNeverExpandedNTimes{aContextMock}{2}{}
 \endgroup
 \stopConTest
 \stopTestCase

@@ -302,25 +302,33 @@
   }
 }
 
-% from file: mkivTests.tex after line: 1300
+% from file: mkivTests.tex after line: 1250
 
 \def\assertMacroExpanded#1#2{%
   \directlua{%
     thirddata.contests.assertMacroExpanded('#1', 1, '#2')
   }
 }
+
 \def\assertMacroNeverExpanded#1#2{%
   \directlua{%
-    thirddata.contests.assertMacroNeverExpanded('#1', '#2')
+    thirddata.contests.assertMacroNeverExpanded('#1', 1, '#2')
   }
 }
+
 \def\assertMacroExpandedNTimes#1#2#3{%
   \directlua{%
     thirddata.contests.assertMacroExpanded('#1', #2, '#3')
   }
 }
 
-% from file: mkivTests.tex after line: 1400
+\def\assertMacroNeverExpandedNTimes#1#2#3{%
+  \directlua{%
+    thirddata.contests.assertMacroNeverExpanded('#1', #2, '#3')
+  }
+}
+
+% from file: mkivTests.tex after line: 1350
 
 \def\assertMacroNthArgumentOnMthExpansionMatches#1#2#3#4#5{%
   \directlua{%
@@ -330,7 +338,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 1550
+% from file: mkivTests.tex after line: 1500
 
 \def\mockErrMessage{%
   \mockTexMacro{errmessage}{1}
