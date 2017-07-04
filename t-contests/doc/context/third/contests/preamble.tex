@@ -2,7 +2,7 @@
 
 \startchapter[title=Preamble]
 
-\startMkIVCode
+\startMkIVCode[default]
 %D \module
 %D   [     file=t-contests,
 %D      version=2017.05.10,
@@ -42,14 +42,15 @@
 % status  : under development, mkiv only
 %
 % end info
+\stopMkIVCode
 
+\startMkIVCode
 \usemodule[literate-progs]
 
 \unprotect
 
 \ctxloadluafile{t-contests}
 \ctxloadluafile{t-contests-templates}
-
 \stopMkIVCode
 
 \startLuaCode

@@ -5,14 +5,12 @@
 We temporarily make the \type{\createCHeaderFile}, \type{\createCCodeFile} 
 and \type{\createCTestFile} macros \type{\relax}. 
 
-\def\createCHeaderFile[#1]{\relax}
-\def\createCCodeFile[#1]{\relax}
-\def\createCTestFile[#1]{\relax}
+\def\createCHeaderFile#1#2#3{\relax}
+\def\createCCodeFile#1#2#3{\relax}
+\def\createCTestFile#1#2#3{\relax}
 
-\startMkIVCode
-
+\startMkIVCode[default]
 \protect \endinput
-
 \stopMkIVCode
 
 %\directlua{
@@ -20,18 +18,39 @@ and \type{\createCTestFile} macros \type{\relax}.
 %  texio.write_nl(pp.write(thirddata.contests))
 %}
 
-\createMkIVFile[../../../../../build/t-contests.mkiv]
+\createMkIVCodeFile%
+  {default}%
+  {../../../../../build/t-contests.mkiv}%
+  {A ConTeXt MkIV module}
 
-\createLuaFile[../../../../../build/t-contests.lua]
+\createLuaCodeFile%
+  {default}%
+  {../../../../../build/t-contests.lua}%
+  {-- A Lua file}
 
-\createCHeaderFile[../../../../../build/cTests.h]
+\createCHeaderFile%
+  {default}%
+  {../../../../../build/cTests.h}%
+  {}
 
-\createCCodeFile[../../../../../build/cTests.c]
+\createCCodeFile%
+  {default}%
+  {../../../../../build/cTests.c}%
+  {}
 
-\createCTestFile[../../../../../build/allCTests.c]
+\createCTestFile%
+  {default}%
+  {../../../../../build/allCTests.c}%
+  {}
 
-\createTemplateFile[../../../../../build/t-contests-templates.lua]
+\createLuaTemplateFile%
+  {default}%
+  {../../../../../build/t-contests-templates.lua}%
+  {-- A Lua template file}
 
-\createLakefile[../../../../../build/lakefile]
+\createLakefileFile%
+  {default}%
+  {../../../../../build/lakefile}%
+  {}
 
 \stopchapter
