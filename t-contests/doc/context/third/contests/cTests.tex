@@ -7,7 +7,7 @@ We will eventually include a collection of C unit tests.
 \definetyping[CHeader]
 \definetyping[CCode]
 
-\startMkIVCode[default]
+\startMkIVCode
 \usemodule[high-cpp]
 
 \definetyping[CTest]
@@ -24,7 +24,7 @@ We will eventually include a collection of C unit tests.
 }
 \stopMkIVCode
 
-\startLuaCode[default]
+\startLuaCode
 function contests.addCTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
   local suite = tests.curSuite

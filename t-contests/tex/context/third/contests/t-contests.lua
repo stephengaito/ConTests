@@ -386,7 +386,7 @@ end
 
 contests.returnMockedResults = returnMockedResults
 
--- from file: mkivTests.tex after line: 850
+-- from file: mkivTests.tex after line: 800
 
 local function addMockResult(mockedMacro, returnValue)
   mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
