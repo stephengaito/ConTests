@@ -34,6 +34,12 @@ end
 \stopLuaCode
 
 \startCHeader
+#include <stdio.h>
+#include <string.h>
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+
 #ifndef FALSE
 #define FALSE 0
 #endif
@@ -61,22 +67,19 @@ struct TestCase_struc {
 
 extern void TestCaseRun(TestCase *tc);
 
-extern void ReportCAssert(TestCase *tc,
-                          int theCondition,
-                          const char* aMessage,
-                          const char* theReson,
-                          const char* fileName,
-                          int lineNum);
-
-extern char* sprintf2Int(const char* fmt,
-                         int intA, int intB);
-extern char* sprintf2Ptr(const char* fmt,
-                         void* ptrA, void* ptrB);
-extern char* sprintf2Str(const char* fmt,
-                         const char* strA,
-                         const char* strB);
-extern char* sprintf2Dbl(const char* fmt,
-                         double dblA, double dblB);
+#define lua_errorCall(numArgs, numRtn)        \
+  if lua_pcall(lstate, (numArgs), (numRtn)) { \
+    fprintf(stderr,                           \
+      "LUA error in file %s at line %d\n",    \
+      __FILE__, __LINE__                      \
+    )                                         \
+  }
+  
+#define lua_CTestCall(numArgs)        \
+  lua_pushstring(lstate, __FILE__);   \
+  lua_pushunsigned(lstate, __LINE__); \
+  lua_errorCall((numArgs)+2)
+  
 \stopCHeader
 
 \startCCode
@@ -89,78 +92,37 @@ void TestCaseRun(TestCase *tc) {
   (tc->testCaseFunc)(tc);
   tc->jumpBuf = 0;
 }
-
-void ReportCAssert(TestCase *tc,
-                   int theCondition,
-                   const char* aMessage,
-                   const char* theReason,
-                   const char* fileName,
-                   int lineNum) {
-  tc->attempted++;
-  if ! theCondition {
-    tc->message  = aMessage;
-    tc->reason   = theReason;
-    tc->fileName = fileName;
-    tc->lineNum  = lineNum;
-    tc->failed   = TRUE;
-    // Now do a long jump back to the TestCaseFunc
-    //
-    if (tc->jumpBuf) longjump(*(tc->jumpBuf), 0);
-  }
-  tc->passed++;
-}
-
-#define getBuffer(bufferSize) (char*)calloc(1, bufferSize)
-
-char* sprintf2Int(const char* fmt,
-                  int intA, int intB) {
-  size_t bufferSize = strlen(fmt) + 20*2;
-  char* buffer = getBuffer(bufferSize);
-  snprintf(buffer, bufferSize, fmt, intA, intB);
-  return buffer;
-}
-
-char* sprintf2Ptr(const char* fmt,
-                  void* ptrA, void* ptrB) {
-  size_t bufferSize = strlen(fmt) + 20*2;
-  char* buffer = getBuffer(bufferSize);
-  snprintf(buffer, bufferSize, fmt, ptrA, ptrB);
-  return buffer;
-
-char* sprintf2Str(const char* fmt,
-                  const char* strA,
-                  const char* strB) {
-  size_t bufferSize = strlen(fmt)
-    + strlen(strA) + strlen(strB) + 10;
-  char* buffer = getBuffer(bufferSize);
-  snprintf(buffer, bufferSize, fmt, strA, strB);
-  return buffer;
-}
-
-char* sprintf2Dbl(const char* fmt,
-                  double dblA, double dblB) {
-  size_t bufferSize = strlen(fmt) + 20*2;
-  char* buffer = getBuffer(bufferSize);
-  snprintf(buffer, bufferSize, fmt, dblA, dblB);
-  return buffer;
-}
-
 \stopCCode
 
 \section[title=Assertions]
 
+\startTestSuite[assertShouldFail environment]
+
+\startCHeader
+#define StartAssertShouldFail(messagePattern, reasonPattern, aMessage) \
+  lua_getglobal(lstate, "startCShouldFail");                           \
+  lua_pushstring(lstate, (messagePattern));                            \
+  lua_pushstring(lstate, (reasonPattern));                             \
+  lua_pushstring(lstate, (aMessage));                                  \
+  lua_CTestCall(3)
+
+#define StopAssertShouldFail                \
+  lua_getglobal(lstate, "stopCShouldFail"); \
+  lua_CTestCall(0)
+\stopCHeader
+
+\stopTestSuite
+
 \startTestSuite[assertFail]
 
 \startCHeader
-#define AssertFailMsg(tc, aMessage) \
-  ReportCAssert(                    \
-    (tc),                           \
-    FALSE,                          \
-    (aMessage),                     \
-    "Failed",                       \
-    __FILE__,                       \
-    __LINE__)
-
+#define AssertFailMsg(tc, aMessage)          \
+  lua_getglobal(lstate, "reportCAssertion"); \
+  lua_pushboolean(lstate, FALSE);            \
+  lua_pushstring(lstate, (aMessage));        \
+  lua_pushstring(lstate, "Failed");          \
+  lua_CTestCall(3)
+  
 #define AssertFail(tc) \
   AssertFailMsg(tc, "")
 \stopCHeader
@@ -170,20 +132,19 @@ char* sprintf2Dbl(const char* fmt,
 \startTestSuite[assertSucceed]
 
 \startCHeader
-#define AssertSucceedMsg(tc, aMessage) \
-  ReportCAssert(                       \
-    (tc),                              \
-    TRUE,                              \
-    (aMessage),                        \
-    "Succeeded",                       \
-    __FILE__,                          \
-    __LINE__)
+#define AssertSucceedMsg(tc, aMessage)       \
+  lua_getglobal(lstate, "reportCAssertion"); \
+  lua_pushboolean(lstate, TRUE);             \
+  lua_pushstring(lstate, (aMessage));        \
+  lua_pushstring(lstate, "Succeeded");       \
+  lua_CTestCall(3)
 
 #define AssertSucceed(tc) \
   AssertSucceedMsg(tc, "")
 \stopCHeader
 
-\startTestCase[should always succedd]
+\startTestCase[should always succeed]
+
 \startCTest
   AssertSucceed(tc);
 \stopCTest
@@ -195,17 +156,14 @@ char* sprintf2Dbl(const char* fmt,
 
 \startCHeader
 #define AssertIntTrueMsg(tc, anInt, aMessage) \
-  ReportCAssert(                              \
-    (tc),                                     \
-    (anInt),                                  \
-    (aMessage),                               \
-    sprintf2Int(                              \
+  lua_getglobal(lstate, "reportCAssertion");  \
+  lua_pushboolean(lstate, (anInt));           \
+  lua_pushstring(lstate, (aMessage));         \
+  lua_pushfstring(lstate,                     \
       "Expected %d to be TRUE.",              \
-      (anInt),                                \
-      NULL                                    \
-    ),                                        \
-    __FILE__,                                 \
-    __LINE__)
+      (anInt)                                 \
+    );                                        \
+  lua_CTestCall(3)
 
 #define AssertIntTrue(tc, anInt) \
   AssertIntTrueMsg(tc, anInt, "")
@@ -222,17 +180,14 @@ char* sprintf2Dbl(const char* fmt,
 
 \startCHeader
 #define AssertIntFalseMsg(tc, anInt, aMessage) \
-  ReportCAssert(                               \
-    (tc),                                      \
-    !(anInt),                                  \
-    (aMessage),                                \
-    sprintf2Int(                               \
+  lua_getglobal(lstate, "reportCAssertion");   \
+  lua_pushboolean(lstate, !(anInt));           \
+  lua_pushstring(lstate, (aMessage));          \
+  lua_pushfstring(lstate,                      \
       "Expected %d to be FALSE.",              \
-      (anInt),                                 \
-      NULL                                     \
-    ),                                         \
-    __FILE__,                                  \
-    __LINE__)
+      (anInt)                                  \
+    );                                         \
+  lua_CTestCall(3)
 
 #define AssertIntFalse(tc, anInt) \
   AssertIntFalseMsg(tc, anInt, "")
@@ -244,17 +199,15 @@ char* sprintf2Dbl(const char* fmt,
 
 \startCHeader
 #define AssertIntEqualsMsg(tc, intA, intB, aMessage) \
-  ReportCAssert(                                     \
-    (tc),                                            \
-    (intA) == (intB),                                \
-    (aMessage),                                      \
-    sprintf2Int(                                     \
+  lua_getglobal(lstate, "reportCAssertion");         \
+  lua_pushboolean(lstate, (intA) == (intB));         \
+  lua_pushstring(lstate, (aMessage));                \
+  lua_pushfstring(lstate,                            \
       "Expected %d to be equal to %d.",              \
       (intA),                                        \
       (intB)                                         \
-    ),                                               \
-    __FILE__,                                        \
-    __LINE__)
+    );                                               \
+  lua_CTestCall(3)
 
 #define AssertIntEquals(tc, intA, intB) \
   AssertIntEqualsMsg(tc, intA, intB, "")
@@ -266,17 +219,15 @@ char* sprintf2Dbl(const char* fmt,
 
 \startCHeader
 #define AssertIntNotEqualsMsg(tc, intA, intB, aMessage) \
-  ReportCAssert(                                        \
-    (tc),                                               \
-    (intA) != (intB),                                   \
-    (aMessage),                                         \
-    sprintf2Int(                                        \
+  lua_getglobal(lstate, "reportCAssertion");            \
+  lua_pushboolean(lstate, (intA) != (intB));            \
+  lua_pushstring(lstate, (aMessage));                   \
+  lua_pushfstring(lstate,                               \
       "Expected %d not to be equal to %d.",             \
       (intA),                                           \
       (intB)                                            \
-    ),                                                  \
-    __FILE__,                                           \
-    __LINE__)
+    );                                                  \
+  lua_CTestCall(3)
 
 #define AssertIntNotEquals(tc, intA, intB) \
   AssertIntNotEqualsMsg(tc, intA, intB, "")
@@ -288,17 +239,14 @@ char* sprintf2Dbl(const char* fmt,
 
 \startCHeader
 #define AssertPtrNullMsg(tc, aPtr, aMessage) \
-  ReportCAssert(                             \
-    (tc),                                    \
-    (aPtr) == (NULL),                        \
-    (aMessage),                              \
-    sprintf2Ptr(                             \
+  lua_getglobal(lstate, "reportCAssertion"); \
+  lua_pushboolean(lstate, (aPtr) == (NULL)); \
+  lua_pushstring(lstate, (aMessage));        \
+  lua_pushfstring(lstate,                    \
       "Expected %p to be NULL.",             \
-      (aPtr),                                \
-      NULL                                   \
-    ),                                       \
-    __FILE__,                                \
-    __LINE__)
+      (aPtr)                                 \
+    );                                       \
+  lua_CTestCall(3)
 
 #define AssertPtrNull(tc, aPtr) \
   AssertPtrNullMsg(tc, aPtr, "")
@@ -310,17 +258,14 @@ char* sprintf2Dbl(const char* fmt,
 
 \startCHeader
 #define AssertPtrNotNullMsg(tc, aPtr, aMessage) \
-  ReportCAssert(                                \
-    (tc),                                       \
-    (aPtr) != (NULL),                           \
-    (aMessage),                                 \
-    sprintf2Pt(                                 \
+  lua_getglobal(lstate, "reportCAssertion");    \
+  lua_pushboolean(lstate, (aPtr) != (NULL));    \
+  lua_pushstring(lstate, (aMessage));           \
+  lua_pushfstring(lstate,                       \
       "Expected %p not to be NULL.",            \
-      (aPtr),                                   \
-      NULL                                      \
-    ),                                          \
-    __FILE__,                                   \
-    __LINE__)
+      (aPtr)                                    \
+    );                                          \
+  lua_CTestCall(3)
 
 #define AssertPtrNotNull(tc, aPtr) \
   AssertPtrNotNullMsg(tc, aPtr, "")
@@ -332,17 +277,15 @@ char* sprintf2Dbl(const char* fmt,
 
 \startCHeader
 #define AssertPtrEqualsMsg(tc, ptrA, ptrB, aMessage) \
-  ReportCAssert(                                     \
-    (tc),                                            \
-    (ptrA) == (ptrB),                                \
-    (aMessage),                                      \
-    sprintf2Ptr(                                     \
+  lua_getglobal(lstate, "reportCAssertion");         \
+  lua_pushboolean(lstate, (ptrA) == (ptrB));         \
+  lua_pushstring(lstate, (aMessage));                \
+  lua_pushfstring(lstate,                            \
       "Expected %p to be equal to %p.",              \
       (ptrA),                                        \
       (ptrB)                                         \
-    ),                                               \
-    __FILE__,                                        \
-    __LINE__)
+    );                                               \
+  lua_CTestCall(3)
 
 #define AssertPtrEquals(tc, ptrA, ptrB) \
   AssertPtrEqualsMsg(tc, ptrA, ptrB, "")
@@ -354,17 +297,15 @@ char* sprintf2Dbl(const char* fmt,
 
 \startCHeader
 #define AssertPtrNotEqualsMsg(tc, ptrA, ptrB, aMessage) \
-  ReportCAssert(                                        \
-    (tc),                                               \
-    (ptrA) != (ptrB),                                   \
-    (aMessage),                                         \
-    sprintf2Ptr(                                        \
+  lua_getglobal(lstate, "reportCAssertion");            \
+  lua_pushboolean(lstate, (ptrA) != (ptrB));            \
+  lua_pushstring(lstate, (aMessage));                   \
+  lua_pushfstring(lstate,                               \
       "Expected %p not to be equal to %p.",             \
       (ptrA),                                           \
       (ptrB)                                            \
-    ),                                                  \
-    __FILE__,                                           \
-    __LINE__)
+    );                                                  \
+  lua_CTestCall(3)
 
 #define AssertPtrNotEquals(tc, ptrA, ptrB) \
   AssertPtrNotEqualsMsg(tc, ptrA, ptrB, "")
@@ -376,17 +317,14 @@ char* sprintf2Dbl(const char* fmt,
 
 \startCHeader
 #define AssertStrEmptyMsg(tc, aStr, aMessage) \
-  ReportCAssert(                              \
-    (tc),                                     \
-    *(aStr) == 0,                             \
-    (aMessage),                               \
-    sprintf2Str(                              \
+  lua_getglobal(lstate, "reportCAssertion");  \
+  lua_pushboolean(lstate, *(aStr) == 0);      \
+  lua_pushstring(lstate, (aMessage));         \
+  lua_pushfstring(lstate,                     \
       "Expected [%s] to be empty.",           \
-      (aStr),                                 \
-      NULL                                    \
-    ),                                        \
-    __FILE__,                                 \
-    __LINE__)
+      (aStr)                                  \
+    );                                        \
+  lua_CTestCall(3)
 
 #define AssertStrEmpty(tc, aStr) \
   AssertStrEmptyMsg(tc, aStr, "")
@@ -398,17 +336,14 @@ char* sprintf2Dbl(const char* fmt,
 
 \startCHeader
 #define AssertStrNotEmptyMsg(tc, aStr, aMessage) \
-  ReportCAssert(                                 \
-    (tc),                                        \
-    *(aStr) != 0,                                \
-    (aMessage),                                  \
-    sprintf2Str(                                 \
+  lua_getglobal(lstate, "reportCAssertion");     \
+  lua_pushboolean(lstate, *(aStr) != 0);         \
+  lua_pushstring(lstate, (aMessage));            \
+  lua_pushfstring(lstate,                        \
       "Expected [%s] not to be empty.",          \
-      (aStr),                                    \
-      NULL                                       \
-    ),                                           \
-    __FILE__,                                    \
-    __LINE__)
+      (aStr)                                     \
+    );                                           \
+  lua_CTestCall(3)
 
 #define AssertStrNotEmpty(tc, aStr) \
   AssertStrNotEmptyMsg(tc, aStr, "")
@@ -419,18 +354,16 @@ char* sprintf2Dbl(const char* fmt,
 \startTestSuite[assertStrEquals]
 
 \startCHeader
-#define AssertStrEqualsMsg(tc, strA, strB, aMessage) \
-  ReportCAssert(                                     \
-    (tc),                                            \
-    strcmp((strA), (strB)) == 0,                     \
-    (aMessage),                                      \
-    sprintf2Str(                                     \
-      "Expected [%s] to be equal to [%s].",          \
-      (strA),                                        \
-      (strB)                                         \
-    ),                                               \
-    __FILE__,                                        \
-    __LINE__)
+#define AssertStrEqualsMsg(tc, strA, strB, aMessage)    \
+  lua_getglobal(lstate, "reportCAssertion");            \
+  lua_pushboolean(lstate, strcmp((strA), (strB)) == 0); \
+  lua_pushstring(lstate, (aMessage));                   \
+  lua_pushfstring(lstate,                               \
+      "Expected [%s] to be equal to [%s].",             \
+      (strA),                                           \
+      (strB)                                            \
+    );                                                  \
+  lua_CTestCall(3)
 
 #define AssertStrEquals(tc, strA, strB) \
   AssertStrEqualsMsg(tc, strA, strB, "")
@@ -442,17 +375,75 @@ char* sprintf2Dbl(const char* fmt,
 
 \startCHeader
 #define AssertStrNotEqualsMsg(tc, strA, strB, aMessage) \
-  ReportCAssert(                                        \
-    (tc),                                               \
-    strcmp((strA), (strB)) != 0,                        \
-    (aMessage),                                         \
-    sprintf2Str(                                        \
+  lua_getglobal(lstate, "reportCAssertion");            \
+  lua_pushboolean(lstate, strcmp((strA), (strB)) != 0); \
+  lua_pushstring(lstate, (aMessage));                   \
+  lua_pushfstring(lstate,                               \
       "Expected [%s] not to be equal to [%s].",         \
       (strA),                                           \
       (strB)                                            \
-    ),                                                  \
-    __FILE__,                                           \
-    __LINE__)
+    );                                                  \
+  lua_CTestCall(3)
+
+#define AssertStrNotEquals(tc, strA, strB) \
+  AssertStrNotEqualsMsg(tc, strA, strB, "")
+\stopCHeader
+
+\stopTestSuite
+
+\startTestSuite[assertStrMatches]
+
+\startCHeader
+#define AssertStrMatchesMsg(tc, aStr, aPattern, aMessage) \
+{                                                         \
+  lua_getglobal(lstate, "string");                        \
+  lua_getfield(lstate, -1, "match")                       \
+  lua_remove(lstate, -2);                                 \
+  lua_pushstring(lstate, (aStr));                         \
+  lua_pushstring(lstate, (aPattern));                     \
+  lua_errorCall(2, 1);                                    \
+  int matched = lua_isnil(lstate, 1);                     \
+  lua_pop(lstate, 1);                                     \
+  lua_getglobal(lstate, "reportCAssertion");              \
+  lua_pushboolean(lstate, matched);                       \
+  lua_pushstring(lstate, (aMessage));                     \
+  lua_pushfstring(lstate,                                 \
+      "Expected [%s] to match pattern [%s].",             \
+      (aStr),                                             \
+      (aPattern)                                          \
+    );                                                    \
+  lua_CTestCall(3);                                       \
+}
+
+#define AssertStrMatches(tc, strA, strB) \
+  AssertStrMatchesMsg(tc, strA, strB, "")
+\stopCHeader
+
+\stopTestSuite
+
+\startTestSuite[assertStrNotMatch]
+
+\startCHeader
+#define AssertStrNotMatchMsg(tc, strA, strB, aMessage) \
+{                                                      \
+  lua_getglobal(lstate, "string");                     \
+  lua_getfield(lstate, -1, "match")                    \
+  lua_remove(lstate, -2);                              \
+  lua_pushstring(lstate, (aStr));                      \
+  lua_pushstring(lstate, (aPattern));                  \
+  lua_errorCall(2, 1);                                 \
+  int matched = lua_isnil(lstate, 1);                  \
+  lua_pop(lstate, 1);                                  \
+  lua_getglobal(lstate, "reportCAssertion");           \
+  lua_pushboolean(lstate, ! matched);                  \
+  lua_pushstring(lstate, (aMessage));                  \
+  lua_pushfstring(lstate,                              \
+      "Expected [%s] to not match pattern [%s].",      \
+      (aStr),                                          \
+      (aPattern)                                       \
+    );                                                 \
+  lua_CTestCall(3);                                    \
+}
 
 #define AssertStrNotEquals(tc, strA, strB) \
   AssertStrNotEqualsMsg(tc, strA, strB, "")
@@ -464,17 +455,16 @@ char* sprintf2Dbl(const char* fmt,
 
 \startCHeader
 #define AssertDblEqualsMsg(tc, dblA, dblB, tol, aMessage)    \
-  ReportCAssert(                                             \
-    (tc),                                                    \
-    fabs((dblA) - (dblB)) < (tol),                           \
-    (aMessage),                                              \
-    sprintf2Dbl(                                             \
-      "Expected %e to be equal to %e with tolerance of %e.", \
+  lua_getglobal(lstate, "reportCAssertion");                 \
+  lua_pushboolean(lstate, fabs((dblA) - (dblB)) < (tol));    \
+  lua_pushstring(lstate, (aMessage));                        \
+  lua_pushfstring(lstate,                                    \
+      "Expected %f to be equal to %f with tolerance of %f.", \
       (dblA),                                                \
-      (dblB)                                                 \
-    ),                                                       \
-    __FILE__,                                                \
-    __LINE__)
+      (dblB),                                                \
+      (tol)                                                  \
+    );                                                       \
+  lua_CTestCall(3)
 
 #define AssertDblEquals(tc, dblA, dblB) \
   AssertDblEqualsMsg(tc, dblA, dblB, "")
@@ -486,17 +476,16 @@ char* sprintf2Dbl(const char* fmt,
 
 \startCHeader
 #define AssertDblNotEqualsMsg(tc, dblA, dblB, tol, aMessage)     \
-  ReportCAssert(                                                 \
-    (tc),                                                        \
-    (tol) <= fabs((dblA) - (dblB)),                              \
-    (aMessage),                                                  \
-    sprintf2Dbl(                                                 \
-      "Expected %e not to be equal to %e with tolerance of %e.", \
+  lua_getglobal(lstate, "reportCAssertion");                     \
+  lua_pushboolean(lstate, (tol) <= fabs((dblA) - (dblB)));       \
+  lua_pushstring(lstate, (aMessage));                            \
+  lua_pushfstring(lstate,                                        \
+      "Expected %f not to be equal to %f with tolerance of %f.", \
       (dblA),                                                    \
-      (dblB)                                                     \
-    ),                                                           \
-    __FILE__,                                                    \
-    __LINE__)
+      (dblB),                                                    \
+      (tol)                                                      \
+    );                                                           \
+  lua_CTestCall(3)
 
 #define AssertDblNotEquals(tc, dblA, dblB) \
   AssertDblNotEqualsMsg(tc, dblA, dblB, "")
