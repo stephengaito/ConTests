@@ -67,6 +67,16 @@ extern void ReportCAssert(TestCase *tc,
                           const char* theReson,
                           const char* fileName,
                           int lineNum);
+
+extern char* sprintf2Int(const char* fmt,
+                         int intA, int intB);
+extern char* sprintf2Ptr(const char* fmt,
+                         void* ptrA, void* ptrB);
+extern char* sprintf2Str(const char* fmt,
+                         const char* strA,
+                         const char* strB);
+extern char* sprintf2Dbl(const char* fmt,
+                         double dblA, double dblB);
 \stopCHeader
 
 \startCCode
@@ -99,6 +109,42 @@ void ReportCAssert(TestCase *tc,
   }
   tc->passed++;
 }
+
+#define getBuffer(bufferSize) (char*)calloc(1, bufferSize)
+
+char* sprintf2Int(const char* fmt,
+                  int intA, int intB) {
+  size_t bufferSize = strlen(fmt) + 20*2;
+  char* buffer = getBuffer(bufferSize);
+  snprintf(buffer, bufferSize, fmt, intA, intB);
+  return buffer;
+}
+
+char* sprintf2Ptr(const char* fmt,
+                  void* ptrA, void* ptrB) {
+  size_t bufferSize = strlen(fmt) + 20*2;
+  char* buffer = getBuffer(bufferSize);
+  snprintf(buffer, bufferSize, fmt, ptrA, ptrB);
+  return buffer;
+
+char* sprintf2Str(const char* fmt,
+                  const char* strA,
+                  const char* strB) {
+  size_t bufferSize = strlen(fmt)
+    + strlen(strA) + strlen(strB) + 10;
+  char* buffer = getBuffer(bufferSize);
+  snprintf(buffer, bufferSize, fmt, strA, strB);
+  return buffer;
+}
+
+char* sprintf2Dbl(const char* fmt,
+                  double dblA, double dblB) {
+  size_t bufferSize = strlen(fmt) + 20*2;
+  char* buffer = getBuffer(bufferSize);
+  snprintf(buffer, bufferSize, fmt, dblA, dblB);
+  return buffer;
+}
+
 \stopCCode
 
 \section[title=Assertions]
@@ -111,7 +157,7 @@ void ReportCAssert(TestCase *tc,
     (tc),                           \
     FALSE,                          \
     (aMessage),                     \
-    "Assert Failed",                \
+    "Failed",                       \
     __FILE__,                       \
     __LINE__)
 
@@ -129,7 +175,7 @@ void ReportCAssert(TestCase *tc,
     (tc),                              \
     TRUE,                              \
     (aMessage),                        \
-    "Assert Succeeded",                \
+    "Succeeded",                       \
     __FILE__,                          \
     __LINE__)
 
@@ -145,8 +191,10 @@ void ReportCAssert(TestCase *tc,
     (tc),                                     \
     (anInt),                                  \
     (aMessage),                               \
-    sprintf("Expected %d to be TRUE.",        \
-      (anInt)                                 \
+    sprintf2Int(                              \
+      "Expected %d to be TRUE.",              \
+      (anInt),                                \
+      NULL                                    \
     ),                                        \
     __FILE__,                                 \
     __LINE__)
@@ -165,8 +213,10 @@ void ReportCAssert(TestCase *tc,
     (tc),                                      \
     !(anInt),                                  \
     (aMessage),                                \
-    sprintf("Expected %d to be FALSE.",        \
-      (anInt)                                  \
+    sprintf2Int(                               \
+      "Expected %d to be FALSE.",              \
+      (anInt),                                 \
+      NULL                                     \
     ),                                         \
     __FILE__,                                  \
     __LINE__)
@@ -185,7 +235,8 @@ void ReportCAssert(TestCase *tc,
     (tc),                                            \
     (intA) == (intB),                                \
     (aMessage),                                      \
-    sprintf("Expected %d to be equal to %d.",        \
+    sprintf2Int(                                     \
+      "Expected %d to be equal to %d.",              \
       (intA),                                        \
       (intB)                                         \
     ),                                               \
@@ -206,7 +257,8 @@ void ReportCAssert(TestCase *tc,
     (tc),                                               \
     (intA) != (intB),                                   \
     (aMessage),                                         \
-    sprintf("Expected %d not to be equal to %d.",       \
+    sprintf2Int(                                        \
+      "Expected %d not to be equal to %d.",             \
       (intA),                                           \
       (intB)                                            \
     ),                                                  \
@@ -227,8 +279,10 @@ void ReportCAssert(TestCase *tc,
     (tc),                                    \
     (aPtr) == (NULL),                        \
     (aMessage),                              \
-    sprintf("Expected %p to be NULL.",       \
+    sprintf2Ptr(                             \
+      "Expected %p to be NULL.",             \
       (aPtr),                                \
+      NULL                                   \
     ),                                       \
     __FILE__,                                \
     __LINE__)
@@ -247,8 +301,10 @@ void ReportCAssert(TestCase *tc,
     (tc),                                       \
     (aPtr) != (NULL),                           \
     (aMessage),                                 \
-    sprintf("Expected %p not to be NULL.",      \
+    sprintf2Pt(                                 \
+      "Expected %p not to be NULL.",            \
       (aPtr),                                   \
+      NULL                                      \
     ),                                          \
     __FILE__,                                   \
     __LINE__)
@@ -267,7 +323,8 @@ void ReportCAssert(TestCase *tc,
     (tc),                                            \
     (ptrA) == (ptrB),                                \
     (aMessage),                                      \
-    sprintf("Expected %p to be equal to %p.",        \
+    sprintf2Ptr(                                     \
+      "Expected %p to be equal to %p.",              \
       (ptrA),                                        \
       (ptrB)                                         \
     ),                                               \
@@ -288,7 +345,8 @@ void ReportCAssert(TestCase *tc,
     (tc),                                               \
     (ptrA) != (ptrB),                                   \
     (aMessage),                                         \
-    sprintf("Expected %p not to be equal to %p.",       \
+    sprintf2Ptr(                                        \
+      "Expected %p not to be equal to %p.",             \
       (ptrA),                                           \
       (ptrB)                                            \
     ),                                                  \
@@ -309,8 +367,10 @@ void ReportCAssert(TestCase *tc,
     (tc),                                     \
     *(aStr) == 0,                             \
     (aMessage),                               \
-    sprintf("Expected [%s] to be empty.",     \
+    sprintf2Str(                              \
+      "Expected [%s] to be empty.",           \
       (aStr),                                 \
+      NULL                                    \
     ),                                        \
     __FILE__,                                 \
     __LINE__)
@@ -329,8 +389,10 @@ void ReportCAssert(TestCase *tc,
     (tc),                                        \
     *(aStr) != 0,                                \
     (aMessage),                                  \
-    sprintf("Expected [%s] not to be empty.",    \
+    sprintf2Str(                                 \
+      "Expected [%s] not to be empty.",          \
       (aStr),                                    \
+      NULL                                       \
     ),                                           \
     __FILE__,                                    \
     __LINE__)
@@ -349,7 +411,8 @@ void ReportCAssert(TestCase *tc,
     (tc),                                            \
     strcmp((strA), (strB)) == 0,                     \
     (aMessage),                                      \
-    sprintf("Expected [%s] to be equal to [%s].",    \
+    sprintf2Str(                                     \
+      "Expected [%s] to be equal to [%s].",          \
       (strA),                                        \
       (strB)                                         \
     ),                                               \
@@ -370,7 +433,8 @@ void ReportCAssert(TestCase *tc,
     (tc),                                               \
     strcmp((strA), (strB)) != 0,                        \
     (aMessage),                                         \
-    sprintf("Expected [%s] not to be equal to [%s].",   \
+    sprintf2Str(                                        \
+      "Expected [%s] not to be equal to [%s].",         \
       (strA),                                           \
       (strB)                                            \
     ),                                                  \
@@ -386,17 +450,17 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertDblEquals]
 
 \startCHeader
-#define AssertDblEqualsMsg(tc, dblA, dblB, tol, aMessage)     \
-  ReportCAssert(                                              \
-    (tc),                                                     \
-    fabs((dblA) - (dblB)) < (tol),                            \
-    (aMessage),                                               \
-    sprintf(                                                  \
-      "Expected %e to be equal to %e with tollerance of %e.", \
-      (dblA),                                                 \
-      (dblB)                                                  \
-    ),                                                        \
-    __FILE__,                                                 \
+#define AssertDblEqualsMsg(tc, dblA, dblB, tol, aMessage)    \
+  ReportCAssert(                                             \
+    (tc),                                                    \
+    fabs((dblA) - (dblB)) < (tol),                           \
+    (aMessage),                                              \
+    sprintf2Dbl(                                             \
+      "Expected %e to be equal to %e with tolerance of %e.", \
+      (dblA),                                                \
+      (dblB)                                                 \
+    ),                                                       \
+    __FILE__,                                                \
     __LINE__)
 
 #define AssertDblEquals(tc, dblA, dblB) \
@@ -408,17 +472,17 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertDblNotEqals]
 
 \startCHeader
-#define AssertDblNotEqualsMsg(tc, dblA, dblB, tol, aMessage)      \
-  ReportCAssert(                                                  \
-    (tc),                                                         \
-    (tol) <= fabs((dblA) - (dblB)),                               \
-    (aMessage),                                                   \
-    sprintf(                                                      \
-      "Expected %e not to be equal to %e with tollerance of %e.", \
-      (dblA),                                                     \
-      (dblB)                                                      \
-    ),                                                            \
-    __FILE__,                                                     \
+#define AssertDblNotEqualsMsg(tc, dblA, dblB, tol, aMessage)     \
+  ReportCAssert(                                                 \
+    (tc),                                                        \
+    (tol) <= fabs((dblA) - (dblB)),                              \
+    (aMessage),                                                  \
+    sprintf2Dbl(                                                 \
+      "Expected %e not to be equal to %e with tolerance of %e.", \
+      (dblA),                                                    \
+      (dblB)                                                     \
+    ),                                                           \
+    __FILE__,                                                    \
     __LINE__)
 
 #define AssertDblNotEquals(tc, dblA, dblB) \
