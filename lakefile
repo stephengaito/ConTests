@@ -22,7 +22,7 @@ local moduleTargets = {
   't-contests.lua',
   't-contests-templates.lua',
   't-contests.h',
-  't-contests.c'
+  't-contests-cTests.lua'
 }
 
 local buildTargets   = { }

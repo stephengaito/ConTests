@@ -1156,14 +1156,9 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
     outFile:write('\n\n')
   end
 
-  outFile:write('#include <stdio.h>\n')
-  outFile:write('#include <string.h>\n')
-  outFile:write('#include <lua.h>\n')
-  outFile:write('#include <lauxlib.h>\n')
-  outFile:write('#include <lualib.h>\n')
   outFile:write('#include <t-contests.h>\n')
   outFile:write('\n\n')
-  
+
   if type(aCodeStream) ~= 'string'
     or #aCodeStream < 1 then
     aCodeStream = 'default'
@@ -1199,7 +1194,6 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
       tInsert(suiteNums, i)
       outFile:write('//-------------------------------------------------------\n')
       outFile:write(tConcat(suiteCaseBuf))
-      --outFile:write('\n\n')
       outFile:write('void ts'..toStr(i)..'(lua_State *lstate)\n\n')
       outFile:write('  StartTestSuite(\n')
       outFile:write('    "'..aTestSuite.desc..'"\n')
@@ -1220,7 +1214,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
     outFile:write('  ts'..toStr(aSuiteNum)..'(lstate);\n')
   end
   outFile:write('}\n')
-  
+
   outFile:close()
 end
 

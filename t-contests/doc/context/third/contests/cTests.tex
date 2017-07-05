@@ -69,6 +69,9 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
     outFile:write('\n\n')
   end
 
+  outFile:write('#include <t-contests.h>\n')
+  outFile:write('\n\n')
+
   if type(aCodeStream) ~= 'string'
     or #aCodeStream < 1 then
     aCodeStream = 'default'
@@ -76,31 +79,54 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
 
   tests.suites = tests.suites or { }
 
+  local suiteNums = { }
   for i, aTestSuite in ipairs(tests.suites) do
     aTestSuite.cases = aTestSuite.cases or { }
     local suiteCaseBuf = { }
+    local caseNums     = { }
     for j, aTestCase in ipairs(aTestSuite.cases) do
       aTestCase.cTests = aTestCase.cTests or { }
       local cTests     = aTestCase.cTests
       if cTests[aCodeStream] then
+        tInsert(caseNums, j)
+        tInsert(suiteCaseBuf, 'void ts'..toStr(i)..'_tc'..toStr(j)..'(lua_State *lstate){\n\n')
         tInsert(suiteCaseBuf, '  StartTestCase(\n')
         tInsert(suiteCaseBuf, '    "'..aTestCase.desc..'",\n')
         tInsert(suiteCaseBuf, '    "'..aTestCase.fileName..'",\n')
         tInsert(suiteCaseBuf, '    '..toStr(aTestCase.startLine)..',\n')
         tInsert(suiteCaseBuf, '    '..toStr(aTestCase.lastLine)..'\n')
-        tInsert(suiteCaseBuf, '  );\n\n')
-        tInsert(suiteCaseBuf, tConcat(cTests[aCodeStream], '\n\n'))
-        tInsert(suiteCaseBuf, '  StopTestCase;\n\n')
+        tInsert(suiteCaseBuf, '  );\n\n  ')
+        local cTestsCode = tConcat(cTests[aCodeStream], '\n')
+        cTestsCode       = litProgs.splitString(cTestsCode)
+        tInsert(suiteCaseBuf, tConcat(cTestsCode, '\n\n  '))
+        tInsert(suiteCaseBuf, '\n\n  StopTestCase;\n\n')
+        tInsert(suiteCaseBuf, '}\n\n')
       end
     end
     if 0 < #suiteCaseBuf then
-      outFile:write('StartTestSuite(\n')
-      outFile:write('  "'..aTestSuite.desc..'"\n')
-      outFile:write(');\n\n')
+      tInsert(suiteNums, i)
+      outFile:write('//-------------------------------------------------------\n')
       outFile:write(tConcat(suiteCaseBuf))
-      outFile:write('StopTestSuite;\n\n')
+      outFile:write('void ts'..toStr(i)..'(lua_State *lstate)\n\n')
+      outFile:write('  StartTestSuite(\n')
+      outFile:write('    "'..aTestSuite.desc..'"\n')
+      outFile:write('  );\n\n')
+      for j, aCaseNum in ipairs(caseNums) do
+        outFile:write('  ts'..toStr(i)..'_tc'..toStr(aCaseNum)..'(lstate);\n\n')
+      end
+      outFile:write('  StopTestSuite;\n\n')
+      outFile:write('}\n\n')
     end
   end
+
+  outFile:write('//-------------------------------------------------------\n')
+  outFile:write('int main(){\n\n')
+  outFile:write('  lua_State *lstate = luaL_newstate();\n')
+  outFile:write('  luaL_openlibs(lstate);\n\n')
+  for i, aSuiteNum in ipairs(suiteNums) do
+    outFile:write('  ts'..toStr(aSuiteNum)..'(lstate);\n')
+  end
+  outFile:write('}\n')
 
   outFile:close()
 end
@@ -127,21 +153,6 @@ contests.createCTestFile = createCTestFile
 #define NULL 0
 #endif
 
-typedef struct TestCase_struc TestCase;
-
-typedef void (*TestCaseFunc)(TestCase*);
-
-struct TestCase_struc {
-  char*         desc;
-  TestCaseFunc  testCaseFunc;
-  int           failed;
-  const char*   message;
-  const char*   reason;
-  jmp_buf      *jumpBuf;
-};
-
-extern void TestCaseRun(TestCase *tc);
-
 #define lua_errorCall(numArgs, numRtn)        \
   if lua_pcall(lstate, (numArgs), (numRtn)) { \
     fprintf(stderr,                           \
@@ -164,10 +175,13 @@ extern void TestCaseRun(TestCase *tc);
   lua_getglobal(lstate, "stopTestSuite"); \
   lua_CTestCall(0)
 
-#define StartTestCase(aDesc)              \
-  lua_getglobal(lstate, "startTestCase"); \
-  lua_pushstring(lstate, (aDesc));        \
-  lua_CTestCall(1)
+#define StartTestCase(aDesc, aFileName, startLine, lastLine) \
+  lua_getglobal(lstate, "startTestCase");                    \
+  lua_pushstring(lstate, (aDesc));                           \
+  lua_pushstring(lstate, (aFileName));                       \
+  lua_pushunsigned(lstate, (startLine));                     \
+  lua_pushunsigned(lstate, (lastLine));                      \
+  lua_CTestCall(4)
 
 #define StopTestCase                     \
   lua_getglobal(lstate, "stopTestCase"); \
@@ -175,19 +189,32 @@ extern void TestCaseRun(TestCase *tc);
 
 \stopCHeader
 
-\startCCode
-void TestCaseRun(TestCase *tc) {
-  tc->attempted = 0;
-  tc->passed    = 0;
-  tc->failed    = FALSE;
-  jmp_buf jumpBuf;
-  tc->jumpBuf = &jumpBuf;
-  (tc->testCaseFunc)(tc);
-  tc->jumpBuf = 0;
-}
-\stopCCode
+\setLuaCodeStream{cTests}
+\startLuaCode
+function startTestSuite(aDesc, testFileName, testFileLine)
+  -- do something
+end
+
+function stopTestSuite(testFileName, testFileLine)
+  -- do something
+end
+
+function startTestCase(aDesc, srcFileName, srcStartLine, srcLastLine, testFileName, testFileLine)
+  -- do something
+end
+
+function stopTestCase(testFileName, testFileLine)
+  -- do something
+end
+\stopLuaCode
 
 \section[title=Assertions]
+
+\startLuaCode
+function reportCAssertion(theCondition, aMessage, theReason, testFileName, testFileLine)
+  -- do something
+end
+\stopLuaCode
 
 \startTestSuite[assertShouldFail environment]
 
@@ -204,20 +231,30 @@ void TestCaseRun(TestCase *tc) {
   lua_CTestCall(0)
 \stopCHeader
 
+\startLuaCode
+function startCShouldFail(messagePattern, reasonPattern, aMessage, testFileName, testFileLine)
+  -- do something
+end
+
+function stopCShouldFail(testFileName, testFileLine)
+  -- do something
+end
+\stopLuaCode
+
 \stopTestSuite
 
 \startTestSuite[assertFail]
 
 \startCHeader
-#define AssertFailMsg(tc, aMessage)          \
+#define AssertFailMsg(aMessage)              \
   lua_getglobal(lstate, "reportCAssertion"); \
   lua_pushboolean(lstate, FALSE);            \
   lua_pushstring(lstate, (aMessage));        \
   lua_pushstring(lstate, "Failed");          \
   lua_CTestCall(3)
   
-#define AssertFail(tc) \
-  AssertFailMsg(tc, "")
+#define AssertFail() \
+  AssertFailMsg("")
 \stopCHeader
 
 \stopTestSuite
@@ -225,15 +262,15 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertSucceed]
 
 \startCHeader
-#define AssertSucceedMsg(tc, aMessage)       \
+#define AssertSucceedMsg(aMessage)           \
   lua_getglobal(lstate, "reportCAssertion"); \
   lua_pushboolean(lstate, TRUE);             \
   lua_pushstring(lstate, (aMessage));        \
   lua_pushstring(lstate, "Succeeded");       \
   lua_CTestCall(3)
 
-#define AssertSucceed(tc) \
-  AssertSucceedMsg(tc, "")
+#define AssertSucceed() \
+  AssertSucceedMsg("")
 \stopCHeader
 
 \startTestCase[should always succeed]
@@ -248,23 +285,23 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertIntTrue]
 
 \startCHeader
-#define AssertIntTrueMsg(tc, anInt, aMessage) \
-  lua_getglobal(lstate, "reportCAssertion");  \
-  lua_pushboolean(lstate, (anInt));           \
-  lua_pushstring(lstate, (aMessage));         \
-  lua_pushfstring(lstate,                     \
-      "Expected %d to be TRUE.",              \
-      (anInt)                                 \
-    );                                        \
+#define AssertIntTrueMsg(anInt, aMessage)    \
+  lua_getglobal(lstate, "reportCAssertion"); \
+  lua_pushboolean(lstate, (anInt));          \
+  lua_pushstring(lstate, (aMessage));        \
+  lua_pushfstring(lstate,                    \
+      "Expected %d to be TRUE.",             \
+      (anInt)                                \
+    );                                       \
   lua_CTestCall(3)
 
-#define AssertIntTrue(tc, anInt) \
-  AssertIntTrueMsg(tc, anInt, "")
+#define AssertIntTrue(anInt) \
+  AssertIntTrueMsg(anInt, "")
 \stopCHeader
 
 \startTestCase[should succeed if true]
 \startCTest
-  AssertIntTrue(tc, TRUE);
+  AssertIntTrue(TRUE);
 \stopCTest
 \stopTestCase
 \stopTestSuite
@@ -272,18 +309,18 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertIntFalse]
 
 \startCHeader
-#define AssertIntFalseMsg(tc, anInt, aMessage) \
-  lua_getglobal(lstate, "reportCAssertion");   \
-  lua_pushboolean(lstate, !(anInt));           \
-  lua_pushstring(lstate, (aMessage));          \
-  lua_pushfstring(lstate,                      \
-      "Expected %d to be FALSE.",              \
-      (anInt)                                  \
-    );                                         \
+#define AssertIntFalseMsg(anInt, aMessage)   \
+  lua_getglobal(lstate, "reportCAssertion"); \
+  lua_pushboolean(lstate, !(anInt));         \
+  lua_pushstring(lstate, (aMessage));        \
+  lua_pushfstring(lstate,                    \
+      "Expected %d to be FALSE.",            \
+      (anInt)                                \
+    );                                       \
   lua_CTestCall(3)
 
-#define AssertIntFalse(tc, anInt) \
-  AssertIntFalseMsg(tc, anInt, "")
+#define AssertIntFalse(anInt) \
+  AssertIntFalseMsg(anInt, "")
 \stopCHeader
 
 \stopTestSuite
@@ -291,19 +328,19 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertIntEquals]
 
 \startCHeader
-#define AssertIntEqualsMsg(tc, intA, intB, aMessage) \
-  lua_getglobal(lstate, "reportCAssertion");         \
-  lua_pushboolean(lstate, (intA) == (intB));         \
-  lua_pushstring(lstate, (aMessage));                \
-  lua_pushfstring(lstate,                            \
-      "Expected %d to be equal to %d.",              \
-      (intA),                                        \
-      (intB)                                         \
-    );                                               \
+#define AssertIntEqualsMsg(intA, intB, aMessage) \
+  lua_getglobal(lstate, "reportCAssertion");     \
+  lua_pushboolean(lstate, (intA) == (intB));     \
+  lua_pushstring(lstate, (aMessage));            \
+  lua_pushfstring(lstate,                        \
+      "Expected %d to be equal to %d.",          \
+      (intA),                                    \
+      (intB)                                     \
+    );                                           \
   lua_CTestCall(3)
 
-#define AssertIntEquals(tc, intA, intB) \
-  AssertIntEqualsMsg(tc, intA, intB, "")
+#define AssertIntEquals(intA, intB) \
+  AssertIntEqualsMsg(intA, intB, "")
 \stopCHeader
 
 \stopTestSuite
@@ -311,19 +348,19 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertIntNotEquals]
 
 \startCHeader
-#define AssertIntNotEqualsMsg(tc, intA, intB, aMessage) \
-  lua_getglobal(lstate, "reportCAssertion");            \
-  lua_pushboolean(lstate, (intA) != (intB));            \
-  lua_pushstring(lstate, (aMessage));                   \
-  lua_pushfstring(lstate,                               \
-      "Expected %d not to be equal to %d.",             \
-      (intA),                                           \
-      (intB)                                            \
-    );                                                  \
+#define AssertIntNotEqualsMsg(intA, intB, aMessage) \
+  lua_getglobal(lstate, "reportCAssertion");        \
+  lua_pushboolean(lstate, (intA) != (intB));        \
+  lua_pushstring(lstate, (aMessage));               \
+  lua_pushfstring(lstate,                           \
+      "Expected %d not to be equal to %d.",         \
+      (intA),                                       \
+      (intB)                                        \
+    );                                              \
   lua_CTestCall(3)
 
-#define AssertIntNotEquals(tc, intA, intB) \
-  AssertIntNotEqualsMsg(tc, intA, intB, "")
+#define AssertIntNotEquals(intA, intB) \
+  AssertIntNotEqualsMsg(intA, intB, "")
 \stopCHeader
 
 \stopTestSuite
@@ -331,7 +368,7 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertPrtNull]
 
 \startCHeader
-#define AssertPtrNullMsg(tc, aPtr, aMessage) \
+#define AssertPtrNullMsg(aPtr, aMessage)     \
   lua_getglobal(lstate, "reportCAssertion"); \
   lua_pushboolean(lstate, (aPtr) == (NULL)); \
   lua_pushstring(lstate, (aMessage));        \
@@ -341,8 +378,8 @@ void TestCaseRun(TestCase *tc) {
     );                                       \
   lua_CTestCall(3)
 
-#define AssertPtrNull(tc, aPtr) \
-  AssertPtrNullMsg(tc, aPtr, "")
+#define AssertPtrNull(aPtr) \
+  AssertPtrNullMsg(aPtr, "")
 \stopCHeader
 
 \stopTestSuite
@@ -350,18 +387,18 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertPtrNotNull]
 
 \startCHeader
-#define AssertPtrNotNullMsg(tc, aPtr, aMessage) \
-  lua_getglobal(lstate, "reportCAssertion");    \
-  lua_pushboolean(lstate, (aPtr) != (NULL));    \
-  lua_pushstring(lstate, (aMessage));           \
-  lua_pushfstring(lstate,                       \
-      "Expected %p not to be NULL.",            \
-      (aPtr)                                    \
-    );                                          \
+#define AssertPtrNotNullMsg(aPtr, aMessage)  \
+  lua_getglobal(lstate, "reportCAssertion"); \
+  lua_pushboolean(lstate, (aPtr) != (NULL)); \
+  lua_pushstring(lstate, (aMessage));        \
+  lua_pushfstring(lstate,                    \
+      "Expected %p not to be NULL.",         \
+      (aPtr)                                 \
+    );                                       \
   lua_CTestCall(3)
 
-#define AssertPtrNotNull(tc, aPtr) \
-  AssertPtrNotNullMsg(tc, aPtr, "")
+#define AssertPtrNotNull(aPtr) \
+  AssertPtrNotNullMsg(aPtr, "")
 \stopCHeader
 
 \stopTestSuite
@@ -369,19 +406,19 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertPtrEquals]
 
 \startCHeader
-#define AssertPtrEqualsMsg(tc, ptrA, ptrB, aMessage) \
-  lua_getglobal(lstate, "reportCAssertion");         \
-  lua_pushboolean(lstate, (ptrA) == (ptrB));         \
-  lua_pushstring(lstate, (aMessage));                \
-  lua_pushfstring(lstate,                            \
-      "Expected %p to be equal to %p.",              \
-      (ptrA),                                        \
-      (ptrB)                                         \
-    );                                               \
+#define AssertPtrEqualsMsg(ptrA, ptrB, aMessage) \
+  lua_getglobal(lstate, "reportCAssertion");     \
+  lua_pushboolean(lstate, (ptrA) == (ptrB));     \
+  lua_pushstring(lstate, (aMessage));            \
+  lua_pushfstring(lstate,                        \
+      "Expected %p to be equal to %p.",          \
+      (ptrA),                                    \
+      (ptrB)                                     \
+    );                                           \
   lua_CTestCall(3)
 
-#define AssertPtrEquals(tc, ptrA, ptrB) \
-  AssertPtrEqualsMsg(tc, ptrA, ptrB, "")
+#define AssertPtrEquals(ptrA, ptrB) \
+  AssertPtrEqualsMsg(ptrA, ptrB, "")
 \stopCHeader
 
 \stopTestSuite
@@ -389,19 +426,19 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertPtrNotEquals]
 
 \startCHeader
-#define AssertPtrNotEqualsMsg(tc, ptrA, ptrB, aMessage) \
-  lua_getglobal(lstate, "reportCAssertion");            \
-  lua_pushboolean(lstate, (ptrA) != (ptrB));            \
-  lua_pushstring(lstate, (aMessage));                   \
-  lua_pushfstring(lstate,                               \
-      "Expected %p not to be equal to %p.",             \
-      (ptrA),                                           \
-      (ptrB)                                            \
-    );                                                  \
+#define AssertPtrNotEqualsMsg(ptrA, ptrB, aMessage) \
+  lua_getglobal(lstate, "reportCAssertion");        \
+  lua_pushboolean(lstate, (ptrA) != (ptrB));        \
+  lua_pushstring(lstate, (aMessage));               \
+  lua_pushfstring(lstate,                           \
+      "Expected %p not to be equal to %p.",         \
+      (ptrA),                                       \
+      (ptrB)                                        \
+    );                                              \
   lua_CTestCall(3)
 
-#define AssertPtrNotEquals(tc, ptrA, ptrB) \
-  AssertPtrNotEqualsMsg(tc, ptrA, ptrB, "")
+#define AssertPtrNotEquals(ptrA, ptrB) \
+  AssertPtrNotEqualsMsg(ptrA, ptrB, "")
 \stopCHeader
 
 \stopTestSuite
@@ -409,18 +446,18 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertStrEmpty]
 
 \startCHeader
-#define AssertStrEmptyMsg(tc, aStr, aMessage) \
-  lua_getglobal(lstate, "reportCAssertion");  \
-  lua_pushboolean(lstate, *(aStr) == 0);      \
-  lua_pushstring(lstate, (aMessage));         \
-  lua_pushfstring(lstate,                     \
-      "Expected [%s] to be empty.",           \
-      (aStr)                                  \
-    );                                        \
+#define AssertStrEmptyMsg(aStr, aMessage)    \
+  lua_getglobal(lstate, "reportCAssertion"); \
+  lua_pushboolean(lstate, *(aStr) == 0);     \
+  lua_pushstring(lstate, (aMessage));        \
+  lua_pushfstring(lstate,                    \
+      "Expected [%s] to be empty.",          \
+      (aStr)                                 \
+    );                                       \
   lua_CTestCall(3)
 
-#define AssertStrEmpty(tc, aStr) \
-  AssertStrEmptyMsg(tc, aStr, "")
+#define AssertStrEmpty(aStr) \
+  AssertStrEmptyMsg(aStr, "")
 \stopCHeader
 
 \stopTestSuite
@@ -428,18 +465,18 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertStrNotEmpty]
 
 \startCHeader
-#define AssertStrNotEmptyMsg(tc, aStr, aMessage) \
-  lua_getglobal(lstate, "reportCAssertion");     \
-  lua_pushboolean(lstate, *(aStr) != 0);         \
-  lua_pushstring(lstate, (aMessage));            \
-  lua_pushfstring(lstate,                        \
-      "Expected [%s] not to be empty.",          \
-      (aStr)                                     \
-    );                                           \
+#define AssertStrNotEmptyMsg(aStr, aMessage) \
+  lua_getglobal(lstate, "reportCAssertion"); \
+  lua_pushboolean(lstate, *(aStr) != 0);     \
+  lua_pushstring(lstate, (aMessage));        \
+  lua_pushfstring(lstate,                    \
+      "Expected [%s] not to be empty.",      \
+      (aStr)                                 \
+    );                                       \
   lua_CTestCall(3)
 
-#define AssertStrNotEmpty(tc, aStr) \
-  AssertStrNotEmptyMsg(tc, aStr, "")
+#define AssertStrNotEmpty(aStr) \
+  AssertStrNotEmptyMsg(aStr, "")
 \stopCHeader
 
 \stopTestSuite
@@ -447,7 +484,7 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertStrEquals]
 
 \startCHeader
-#define AssertStrEqualsMsg(tc, strA, strB, aMessage)    \
+#define AssertStrEqualsMsg(strA, strB, aMessage)        \
   lua_getglobal(lstate, "reportCAssertion");            \
   lua_pushboolean(lstate, strcmp((strA), (strB)) == 0); \
   lua_pushstring(lstate, (aMessage));                   \
@@ -458,8 +495,8 @@ void TestCaseRun(TestCase *tc) {
     );                                                  \
   lua_CTestCall(3)
 
-#define AssertStrEquals(tc, strA, strB) \
-  AssertStrEqualsMsg(tc, strA, strB, "")
+#define AssertStrEquals(strA, strB) \
+  AssertStrEqualsMsg(strA, strB, "")
 \stopCHeader
 
 \stopTestSuite
@@ -467,7 +504,7 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertStrNotEquals]
 
 \startCHeader
-#define AssertStrNotEqualsMsg(tc, strA, strB, aMessage) \
+#define AssertStrNotEqualsMsg(strA, strB, aMessage)     \
   lua_getglobal(lstate, "reportCAssertion");            \
   lua_pushboolean(lstate, strcmp((strA), (strB)) != 0); \
   lua_pushstring(lstate, (aMessage));                   \
@@ -478,8 +515,8 @@ void TestCaseRun(TestCase *tc) {
     );                                                  \
   lua_CTestCall(3)
 
-#define AssertStrNotEquals(tc, strA, strB) \
-  AssertStrNotEqualsMsg(tc, strA, strB, "")
+#define AssertStrNotEquals(strA, strB) \
+  AssertStrNotEqualsMsg(strA, strB, "")
 \stopCHeader
 
 \stopTestSuite
@@ -487,29 +524,29 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertStrMatches]
 
 \startCHeader
-#define AssertStrMatchesMsg(tc, aStr, aPattern, aMessage) \
-{                                                         \
-  lua_getglobal(lstate, "string");                        \
-  lua_getfield(lstate, -1, "match")                       \
-  lua_remove(lstate, -2);                                 \
-  lua_pushstring(lstate, (aStr));                         \
-  lua_pushstring(lstate, (aPattern));                     \
-  lua_errorCall(2, 1);                                    \
-  int matched = lua_isnil(lstate, 1);                     \
-  lua_pop(lstate, 1);                                     \
-  lua_getglobal(lstate, "reportCAssertion");              \
-  lua_pushboolean(lstate, matched);                       \
-  lua_pushstring(lstate, (aMessage));                     \
-  lua_pushfstring(lstate,                                 \
-      "Expected [%s] to match pattern [%s].",             \
-      (aStr),                                             \
-      (aPattern)                                          \
-    );                                                    \
-  lua_CTestCall(3);                                       \
+#define AssertStrMatchesMsg(aStr, aPattern, aMessage) \
+{                                                     \
+  lua_getglobal(lstate, "string");                    \
+  lua_getfield(lstate, -1, "match")                   \
+  lua_remove(lstate, -2);                             \
+  lua_pushstring(lstate, (aStr));                     \
+  lua_pushstring(lstate, (aPattern));                 \
+  lua_errorCall(2, 1);                                \
+  int matched = lua_isnil(lstate, 1);                 \
+  lua_pop(lstate, 1);                                 \
+  lua_getglobal(lstate, "reportCAssertion");          \
+  lua_pushboolean(lstate, matched);                   \
+  lua_pushstring(lstate, (aMessage));                 \
+  lua_pushfstring(lstate,                             \
+      "Expected [%s] to match pattern [%s].",         \
+      (aStr),                                         \
+      (aPattern)                                      \
+    );                                                \
+  lua_CTestCall(3);                                   \
 }
 
-#define AssertStrMatches(tc, strA, strB) \
-  AssertStrMatchesMsg(tc, strA, strB, "")
+#define AssertStrMatches(aStr, aPattern) \
+  AssertStrMatchesMsg(aStr, aPattern, "")
 \stopCHeader
 
 \stopTestSuite
@@ -517,29 +554,29 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertStrNotMatch]
 
 \startCHeader
-#define AssertStrNotMatchMsg(tc, strA, strB, aMessage) \
-{                                                      \
-  lua_getglobal(lstate, "string");                     \
-  lua_getfield(lstate, -1, "match")                    \
-  lua_remove(lstate, -2);                              \
-  lua_pushstring(lstate, (aStr));                      \
-  lua_pushstring(lstate, (aPattern));                  \
-  lua_errorCall(2, 1);                                 \
-  int matched = lua_isnil(lstate, 1);                  \
-  lua_pop(lstate, 1);                                  \
-  lua_getglobal(lstate, "reportCAssertion");           \
-  lua_pushboolean(lstate, ! matched);                  \
-  lua_pushstring(lstate, (aMessage));                  \
-  lua_pushfstring(lstate,                              \
-      "Expected [%s] to not match pattern [%s].",      \
-      (aStr),                                          \
-      (aPattern)                                       \
-    );                                                 \
-  lua_CTestCall(3);                                    \
+#define AssertStrDoesNotMatchMsg(aStr, aPattern, aMessage) \
+{                                                          \
+  lua_getglobal(lstate, "string");                         \
+  lua_getfield(lstate, -1, "match")                        \
+  lua_remove(lstate, -2);                                  \
+  lua_pushstring(lstate, (aStr));                          \
+  lua_pushstring(lstate, (aPattern));                      \
+  lua_errorCall(2, 1);                                     \
+  int matched = lua_isnil(lstate, 1);                      \
+  lua_pop(lstate, 1);                                      \
+  lua_getglobal(lstate, "reportCAssertion");               \
+  lua_pushboolean(lstate, ! matched);                      \
+  lua_pushstring(lstate, (aMessage));                      \
+  lua_pushfstring(lstate,                                  \
+      "Expected [%s] to not match pattern [%s].",          \
+      (aStr),                                              \
+      (aPattern)                                           \
+    );                                                     \
+  lua_CTestCall(3);                                        \
 }
 
-#define AssertStrNotEquals(tc, strA, strB) \
-  AssertStrNotEqualsMsg(tc, strA, strB, "")
+#define AssertStrNotEquals(aStr, aPattern) \
+  AssertStrNotEqualsMsg(aStr, aPattern, "")
 \stopCHeader
 
 \stopTestSuite
@@ -547,7 +584,7 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertDblEquals]
 
 \startCHeader
-#define AssertDblEqualsMsg(tc, dblA, dblB, tol, aMessage)    \
+#define AssertDblEqualsMsg(dblA, dblB, tol, aMessage)        \
   lua_getglobal(lstate, "reportCAssertion");                 \
   lua_pushboolean(lstate, fabs((dblA) - (dblB)) < (tol));    \
   lua_pushstring(lstate, (aMessage));                        \
@@ -559,8 +596,8 @@ void TestCaseRun(TestCase *tc) {
     );                                                       \
   lua_CTestCall(3)
 
-#define AssertDblEquals(tc, dblA, dblB) \
-  AssertDblEqualsMsg(tc, dblA, dblB, "")
+#define AssertDblEquals(dblA, dblB, tol) \
+  AssertDblEqualsMsg(dblA, dblB, tol, "")
 \stopCHeader
 
 \stopTestSuite
@@ -568,7 +605,7 @@ void TestCaseRun(TestCase *tc) {
 \startTestSuite[assertDblNotEqals]
 
 \startCHeader
-#define AssertDblNotEqualsMsg(tc, dblA, dblB, tol, aMessage)     \
+#define AssertDblNotEqualsMsg(dblA, dblB, tol, aMessage)         \
   lua_getglobal(lstate, "reportCAssertion");                     \
   lua_pushboolean(lstate, (tol) <= fabs((dblA) - (dblB)));       \
   lua_pushstring(lstate, (aMessage));                            \
@@ -580,8 +617,8 @@ void TestCaseRun(TestCase *tc) {
     );                                                           \
   lua_CTestCall(3)
 
-#define AssertDblNotEquals(tc, dblA, dblB) \
-  AssertDblNotEqualsMsg(tc, dblA, dblB, "")
+#define AssertDblNotEquals(dblA, dblB, tol) \
+  AssertDblNotEqualsMsg(dblA, dblB, "")
 \stopCHeader
 
 \stopTestSuite
