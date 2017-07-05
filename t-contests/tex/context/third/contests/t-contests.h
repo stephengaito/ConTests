@@ -54,7 +54,7 @@
   lua_getglobal(lstate, "stopTestCase"); \
   lua_CTestCall(0)
 
-// from file: cTests.tex after line: 200
+// from file: cTests.tex after line: 300
 
 #define StartAssertShouldFail(messagePattern, reasonPattern, aMessage) \
   lua_getglobal(lstate, "startCShouldFail");                           \
@@ -67,7 +67,7 @@
   lua_getglobal(lstate, "stopCShouldFail"); \
   lua_CTestCall(0)
 
-// from file: cTests.tex after line: 200
+// from file: cTests.tex after line: 300
 
 #define AssertFailMsg(aMessage)              \
   lua_getglobal(lstate, "reportCAssertion"); \
@@ -79,7 +79,7 @@
 #define AssertFail() \
   AssertFailMsg("")
 
-// from file: cTests.tex after line: 250
+// from file: cTests.tex after line: 350
 
 #define AssertSucceedMsg(aMessage)           \
   lua_getglobal(lstate, "reportCAssertion"); \
@@ -91,7 +91,7 @@
 #define AssertSucceed() \
   AssertSucceedMsg("")
 
-// from file: cTests.tex after line: 250
+// from file: cTests.tex after line: 350
 
 #define AssertIntTrueMsg(anInt, aMessage)    \
   lua_getglobal(lstate, "reportCAssertion"); \
@@ -106,7 +106,7 @@
 #define AssertIntTrue(anInt) \
   AssertIntTrueMsg(anInt, "")
 
-// from file: cTests.tex after line: 300
+// from file: cTests.tex after line: 400
 
 #define AssertIntFalseMsg(anInt, aMessage)   \
   lua_getglobal(lstate, "reportCAssertion"); \
@@ -121,7 +121,7 @@
 #define AssertIntFalse(anInt) \
   AssertIntFalseMsg(anInt, "")
 
-// from file: cTests.tex after line: 300
+// from file: cTests.tex after line: 400
 
 #define AssertIntEqualsMsg(intA, intB, aMessage) \
   lua_getglobal(lstate, "reportCAssertion");     \
@@ -137,7 +137,7 @@
 #define AssertIntEquals(intA, intB) \
   AssertIntEqualsMsg(intA, intB, "")
 
-// from file: cTests.tex after line: 350
+// from file: cTests.tex after line: 450
 
 #define AssertIntNotEqualsMsg(intA, intB, aMessage) \
   lua_getglobal(lstate, "reportCAssertion");        \
@@ -153,7 +153,7 @@
 #define AssertIntNotEquals(intA, intB) \
   AssertIntNotEqualsMsg(intA, intB, "")
 
-// from file: cTests.tex after line: 350
+// from file: cTests.tex after line: 450
 
 #define AssertPtrNullMsg(aPtr, aMessage)     \
   lua_getglobal(lstate, "reportCAssertion"); \
@@ -168,7 +168,7 @@
 #define AssertPtrNull(aPtr) \
   AssertPtrNullMsg(aPtr, "")
 
-// from file: cTests.tex after line: 350
+// from file: cTests.tex after line: 450
 
 #define AssertPtrNotNullMsg(aPtr, aMessage)  \
   lua_getglobal(lstate, "reportCAssertion"); \
@@ -183,7 +183,7 @@
 #define AssertPtrNotNull(aPtr) \
   AssertPtrNotNullMsg(aPtr, "")
 
-// from file: cTests.tex after line: 400
+// from file: cTests.tex after line: 500
 
 #define AssertPtrEqualsMsg(ptrA, ptrB, aMessage) \
   lua_getglobal(lstate, "reportCAssertion");     \
@@ -199,7 +199,7 @@
 #define AssertPtrEquals(ptrA, ptrB) \
   AssertPtrEqualsMsg(ptrA, ptrB, "")
 
-// from file: cTests.tex after line: 400
+// from file: cTests.tex after line: 500
 
 #define AssertPtrNotEqualsMsg(ptrA, ptrB, aMessage) \
   lua_getglobal(lstate, "reportCAssertion");        \
@@ -215,7 +215,7 @@
 #define AssertPtrNotEquals(ptrA, ptrB) \
   AssertPtrNotEqualsMsg(ptrA, ptrB, "")
 
-// from file: cTests.tex after line: 400
+// from file: cTests.tex after line: 500
 
 #define AssertStrEmptyMsg(aStr, aMessage)    \
   lua_getglobal(lstate, "reportCAssertion"); \
@@ -230,7 +230,7 @@
 #define AssertStrEmpty(aStr) \
   AssertStrEmptyMsg(aStr, "")
 
-// from file: cTests.tex after line: 450
+// from file: cTests.tex after line: 550
 
 #define AssertStrNotEmptyMsg(aStr, aMessage) \
   lua_getglobal(lstate, "reportCAssertion"); \
@@ -245,7 +245,7 @@
 #define AssertStrNotEmpty(aStr) \
   AssertStrNotEmptyMsg(aStr, "")
 
-// from file: cTests.tex after line: 450
+// from file: cTests.tex after line: 550
 
 #define AssertStrEqualsMsg(strA, strB, aMessage)        \
   lua_getglobal(lstate, "reportCAssertion");            \
@@ -261,7 +261,7 @@
 #define AssertStrEquals(strA, strB) \
   AssertStrEqualsMsg(strA, strB, "")
 
-// from file: cTests.tex after line: 500
+// from file: cTests.tex after line: 600
 
 #define AssertStrNotEqualsMsg(strA, strB, aMessage)     \
   lua_getglobal(lstate, "reportCAssertion");            \
@@ -277,7 +277,7 @@
 #define AssertStrNotEquals(strA, strB) \
   AssertStrNotEqualsMsg(strA, strB, "")
 
-// from file: cTests.tex after line: 500
+// from file: cTests.tex after line: 600
 
 #define AssertStrMatchesMsg(aStr, aPattern, aMessage) \
 {                                                     \
@@ -303,7 +303,7 @@
 #define AssertStrMatches(aStr, aPattern) \
   AssertStrMatchesMsg(aStr, aPattern, "")
 
-// from file: cTests.tex after line: 550
+// from file: cTests.tex after line: 650
 
 #define AssertStrDoesNotMatchMsg(aStr, aPattern, aMessage) \
 {                                                          \
@@ -329,7 +329,7 @@
 #define AssertStrNotEquals(aStr, aPattern) \
   AssertStrNotEqualsMsg(aStr, aPattern, "")
 
-// from file: cTests.tex after line: 550
+// from file: cTests.tex after line: 650
 
 #define AssertDblEqualsMsg(dblA, dblB, tol, aMessage)        \
   lua_getglobal(lstate, "reportCAssertion");                 \
@@ -346,7 +346,7 @@
 #define AssertDblEquals(dblA, dblB, tol) \
   AssertDblEqualsMsg(dblA, dblB, tol, "")
 
-// from file: cTests.tex after line: 600
+// from file: cTests.tex after line: 700
 
 #define AssertDblNotEqualsMsg(dblA, dblB, tol, aMessage)         \
   lua_getglobal(lstate, "reportCAssertion");                     \

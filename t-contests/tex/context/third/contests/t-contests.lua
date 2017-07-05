@@ -249,7 +249,7 @@ function reportMkIVAssertion(theCondition, aMessage, theReason)
       and shouldFail.messagePattern ~= nil
       and type(shouldFail.messagePattern) == 'string'
       and 0 < #shouldFail.messagePattern
-      and aMessage:match(shouldFail.messagePattern) then
+      and innerMessage:match(shouldFail.messagePattern) then
       -- do nothing
     else
       theReason = sFmt('Expected inner message [%s] to match [%s]',
@@ -259,14 +259,15 @@ function reportMkIVAssertion(theCondition, aMessage, theReason)
       and shouldFail.reasonPattern ~= nil
       and type(shouldFail.reasonPattern) == 'string'
       and 0 < #shouldFail.reasonPattern
-      and theReason:match(shouldFail.reasonPattern) then
+      and innerReason:match(shouldFail.reasonPattern) then
       -- do nothing
     else
       theReason = sFmt('Expected inner failure reason [%s] to match [%s]',
         innerReason, shouldFail.reasonPattern)
     end
     if theReason ~= nil then
-      theReason = 'Expected inner assertion ['..aMessage..'] to fail'
+      theReason = sFmt('Expected inner assertion [%s] to fail',
+        innerMessage)
     end
     aMessage  = shouldFail.message
     curCase.shouldFail = nil
@@ -386,7 +387,7 @@ end
 
 contests.returnMockedResults = returnMockedResults
 
--- from file: mkivTests.tex after line: 800
+-- from file: mkivTests.tex after line: 850
 
 local function addMockResult(mockedMacro, returnValue)
   mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
