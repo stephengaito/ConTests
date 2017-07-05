@@ -1115,14 +1115,113 @@ end
 
 -- from file: cTests.tex after line: 0
 
-function contests.addCTest(bufferName)
+local function addCTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
-  local suite = tests.curSuite
-  local case  = suite.curCase
-  case.ansiC  = case.ansiC or {}
-  tInsert(case.ansiC, bufferContents)
+  local suite          = tests.curSuite
+  local case           = suite.curCase
+  case.cTests          = case.cTests or { }
+  local cTests         = case.cTests
+  tests.curCTestStream = tests.curCTestStream or 'default'
+  local cTestStream    = tests.curCTestStream
+  cTests[cTestStream]  = cTests[cTestStream] or { }
+  tInsert(cTests[cTestStream], bufferContents)
 end
 
-function contests.collectCTest()
+contests.addCTest = addCTest
 
+local function setCTestStream(aCodeStream)
+  if type(aCodeStream) ~= 'string'
+    or #aCodeStream < 1 then
+    aCodeStream = 'default'
+  end
+  tests.curCTestStream = aCodeStream
 end
+
+contests.setCTestStream = setCTestStream
+
+local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
+  if type(aFilePath) ~= 'string'
+    or #aFilePath < 1 then
+    return
+  end
+
+  local outFile = io.open(aFilePath, 'w')
+  if not outFile then
+    return
+  end
+
+  if type(aFileHeader) == 'string'
+    and 0 < #aFileHeader then
+    outFile:write(aFileHeader)
+    outFile:write('\n\n')
+  end
+
+  outFile:write('#include <stdio.h>\n')
+  outFile:write('#include <string.h>\n')
+  outFile:write('#include <lua.h>\n')
+  outFile:write('#include <lauxlib.h>\n')
+  outFile:write('#include <lualib.h>\n')
+  outFile:write('#include <t-contests.h>\n')
+  outFile:write('\n\n')
+  
+  if type(aCodeStream) ~= 'string'
+    or #aCodeStream < 1 then
+    aCodeStream = 'default'
+  end
+
+  tests.suites = tests.suites or { }
+
+  local suiteNums = { }
+  for i, aTestSuite in ipairs(tests.suites) do
+    aTestSuite.cases = aTestSuite.cases or { }
+    local suiteCaseBuf = { }
+    local caseNums     = { }
+    for j, aTestCase in ipairs(aTestSuite.cases) do
+      aTestCase.cTests = aTestCase.cTests or { }
+      local cTests     = aTestCase.cTests
+      if cTests[aCodeStream] then
+        tInsert(caseNums, j)
+        tInsert(suiteCaseBuf, 'void ts'..toStr(i)..'_tc'..toStr(j)..'(lua_State *lstate){\n\n')
+        tInsert(suiteCaseBuf, '  StartTestCase(\n')
+        tInsert(suiteCaseBuf, '    "'..aTestCase.desc..'",\n')
+        tInsert(suiteCaseBuf, '    "'..aTestCase.fileName..'",\n')
+        tInsert(suiteCaseBuf, '    '..toStr(aTestCase.startLine)..',\n')
+        tInsert(suiteCaseBuf, '    '..toStr(aTestCase.lastLine)..'\n')
+        tInsert(suiteCaseBuf, '  );\n\n  ')
+        local cTestsCode = tConcat(cTests[aCodeStream], '\n')
+        cTestsCode       = litProgs.splitString(cTestsCode)
+        tInsert(suiteCaseBuf, tConcat(cTestsCode, '\n\n  '))
+        tInsert(suiteCaseBuf, '\n\n  StopTestCase;\n\n')
+        tInsert(suiteCaseBuf, '}\n\n')
+      end
+    end
+    if 0 < #suiteCaseBuf then
+      tInsert(suiteNums, i)
+      outFile:write('//-------------------------------------------------------\n')
+      outFile:write(tConcat(suiteCaseBuf))
+      --outFile:write('\n\n')
+      outFile:write('void ts'..toStr(i)..'(lua_State *lstate)\n\n')
+      outFile:write('  StartTestSuite(\n')
+      outFile:write('    "'..aTestSuite.desc..'"\n')
+      outFile:write('  );\n\n')
+      for j, aCaseNum in ipairs(caseNums) do
+        outFile:write('  ts'..toStr(i)..'_tc'..toStr(aCaseNum)..'(lstate);\n\n')
+      end
+      outFile:write('  StopTestSuite;\n\n')
+      outFile:write('}\n\n')
+    end
+  end
+
+  outFile:write('//-------------------------------------------------------\n')
+  outFile:write('int main(){\n\n')
+  outFile:write('  lua_State *lstate = luaL_newstate();\n')
+  outFile:write('  luaL_openlibs(lstate);\n\n')
+  for i, aSuiteNum in ipairs(suiteNums) do
+    outFile:write('  ts'..toStr(aSuiteNum)..'(lstate);\n')
+  end
+  outFile:write('}\n')
+  
+  outFile:close()
+end
+
+contests.createCTestFile = createCTestFile

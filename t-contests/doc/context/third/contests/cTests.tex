@@ -14,23 +14,98 @@ We will eventually include a collection of C unit tests.
   \directlua{thirddata.contests.addCTest('_typing_')}
 }
 
+\def\setCTestStream#1{%
+  \directlua{
+    thirddata.contests.setCTestStream('#1')
+  }
+}
+
 \def\createCTestFile#1#2#3{%
-  \relax
+  \directlua{
+    thirddata.contests.createCTestFile('#1', '#2', '#3')
+  }
 }
 \stopMkIVCode
 
 \startLuaCode
-function contests.addCTest(bufferName)
+local function addCTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
-  local suite = tests.curSuite
-  local case  = suite.curCase
-  case.ansiC  = case.ansiC or {}
-  tInsert(case.ansiC, bufferContents)
+  local suite          = tests.curSuite
+  local case           = suite.curCase
+  case.cTests          = case.cTests or { }
+  local cTests         = case.cTests
+  tests.curCTestStream = tests.curCTestStream or 'default'
+  local cTestStream    = tests.curCTestStream
+  cTests[cTestStream]  = cTests[cTestStream] or { }
+  tInsert(cTests[cTestStream], bufferContents)
 end
 
-function contests.collectCTest()
+contests.addCTest = addCTest
 
+local function setCTestStream(aCodeStream)
+  if type(aCodeStream) ~= 'string'
+    or #aCodeStream < 1 then
+    aCodeStream = 'default'
+  end
+  tests.curCTestStream = aCodeStream
 end
+
+contests.setCTestStream = setCTestStream
+
+local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
+  if type(aFilePath) ~= 'string'
+    or #aFilePath < 1 then
+    return
+  end
+
+  local outFile = io.open(aFilePath, 'w')
+  if not outFile then
+    return
+  end
+
+  if type(aFileHeader) == 'string'
+    and 0 < #aFileHeader then
+    outFile:write(aFileHeader)
+    outFile:write('\n\n')
+  end
+
+  if type(aCodeStream) ~= 'string'
+    or #aCodeStream < 1 then
+    aCodeStream = 'default'
+  end
+
+  tests.suites = tests.suites or { }
+
+  for i, aTestSuite in ipairs(tests.suites) do
+    aTestSuite.cases = aTestSuite.cases or { }
+    local suiteCaseBuf = { }
+    for j, aTestCase in ipairs(aTestSuite.cases) do
+      aTestCase.cTests = aTestCase.cTests or { }
+      local cTests     = aTestCase.cTests
+      if cTests[aCodeStream] then
+        tInsert(suiteCaseBuf, '  StartTestCase(\n')
+        tInsert(suiteCaseBuf, '    "'..aTestCase.desc..'",\n')
+        tInsert(suiteCaseBuf, '    "'..aTestCase.fileName..'",\n')
+        tInsert(suiteCaseBuf, '    '..toStr(aTestCase.startLine)..',\n')
+        tInsert(suiteCaseBuf, '    '..toStr(aTestCase.lastLine)..'\n')
+        tInsert(suiteCaseBuf, '  );\n\n')
+        tInsert(suiteCaseBuf, tConcat(cTests[aCodeStream], '\n\n'))
+        tInsert(suiteCaseBuf, '  StopTestCase;\n\n')
+      end
+    end
+    if 0 < #suiteCaseBuf then
+      outFile:write('StartTestSuite(\n')
+      outFile:write('  "'..aTestSuite.desc..'"\n')
+      outFile:write(');\n\n')
+      outFile:write(tConcat(suiteCaseBuf))
+      outFile:write('StopTestSuite;\n\n')
+    end
+  end
+
+  outFile:close()
+end
+
+contests.createCTestFile = createCTestFile
 \stopLuaCode
 
 \startCHeader
@@ -79,7 +154,25 @@ extern void TestCaseRun(TestCase *tc);
   lua_pushstring(lstate, __FILE__);   \
   lua_pushunsigned(lstate, __LINE__); \
   lua_errorCall((numArgs)+2)
-  
+
+#define StartTestSuite(aDesc)              \
+  lua_getglobal(lstate, "startTestSuite"); \
+  lua_pushstring(lstate, (aDesc));         \
+  lua_CTestCall(1)
+
+#define StopTestSuite                     \
+  lua_getglobal(lstate, "stopTestSuite"); \
+  lua_CTestCall(0)
+
+#define StartTestCase(aDesc)              \
+  lua_getglobal(lstate, "startTestCase"); \
+  lua_pushstring(lstate, (aDesc));        \
+  lua_CTestCall(1)
+
+#define StopTestCase                     \
+  lua_getglobal(lstate, "stopTestCase"); \
+  lua_CTestCall(0)
+
 \stopCHeader
 
 \startCCode

@@ -383,8 +383,16 @@
   \directlua{thirddata.contests.addCTest('_typing_')}
 }
 
+\def\setCTestStream#1{%
+  \directlua{
+    thirddata.contests.setCTestStream('#1')
+  }
+}
+
 \def\createCTestFile#1#2#3{%
-  \relax
+  \directlua{
+    thirddata.contests.createCTestFile('#1', '#2', '#3')
+  }
 }
 
 % from file: conclusion.tex after line: 0
