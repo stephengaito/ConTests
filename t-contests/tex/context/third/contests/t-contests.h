@@ -1,39 +1,5 @@
-% A ConTeXt document [master document: contests.tex]
+// from file: cTests.tex after line: 0
 
-\chapter[title=C Unit Testing]
-
-We will eventually include a collection of C unit tests.
-
-\startMkIVCode
-\definetyping[CTest]
-\setuptyping[CTest][option=cpp]
-
-\let\oldStopCTest=\stopCTest
-\def\stopCTest{%
-  \oldStopCTest%
-  \directlua{thirddata.contests.addCTest('_typing_')}
-}
-
-\def\createCTestFile#1#2#3{%
-  \relax
-}
-\stopMkIVCode
-
-\startLuaCode
-function contests.addCTest(bufferName)
-  local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
-  local suite = tests.curSuite
-  local case  = suite.curCase
-  case.ansiC  = case.ansiC or {}
-  tInsert(case.ansiC, bufferContents)
-end
-
-function contests.collectCTest()
-
-end
-\stopLuaCode
-
-\startCHeader
 #ifndef FALSE
 #define FALSE 0
 #endif
@@ -67,45 +33,9 @@ extern void ReportCAssert(TestCase *tc,
                           const char* theReson,
                           const char* fileName,
                           int lineNum);
-\stopCHeader
 
-\startCCode
-void TestCaseRun(TestCase *tc) {
-  tc->attempted = 0;
-  tc->passed    = 0;
-  tc->failed    = FALSE;
-  jmp_buf jumpBuf;
-  tc->jumpBuf = &jumpBuf;
-  (tc->testCaseFunc)(tc);
-  tc->jumpBuf = 0;
-}
+// from file: cTests.tex after line: 100
 
-void ReportCAssert(TestCase *tc,
-                   int theCondition,
-                   const char* aMessage,
-                   const char* theReason,
-                   const char* fileName,
-                   int lineNum) {
-  tc->attempted++;
-  if ! theCondition {
-    tc->message  = aMessage;
-    tc->reason   = theReason;
-    tc->fileName = fileName;
-    tc->lineNum  = lineNum;
-    tc->failed   = TRUE;
-    // Now do a long jump back to the TestCaseFunc
-    //
-    if (tc->jumpBuf) longjump(*(tc->jumpBuf), 0);
-  }
-  tc->passed++;
-}
-\stopCCode
-
-\section[title=Assertions]
-
-\startTestSuite[assertFail]
-
-\startCHeader
 #define AssertFail(tc, aMessage)  \
   ReportCAssert(                  \
     (tc),                         \
@@ -114,13 +44,9 @@ void ReportCAssert(TestCase *tc,
     "Assert Failed",              \
     __FILE__,                     \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 100
 
-\startTestSuite[assertSucceed]
-
-\startCHeader
 #define AssertSucceed(tc, aMessage)  \
   ReportCAssert(                     \
     (tc),                            \
@@ -129,11 +55,9 @@ void ReportCAssert(TestCase *tc,
     "Assert Succeeded",              \
     __FILE__,                        \
     __LINE__)
-\stopCHeader
 
-\startTestSuite[assertIntTrue]
+// from file: cTests.tex after line: 100
 
-\startCHeader
 #define AssertIntTrue(tc, anInt, aMessage)  \
   ReportCAssert(                            \
     (tc),                                   \
@@ -144,13 +68,9 @@ void ReportCAssert(TestCase *tc,
     ),                                      \
     __FILE__,                               \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 150
 
-\startTestSuite[assertIntFalse]
-
-\startCHeader
 #define AssertIntFalse(tc, anInt, aMessage)  \
   ReportCAssert(                             \
     (tc),                                    \
@@ -161,13 +81,9 @@ void ReportCAssert(TestCase *tc,
     ),                                       \
     __FILE__,                                \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 150
 
-\startTestSuite[assertIntEquals]
-
-\startCHeader
 #define AssertIntEquals(tc, intA, intB, aMessage)  \
   ReportCAssert(                                   \
     (tc),                                          \
@@ -179,13 +95,9 @@ void ReportCAssert(TestCase *tc,
     ),                                             \
     __FILE__,                                      \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 150
 
-\startTestSuite[assertIntNotEquals]
-
-\startCHeader
 #define AssertIntNotEquals(tc, intA, intB, aMessage)  \
   ReportCAssert(                                      \
     (tc),                                             \
@@ -197,13 +109,9 @@ void ReportCAssert(TestCase *tc,
     ),                                                \
     __FILE__,                                         \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 200
 
-\startTestSuite[assertPrtNull]
-
-\startCHeader
 #define AssertPtrNull(tc, aPtr, aMessage)  \
   ReportCAssert(                           \
     (tc),                                  \
@@ -214,13 +122,9 @@ void ReportCAssert(TestCase *tc,
     ),                                     \
     __FILE__,                              \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 200
 
-\startTestSuite[assertPtrNotNull]
-
-\startCHeader
 #define AssertPtrNotNull(tc, aPtr, aMessage)  \
   ReportCAssert(                              \
     (tc),                                     \
@@ -231,13 +135,9 @@ void ReportCAssert(TestCase *tc,
     ),                                        \
     __FILE__,                                 \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 200
 
-\startTestSuite[assertPtrEquals]
-
-\startCHeader
 #define AssertPtrEquals(tc, ptrA, ptrB, aMessage)  \
   ReportCAssert(                                   \
     (tc),                                          \
@@ -249,13 +149,9 @@ void ReportCAssert(TestCase *tc,
     ),                                             \
     __FILE__,                                      \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 250
 
-\startTestSuite[assertPtrNotEquals]
-
-\startCHeader
 #define AssertPtrNotEquals(tc, ptrA, ptrB, aMessage)  \
   ReportCAssert(                                      \
     (tc),                                             \
@@ -267,13 +163,9 @@ void ReportCAssert(TestCase *tc,
     ),                                                \
     __FILE__,                                         \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 250
 
-\startTestSuite[assertStrEmpty]
-
-\startCHeader
 #define AssertStrEmpty(tc, aStr, aMessage)  \
   ReportCAssert(                            \
     (tc),                                   \
@@ -284,13 +176,9 @@ void ReportCAssert(TestCase *tc,
     ),                                      \
     __FILE__,                               \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 250
 
-\startTestSuite[assertStrNotEmpty]
-
-\startCHeader
 #define AssertStrNotEmpty(tc, aStr, aMessage)  \
   ReportCAssert(                               \
     (tc),                                      \
@@ -301,13 +189,9 @@ void ReportCAssert(TestCase *tc,
     ),                                         \
     __FILE__,                                  \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 300
 
-\startTestSuite[assertStrEquals]
-
-\startCHeader
 #define AssertStrEquals(tc, strA, strB, aMessage)  \
   ReportCAssert(                                   \
     (tc),                                          \
@@ -319,13 +203,9 @@ void ReportCAssert(TestCase *tc,
     ),                                             \
     __FILE__,                                      \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 300
 
-\startTestSuite[assertStrNotEquals]
-
-\startCHeader
 #define AssertStrNotEquals(tc, strA, strB, aMessage)  \
   ReportCAssert(                                      \
     (tc),                                             \
@@ -337,13 +217,9 @@ void ReportCAssert(TestCase *tc,
     ),                                                \
     __FILE__,                                         \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 300
 
-\startTestSuite[assertDblEquals]
-
-\startCHeader
 #define AssertDblEquals(tc, dblA, dblB, tol, aMessage)        \
   ReportCAssert(                                              \
     (tc),                                                     \
@@ -356,13 +232,9 @@ void ReportCAssert(TestCase *tc,
     ),                                                        \
     __FILE__,                                                 \
     __LINE__)
-\stopCHeader
 
-\stopTestSuite
+// from file: cTests.tex after line: 350
 
-\startTestSuite[assertDblNotEqals]
-
-\startCHeader
 #define AssertDblNotEquals(tc, dblA, dblB, tol, aMessage)         \
   ReportCAssert(                                                  \
     (tc),                                                         \
@@ -375,6 +247,3 @@ void ReportCAssert(TestCase *tc,
     ),                                                            \
     __FILE__,                                                     \
     __LINE__)
-\stopCHeader
-
-\stopTestSuite

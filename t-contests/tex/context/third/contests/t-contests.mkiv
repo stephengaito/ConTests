@@ -374,8 +374,6 @@
 
 % from file: cTests.tex after line: 0
 
-\usemodule[high-cpp]
-
 \definetyping[CTest]
 \setuptyping[CTest][option=cpp]
 
@@ -385,7 +383,7 @@
   \directlua{thirddata.contests.addCTest('_typing_')}
 }
 
-\def\createCTestFile[#1]{%
+\def\createCTestFile#1#2#3{%
   \relax
 }
 
