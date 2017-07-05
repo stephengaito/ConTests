@@ -36,191 +36,233 @@ extern void ReportCAssert(TestCase *tc,
 
 // from file: cTests.tex after line: 100
 
-#define AssertFail(tc, aMessage)  \
-  ReportCAssert(                  \
-    (tc),                         \
-    FALSE,                        \
-    (aMessage),                   \
-    "Assert Failed",              \
-    __FILE__,                     \
+#define AssertFailMsg(tc, aMessage) \
+  ReportCAssert(                    \
+    (tc),                           \
+    FALSE,                          \
+    (aMessage),                     \
+    "Assert Failed",                \
+    __FILE__,                       \
     __LINE__)
+
+#define AssertFail(tc) \
+  AssertFailMsg(tc, "")
 
 // from file: cTests.tex after line: 100
 
-#define AssertSucceed(tc, aMessage)  \
-  ReportCAssert(                     \
-    (tc),                            \
-    TRUE,                            \
-    (aMessage),                      \
-    "Assert Succeeded",              \
-    __FILE__,                        \
+#define AssertSucceedMsg(tc, aMessage) \
+  ReportCAssert(                       \
+    (tc),                              \
+    TRUE,                              \
+    (aMessage),                        \
+    "Assert Succeeded",                \
+    __FILE__,                          \
     __LINE__)
+
+#define AssertSucceed(tc) \
+  AssertSucceedMsg(tc, "")
 
 // from file: cTests.tex after line: 100
 
-#define AssertIntTrue(tc, anInt, aMessage)  \
-  ReportCAssert(                            \
-    (tc),                                   \
-    (anInt),                                \
-    (aMessage),                             \
-    sprintf("Expected %d to be TRUE.",      \
-      (anInt)                               \
-    ),                                      \
-    __FILE__,                               \
-    __LINE__)
-
-// from file: cTests.tex after line: 150
-
-#define AssertIntFalse(tc, anInt, aMessage)  \
-  ReportCAssert(                             \
-    (tc),                                    \
-    !(anInt),                                \
-    (aMessage),                              \
-    sprintf("Expected %d to be FALSE.",      \
-      (anInt)                                \
-    ),                                       \
-    __FILE__,                                \
-    __LINE__)
-
-// from file: cTests.tex after line: 150
-
-#define AssertIntEquals(tc, intA, intB, aMessage)  \
-  ReportCAssert(                                   \
-    (tc),                                          \
-    (intA) == (intB),                              \
-    (aMessage),                                    \
-    sprintf("Expected %d to be equal to %d.",      \
-      (intA),                                      \
-      (intB)                                       \
-    ),                                             \
-    __FILE__,                                      \
-    __LINE__)
-
-// from file: cTests.tex after line: 150
-
-#define AssertIntNotEquals(tc, intA, intB, aMessage)  \
-  ReportCAssert(                                      \
-    (tc),                                             \
-    (intA) != (intB),                                 \
-    (aMessage),                                       \
-    sprintf("Expected %d not to be equal to %d.",     \
-      (intA),                                         \
-      (intB)                                          \
-    ),                                                \
-    __FILE__,                                         \
-    __LINE__)
-
-// from file: cTests.tex after line: 200
-
-#define AssertPtrNull(tc, aPtr, aMessage)  \
-  ReportCAssert(                           \
-    (tc),                                  \
-    (aPtr) == (NULL),                      \
-    (aMessage),                            \
-    sprintf("Expected %p to be NULL.",     \
-      (aPtr),                              \
-    ),                                     \
-    __FILE__,                              \
-    __LINE__)
-
-// from file: cTests.tex after line: 200
-
-#define AssertPtrNotNull(tc, aPtr, aMessage)  \
+#define AssertIntTrueMsg(tc, anInt, aMessage) \
   ReportCAssert(                              \
     (tc),                                     \
-    (aPtr) != (NULL),                         \
+    (anInt),                                  \
     (aMessage),                               \
-    sprintf("Expected %p not to be NULL.",    \
-      (aPtr),                                 \
+    sprintf("Expected %d to be TRUE.",        \
+      (anInt)                                 \
     ),                                        \
     __FILE__,                                 \
     __LINE__)
 
-// from file: cTests.tex after line: 200
+#define AssertIntTrue(tc, anInt) \
+  AssertIntTrueMsg(tc, anInt, "")
 
-#define AssertPtrEquals(tc, ptrA, ptrB, aMessage)  \
-  ReportCAssert(                                   \
-    (tc),                                          \
-    (ptrA) == (ptrB),                              \
-    (aMessage),                                    \
-    sprintf("Expected %p to be equal to %p.",      \
-      (ptrA),                                      \
-      (ptrB)                                       \
-    ),                                             \
-    __FILE__,                                      \
-    __LINE__)
+// from file: cTests.tex after line: 150
 
-// from file: cTests.tex after line: 250
-
-#define AssertPtrNotEquals(tc, ptrA, ptrB, aMessage)  \
-  ReportCAssert(                                      \
-    (tc),                                             \
-    (ptrA) != (ptrB),                                 \
-    (aMessage),                                       \
-    sprintf("Expected %p not to be equal to %p.",     \
-      (ptrA),                                         \
-      (ptrB)                                          \
-    ),                                                \
-    __FILE__,                                         \
-    __LINE__)
-
-// from file: cTests.tex after line: 250
-
-#define AssertStrEmpty(tc, aStr, aMessage)  \
-  ReportCAssert(                            \
-    (tc),                                   \
-    *(aStr) == 0,                           \
-    (aMessage),                             \
-    sprintf("Expected [%s] to be empty.",   \
-      (aStr),                               \
-    ),                                      \
-    __FILE__,                               \
-    __LINE__)
-
-// from file: cTests.tex after line: 250
-
-#define AssertStrNotEmpty(tc, aStr, aMessage)  \
+#define AssertIntFalseMsg(tc, anInt, aMessage) \
   ReportCAssert(                               \
     (tc),                                      \
-    *(aStr) != 0,                              \
+    !(anInt),                                  \
     (aMessage),                                \
-    sprintf("Expected [%s] not to be empty.",  \
-      (aStr),                                  \
+    sprintf("Expected %d to be FALSE.",        \
+      (anInt)                                  \
     ),                                         \
     __FILE__,                                  \
     __LINE__)
 
-// from file: cTests.tex after line: 300
+#define AssertIntFalse(tc, anInt) \
+  AssertIntFalseMsg(tc, anInt, "")
 
-#define AssertStrEquals(tc, strA, strB, aMessage)  \
-  ReportCAssert(                                   \
-    (tc),                                          \
-    strcmp((strA), (strB)) == 0,                   \
-    (aMessage),                                    \
-    sprintf("Expected [%s] to be equal to [%s].",  \
-      (strA),                                      \
-      (strB)                                       \
-    ),                                             \
-    __FILE__,                                      \
+// from file: cTests.tex after line: 150
+
+#define AssertIntEqualsMsg(tc, intA, intB, aMessage) \
+  ReportCAssert(                                     \
+    (tc),                                            \
+    (intA) == (intB),                                \
+    (aMessage),                                      \
+    sprintf("Expected %d to be equal to %d.",        \
+      (intA),                                        \
+      (intB)                                         \
+    ),                                               \
+    __FILE__,                                        \
     __LINE__)
 
-// from file: cTests.tex after line: 300
+#define AssertIntEquals(tc, intA, intB) \
+  AssertIntEqualsMsg(tc, intA, intB, "")
 
-#define AssertStrNotEquals(tc, strA, strB, aMessage)  \
-  ReportCAssert(                                      \
-    (tc),                                             \
-    strcmp((strA), (strB)) != 0,                      \
-    (aMessage),                                       \
-    sprintf("Expected [%s] not to be equal to [%s].", \
-      (strA),                                         \
-      (strB)                                          \
-    ),                                                \
-    __FILE__,                                         \
+// from file: cTests.tex after line: 200
+
+#define AssertIntNotEqualsMsg(tc, intA, intB, aMessage) \
+  ReportCAssert(                                        \
+    (tc),                                               \
+    (intA) != (intB),                                   \
+    (aMessage),                                         \
+    sprintf("Expected %d not to be equal to %d.",       \
+      (intA),                                           \
+      (intB)                                            \
+    ),                                                  \
+    __FILE__,                                           \
     __LINE__)
 
+#define AssertIntNotEquals(tc, intA, intB) \
+  AssertIntNotEqualsMsg(tc, intA, intB, "")
+
+// from file: cTests.tex after line: 200
+
+#define AssertPtrNullMsg(tc, aPtr, aMessage) \
+  ReportCAssert(                             \
+    (tc),                                    \
+    (aPtr) == (NULL),                        \
+    (aMessage),                              \
+    sprintf("Expected %p to be NULL.",       \
+      (aPtr),                                \
+    ),                                       \
+    __FILE__,                                \
+    __LINE__)
+
+#define AssertPtrNull(tc, aPtr) \
+  AssertPtrNullMsg(tc, aPtr, "")
+
+// from file: cTests.tex after line: 200
+
+#define AssertPtrNotNullMsg(tc, aPtr, aMessage) \
+  ReportCAssert(                                \
+    (tc),                                       \
+    (aPtr) != (NULL),                           \
+    (aMessage),                                 \
+    sprintf("Expected %p not to be NULL.",      \
+      (aPtr),                                   \
+    ),                                          \
+    __FILE__,                                   \
+    __LINE__)
+
+#define AssertPtrNotNull(tc, aPtr) \
+  AssertPtrNotNullMsg(tc, aPtr, "")
+
+// from file: cTests.tex after line: 250
+
+#define AssertPtrEqualsMsg(tc, ptrA, ptrB, aMessage) \
+  ReportCAssert(                                     \
+    (tc),                                            \
+    (ptrA) == (ptrB),                                \
+    (aMessage),                                      \
+    sprintf("Expected %p to be equal to %p.",        \
+      (ptrA),                                        \
+      (ptrB)                                         \
+    ),                                               \
+    __FILE__,                                        \
+    __LINE__)
+
+#define AssertPtrEquals(tc, ptrA, ptrB) \
+  AssertPtrEqualsMsg(tc, ptrA, ptrB, "")
+
+// from file: cTests.tex after line: 250
+
+#define AssertPtrNotEqualsMsg(tc, ptrA, ptrB, aMessage) \
+  ReportCAssert(                                        \
+    (tc),                                               \
+    (ptrA) != (ptrB),                                   \
+    (aMessage),                                         \
+    sprintf("Expected %p not to be equal to %p.",       \
+      (ptrA),                                           \
+      (ptrB)                                            \
+    ),                                                  \
+    __FILE__,                                           \
+    __LINE__)
+
+#define AssertPtrNotEquals(tc, ptrA, ptrB) \
+  AssertPtrNotEqualsMsg(tc, ptrA, ptrB, "")
+
 // from file: cTests.tex after line: 300
 
-#define AssertDblEquals(tc, dblA, dblB, tol, aMessage)        \
+#define AssertStrEmptyMsg(tc, aStr, aMessage) \
+  ReportCAssert(                              \
+    (tc),                                     \
+    *(aStr) == 0,                             \
+    (aMessage),                               \
+    sprintf("Expected [%s] to be empty.",     \
+      (aStr),                                 \
+    ),                                        \
+    __FILE__,                                 \
+    __LINE__)
+
+#define AssertStrEmpty(tc, aStr) \
+  AssertStrEmptyMsg(tc, aStr, "")
+
+// from file: cTests.tex after line: 300
+
+#define AssertStrNotEmptyMsg(tc, aStr, aMessage) \
+  ReportCAssert(                                 \
+    (tc),                                        \
+    *(aStr) != 0,                                \
+    (aMessage),                                  \
+    sprintf("Expected [%s] not to be empty.",    \
+      (aStr),                                    \
+    ),                                           \
+    __FILE__,                                    \
+    __LINE__)
+
+#define AssertStrNotEmpty(tc, aStr) \
+  AssertStrNotEmptyMsg(tc, aStr, "")
+
+// from file: cTests.tex after line: 300
+
+#define AssertStrEqualsMsg(tc, strA, strB, aMessage) \
+  ReportCAssert(                                     \
+    (tc),                                            \
+    strcmp((strA), (strB)) == 0,                     \
+    (aMessage),                                      \
+    sprintf("Expected [%s] to be equal to [%s].",    \
+      (strA),                                        \
+      (strB)                                         \
+    ),                                               \
+    __FILE__,                                        \
+    __LINE__)
+
+#define AssertStrEquals(tc, strA, strB) \
+  AssertStrEqualsMsg(tc, strA, strB, "")
+
+// from file: cTests.tex after line: 350
+
+#define AssertStrNotEqualsMsg(tc, strA, strB, aMessage) \
+  ReportCAssert(                                        \
+    (tc),                                               \
+    strcmp((strA), (strB)) != 0,                        \
+    (aMessage),                                         \
+    sprintf("Expected [%s] not to be equal to [%s].",   \
+      (strA),                                           \
+      (strB)                                            \
+    ),                                                  \
+    __FILE__,                                           \
+    __LINE__)
+
+#define AssertStrNotEquals(tc, strA, strB) \
+  AssertStrNotEqualsMsg(tc, strA, strB, "")
+
+// from file: cTests.tex after line: 350
+
+#define AssertDblEqualsMsg(tc, dblA, dblB, tol, aMessage)     \
   ReportCAssert(                                              \
     (tc),                                                     \
     fabs((dblA) - (dblB)) < (tol),                            \
@@ -233,9 +275,12 @@ extern void ReportCAssert(TestCase *tc,
     __FILE__,                                                 \
     __LINE__)
 
-// from file: cTests.tex after line: 350
+#define AssertDblEquals(tc, dblA, dblB) \
+  AssertDblEqualsMsg(tc, dblA, dblB, "")
 
-#define AssertDblNotEquals(tc, dblA, dblB, tol, aMessage)         \
+// from file: cTests.tex after line: 400
+
+#define AssertDblNotEqualsMsg(tc, dblA, dblB, tol, aMessage)      \
   ReportCAssert(                                                  \
     (tc),                                                         \
     (tol) <= fabs((dblA) - (dblB)),                               \
@@ -247,3 +292,6 @@ extern void ReportCAssert(TestCase *tc,
     ),                                                            \
     __FILE__,                                                     \
     __LINE__)
+
+#define AssertDblNotEquals(tc, dblA, dblB) \
+  AssertDblNotEqualsMsg(tc, dblA, dblB, "")

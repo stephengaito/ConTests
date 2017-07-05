@@ -106,14 +106,17 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertFail]
 
 \startCHeader
-#define AssertFail(tc, aMessage)  \
-  ReportCAssert(                  \
-    (tc),                         \
-    FALSE,                        \
-    (aMessage),                   \
-    "Assert Failed",              \
-    __FILE__,                     \
+#define AssertFailMsg(tc, aMessage) \
+  ReportCAssert(                    \
+    (tc),                           \
+    FALSE,                          \
+    (aMessage),                     \
+    "Assert Failed",                \
+    __FILE__,                       \
     __LINE__)
+
+#define AssertFail(tc) \
+  AssertFailMsg(tc, "")
 \stopCHeader
 
 \stopTestSuite
@@ -121,29 +124,35 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertSucceed]
 
 \startCHeader
-#define AssertSucceed(tc, aMessage)  \
-  ReportCAssert(                     \
-    (tc),                            \
-    TRUE,                            \
-    (aMessage),                      \
-    "Assert Succeeded",              \
-    __FILE__,                        \
+#define AssertSucceedMsg(tc, aMessage) \
+  ReportCAssert(                       \
+    (tc),                              \
+    TRUE,                              \
+    (aMessage),                        \
+    "Assert Succeeded",                \
+    __FILE__,                          \
     __LINE__)
+
+#define AssertSucceed(tc) \
+  AssertSucceedMsg(tc, "")
 \stopCHeader
 
 \startTestSuite[assertIntTrue]
 
 \startCHeader
-#define AssertIntTrue(tc, anInt, aMessage)  \
-  ReportCAssert(                            \
-    (tc),                                   \
-    (anInt),                                \
-    (aMessage),                             \
-    sprintf("Expected %d to be TRUE.",      \
-      (anInt)                               \
-    ),                                      \
-    __FILE__,                               \
+#define AssertIntTrueMsg(tc, anInt, aMessage) \
+  ReportCAssert(                              \
+    (tc),                                     \
+    (anInt),                                  \
+    (aMessage),                               \
+    sprintf("Expected %d to be TRUE.",        \
+      (anInt)                                 \
+    ),                                        \
+    __FILE__,                                 \
     __LINE__)
+
+#define AssertIntTrue(tc, anInt) \
+  AssertIntTrueMsg(tc, anInt, "")
 \stopCHeader
 
 \stopTestSuite
@@ -151,16 +160,19 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertIntFalse]
 
 \startCHeader
-#define AssertIntFalse(tc, anInt, aMessage)  \
-  ReportCAssert(                             \
-    (tc),                                    \
-    !(anInt),                                \
-    (aMessage),                              \
-    sprintf("Expected %d to be FALSE.",      \
-      (anInt)                                \
-    ),                                       \
-    __FILE__,                                \
+#define AssertIntFalseMsg(tc, anInt, aMessage) \
+  ReportCAssert(                               \
+    (tc),                                      \
+    !(anInt),                                  \
+    (aMessage),                                \
+    sprintf("Expected %d to be FALSE.",        \
+      (anInt)                                  \
+    ),                                         \
+    __FILE__,                                  \
     __LINE__)
+
+#define AssertIntFalse(tc, anInt) \
+  AssertIntFalseMsg(tc, anInt, "")
 \stopCHeader
 
 \stopTestSuite
@@ -168,17 +180,20 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertIntEquals]
 
 \startCHeader
-#define AssertIntEquals(tc, intA, intB, aMessage)  \
-  ReportCAssert(                                   \
-    (tc),                                          \
-    (intA) == (intB),                              \
-    (aMessage),                                    \
-    sprintf("Expected %d to be equal to %d.",      \
-      (intA),                                      \
-      (intB)                                       \
-    ),                                             \
-    __FILE__,                                      \
+#define AssertIntEqualsMsg(tc, intA, intB, aMessage) \
+  ReportCAssert(                                     \
+    (tc),                                            \
+    (intA) == (intB),                                \
+    (aMessage),                                      \
+    sprintf("Expected %d to be equal to %d.",        \
+      (intA),                                        \
+      (intB)                                         \
+    ),                                               \
+    __FILE__,                                        \
     __LINE__)
+
+#define AssertIntEquals(tc, intA, intB) \
+  AssertIntEqualsMsg(tc, intA, intB, "")
 \stopCHeader
 
 \stopTestSuite
@@ -186,17 +201,20 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertIntNotEquals]
 
 \startCHeader
-#define AssertIntNotEquals(tc, intA, intB, aMessage)  \
-  ReportCAssert(                                      \
-    (tc),                                             \
-    (intA) != (intB),                                 \
-    (aMessage),                                       \
-    sprintf("Expected %d not to be equal to %d.",     \
-      (intA),                                         \
-      (intB)                                          \
-    ),                                                \
-    __FILE__,                                         \
+#define AssertIntNotEqualsMsg(tc, intA, intB, aMessage) \
+  ReportCAssert(                                        \
+    (tc),                                               \
+    (intA) != (intB),                                   \
+    (aMessage),                                         \
+    sprintf("Expected %d not to be equal to %d.",       \
+      (intA),                                           \
+      (intB)                                            \
+    ),                                                  \
+    __FILE__,                                           \
     __LINE__)
+
+#define AssertIntNotEquals(tc, intA, intB) \
+  AssertIntNotEqualsMsg(tc, intA, intB, "")
 \stopCHeader
 
 \stopTestSuite
@@ -204,16 +222,19 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertPrtNull]
 
 \startCHeader
-#define AssertPtrNull(tc, aPtr, aMessage)  \
-  ReportCAssert(                           \
-    (tc),                                  \
-    (aPtr) == (NULL),                      \
-    (aMessage),                            \
-    sprintf("Expected %p to be NULL.",     \
-      (aPtr),                              \
-    ),                                     \
-    __FILE__,                              \
+#define AssertPtrNullMsg(tc, aPtr, aMessage) \
+  ReportCAssert(                             \
+    (tc),                                    \
+    (aPtr) == (NULL),                        \
+    (aMessage),                              \
+    sprintf("Expected %p to be NULL.",       \
+      (aPtr),                                \
+    ),                                       \
+    __FILE__,                                \
     __LINE__)
+
+#define AssertPtrNull(tc, aPtr) \
+  AssertPtrNullMsg(tc, aPtr, "")
 \stopCHeader
 
 \stopTestSuite
@@ -221,16 +242,19 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertPtrNotNull]
 
 \startCHeader
-#define AssertPtrNotNull(tc, aPtr, aMessage)  \
-  ReportCAssert(                              \
-    (tc),                                     \
-    (aPtr) != (NULL),                         \
-    (aMessage),                               \
-    sprintf("Expected %p not to be NULL.",    \
-      (aPtr),                                 \
-    ),                                        \
-    __FILE__,                                 \
+#define AssertPtrNotNullMsg(tc, aPtr, aMessage) \
+  ReportCAssert(                                \
+    (tc),                                       \
+    (aPtr) != (NULL),                           \
+    (aMessage),                                 \
+    sprintf("Expected %p not to be NULL.",      \
+      (aPtr),                                   \
+    ),                                          \
+    __FILE__,                                   \
     __LINE__)
+
+#define AssertPtrNotNull(tc, aPtr) \
+  AssertPtrNotNullMsg(tc, aPtr, "")
 \stopCHeader
 
 \stopTestSuite
@@ -238,17 +262,20 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertPtrEquals]
 
 \startCHeader
-#define AssertPtrEquals(tc, ptrA, ptrB, aMessage)  \
-  ReportCAssert(                                   \
-    (tc),                                          \
-    (ptrA) == (ptrB),                              \
-    (aMessage),                                    \
-    sprintf("Expected %p to be equal to %p.",      \
-      (ptrA),                                      \
-      (ptrB)                                       \
-    ),                                             \
-    __FILE__,                                      \
+#define AssertPtrEqualsMsg(tc, ptrA, ptrB, aMessage) \
+  ReportCAssert(                                     \
+    (tc),                                            \
+    (ptrA) == (ptrB),                                \
+    (aMessage),                                      \
+    sprintf("Expected %p to be equal to %p.",        \
+      (ptrA),                                        \
+      (ptrB)                                         \
+    ),                                               \
+    __FILE__,                                        \
     __LINE__)
+
+#define AssertPtrEquals(tc, ptrA, ptrB) \
+  AssertPtrEqualsMsg(tc, ptrA, ptrB, "")
 \stopCHeader
 
 \stopTestSuite
@@ -256,17 +283,20 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertPtrNotEquals]
 
 \startCHeader
-#define AssertPtrNotEquals(tc, ptrA, ptrB, aMessage)  \
-  ReportCAssert(                                      \
-    (tc),                                             \
-    (ptrA) != (ptrB),                                 \
-    (aMessage),                                       \
-    sprintf("Expected %p not to be equal to %p.",     \
-      (ptrA),                                         \
-      (ptrB)                                          \
-    ),                                                \
-    __FILE__,                                         \
+#define AssertPtrNotEqualsMsg(tc, ptrA, ptrB, aMessage) \
+  ReportCAssert(                                        \
+    (tc),                                               \
+    (ptrA) != (ptrB),                                   \
+    (aMessage),                                         \
+    sprintf("Expected %p not to be equal to %p.",       \
+      (ptrA),                                           \
+      (ptrB)                                            \
+    ),                                                  \
+    __FILE__,                                           \
     __LINE__)
+
+#define AssertPtrNotEquals(tc, ptrA, ptrB) \
+  AssertPtrNotEqualsMsg(tc, ptrA, ptrB, "")
 \stopCHeader
 
 \stopTestSuite
@@ -274,16 +304,19 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertStrEmpty]
 
 \startCHeader
-#define AssertStrEmpty(tc, aStr, aMessage)  \
-  ReportCAssert(                            \
-    (tc),                                   \
-    *(aStr) == 0,                           \
-    (aMessage),                             \
-    sprintf("Expected [%s] to be empty.",   \
-      (aStr),                               \
-    ),                                      \
-    __FILE__,                               \
+#define AssertStrEmptyMsg(tc, aStr, aMessage) \
+  ReportCAssert(                              \
+    (tc),                                     \
+    *(aStr) == 0,                             \
+    (aMessage),                               \
+    sprintf("Expected [%s] to be empty.",     \
+      (aStr),                                 \
+    ),                                        \
+    __FILE__,                                 \
     __LINE__)
+
+#define AssertStrEmpty(tc, aStr) \
+  AssertStrEmptyMsg(tc, aStr, "")
 \stopCHeader
 
 \stopTestSuite
@@ -291,16 +324,19 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertStrNotEmpty]
 
 \startCHeader
-#define AssertStrNotEmpty(tc, aStr, aMessage)  \
-  ReportCAssert(                               \
-    (tc),                                      \
-    *(aStr) != 0,                              \
-    (aMessage),                                \
-    sprintf("Expected [%s] not to be empty.",  \
-      (aStr),                                  \
-    ),                                         \
-    __FILE__,                                  \
+#define AssertStrNotEmptyMsg(tc, aStr, aMessage) \
+  ReportCAssert(                                 \
+    (tc),                                        \
+    *(aStr) != 0,                                \
+    (aMessage),                                  \
+    sprintf("Expected [%s] not to be empty.",    \
+      (aStr),                                    \
+    ),                                           \
+    __FILE__,                                    \
     __LINE__)
+
+#define AssertStrNotEmpty(tc, aStr) \
+  AssertStrNotEmptyMsg(tc, aStr, "")
 \stopCHeader
 
 \stopTestSuite
@@ -308,17 +344,20 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertStrEquals]
 
 \startCHeader
-#define AssertStrEquals(tc, strA, strB, aMessage)  \
-  ReportCAssert(                                   \
-    (tc),                                          \
-    strcmp((strA), (strB)) == 0,                   \
-    (aMessage),                                    \
-    sprintf("Expected [%s] to be equal to [%s].",  \
-      (strA),                                      \
-      (strB)                                       \
-    ),                                             \
-    __FILE__,                                      \
+#define AssertStrEqualsMsg(tc, strA, strB, aMessage) \
+  ReportCAssert(                                     \
+    (tc),                                            \
+    strcmp((strA), (strB)) == 0,                     \
+    (aMessage),                                      \
+    sprintf("Expected [%s] to be equal to [%s].",    \
+      (strA),                                        \
+      (strB)                                         \
+    ),                                               \
+    __FILE__,                                        \
     __LINE__)
+
+#define AssertStrEquals(tc, strA, strB) \
+  AssertStrEqualsMsg(tc, strA, strB, "")
 \stopCHeader
 
 \stopTestSuite
@@ -326,17 +365,20 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertStrNotEquals]
 
 \startCHeader
-#define AssertStrNotEquals(tc, strA, strB, aMessage)  \
-  ReportCAssert(                                      \
-    (tc),                                             \
-    strcmp((strA), (strB)) != 0,                      \
-    (aMessage),                                       \
-    sprintf("Expected [%s] not to be equal to [%s].", \
-      (strA),                                         \
-      (strB)                                          \
-    ),                                                \
-    __FILE__,                                         \
+#define AssertStrNotEqualsMsg(tc, strA, strB, aMessage) \
+  ReportCAssert(                                        \
+    (tc),                                               \
+    strcmp((strA), (strB)) != 0,                        \
+    (aMessage),                                         \
+    sprintf("Expected [%s] not to be equal to [%s].",   \
+      (strA),                                           \
+      (strB)                                            \
+    ),                                                  \
+    __FILE__,                                           \
     __LINE__)
+
+#define AssertStrNotEquals(tc, strA, strB) \
+  AssertStrNotEqualsMsg(tc, strA, strB, "")
 \stopCHeader
 
 \stopTestSuite
@@ -344,7 +386,7 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertDblEquals]
 
 \startCHeader
-#define AssertDblEquals(tc, dblA, dblB, tol, aMessage)        \
+#define AssertDblEqualsMsg(tc, dblA, dblB, tol, aMessage)     \
   ReportCAssert(                                              \
     (tc),                                                     \
     fabs((dblA) - (dblB)) < (tol),                            \
@@ -356,6 +398,9 @@ void ReportCAssert(TestCase *tc,
     ),                                                        \
     __FILE__,                                                 \
     __LINE__)
+
+#define AssertDblEquals(tc, dblA, dblB) \
+  AssertDblEqualsMsg(tc, dblA, dblB, "")
 \stopCHeader
 
 \stopTestSuite
@@ -363,7 +408,7 @@ void ReportCAssert(TestCase *tc,
 \startTestSuite[assertDblNotEqals]
 
 \startCHeader
-#define AssertDblNotEquals(tc, dblA, dblB, tol, aMessage)         \
+#define AssertDblNotEqualsMsg(tc, dblA, dblB, tol, aMessage)      \
   ReportCAssert(                                                  \
     (tc),                                                         \
     (tol) <= fabs((dblA) - (dblB)),                               \
@@ -375,6 +420,9 @@ void ReportCAssert(TestCase *tc,
     ),                                                            \
     __FILE__,                                                     \
     __LINE__)
+
+#define AssertDblNotEquals(tc, dblA, dblB) \
+  AssertDblNotEqualsMsg(tc, dblA, dblB, "")
 \stopCHeader
 
 \stopTestSuite
