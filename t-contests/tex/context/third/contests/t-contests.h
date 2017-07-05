@@ -164,7 +164,7 @@ extern char* sprintf2Dbl(const char* fmt,
 #define AssertPtrNull(tc, aPtr) \
   AssertPtrNullMsg(tc, aPtr, "")
 
-// from file: cTests.tex after line: 250
+// from file: cTests.tex after line: 300
 
 #define AssertPtrNotNullMsg(tc, aPtr, aMessage) \
   ReportCAssert(                                \
@@ -200,7 +200,7 @@ extern char* sprintf2Dbl(const char* fmt,
 #define AssertPtrEquals(tc, ptrA, ptrB) \
   AssertPtrEqualsMsg(tc, ptrA, ptrB, "")
 
-// from file: cTests.tex after line: 300
+// from file: cTests.tex after line: 350
 
 #define AssertPtrNotEqualsMsg(tc, ptrA, ptrB, aMessage) \
   ReportCAssert(                                        \

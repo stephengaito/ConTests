@@ -183,6 +183,14 @@ char* sprintf2Dbl(const char* fmt,
   AssertSucceedMsg(tc, "")
 \stopCHeader
 
+\startTestCase[should always succedd]
+\startCTest
+  AssertSucceed(tc);
+\stopCTest
+\stopTestCase
+
+\stopTestSuite
+
 \startTestSuite[assertIntTrue]
 
 \startCHeader
@@ -203,6 +211,11 @@ char* sprintf2Dbl(const char* fmt,
   AssertIntTrueMsg(tc, anInt, "")
 \stopCHeader
 
+\startTestCase[should succeed if true]
+\startCTest
+  AssertIntTrue(tc, TRUE);
+\stopCTest
+\stopTestCase
 \stopTestSuite
 
 \startTestSuite[assertIntFalse]
