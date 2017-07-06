@@ -73,7 +73,8 @@ for i, anExec in ipairs(testExecs) do
 
   c.program{
     'build/'..anExec,
-    src='build/'..anExec..'.c',
+    src=anExec..'.c',
+    cdir='build',
     needs='lua5.2'
   }
 end
@@ -103,7 +104,6 @@ target('diff', diffTargets)
 target('tests', 'build/'..table.concat(testExecs, ' build/'))
 
 default(buildTargets)
-
 \stopLakefile
 
 \stopchapter
