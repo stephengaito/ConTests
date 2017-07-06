@@ -69,7 +69,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
     outFile:write('\n\n')
   end
 
-  outFile:write('#include <t-contests.h>\n')
+  outFile:write('#include "t-contests.h"\n')
   outFile:write('\n\n')
 
   if type(aCodeStream) ~= 'string'
@@ -107,7 +107,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
       tInsert(suiteNums, i)
       outFile:write('//-------------------------------------------------------\n')
       outFile:write(tConcat(suiteCaseBuf))
-      outFile:write('void ts'..toStr(i)..'(lua_State *lstate)\n\n')
+      outFile:write('void ts'..toStr(i)..'(lua_State *lstate){\n\n')
       outFile:write('  StartTestSuite(\n')
       outFile:write('    "'..aTestSuite.desc..'"\n')
       outFile:write('  );\n\n')
@@ -122,10 +122,16 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   outFile:write('//-------------------------------------------------------\n')
   outFile:write('int main(){\n\n')
   outFile:write('  lua_State *lstate = luaL_newstate();\n')
-  outFile:write('  luaL_openlibs(lstate);\n\n')
+  outFile:write('  luaL_openlibs(lstate);\n')
+  outFile:write('  if luaL_dofile(lstate, "build/t-contests-cTests.lua") {\n')
+  outFile:write('    fprintf(stderr, "Could not load cTests\\n");\n')
+  outFile:write('    fprintf(stderr, "%s\\n", lua_tostring(lstate, 1));\n')
+  outFile:write('    exit(-1);\n')
+  outFile:write('  }\n\n')
   for i, aSuiteNum in ipairs(suiteNums) do
     outFile:write('  ts'..toStr(aSuiteNum)..'(lstate);\n')
   end
+  outFile:write('\n  return 0;\n')
   outFile:write('}\n')
 
   outFile:close()
@@ -135,6 +141,7 @@ contests.createCTestFile = createCTestFile
 \stopLuaCode
 
 \startCHeader
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <lua.h>
@@ -153,18 +160,18 @@ contests.createCTestFile = createCTestFile
 #define NULL 0
 #endif
 
-#define lua_errorCall(numArgs, numRtn)        \
-  if lua_pcall(lstate, (numArgs), (numRtn)) { \
-    fprintf(stderr,                           \
-      "LUA error in file %s at line %d\n",    \
-      __FILE__, __LINE__                      \
-    )                                         \
+#define lua_errorCall(numArgs, numRtn)             \
+  if (lua_pcall(lstate, (numArgs), (numRtn), 0)) { \
+    fprintf(stderr,                                \
+      "LUA error in file %s at line %d\n",         \
+      __FILE__, __LINE__                           \
+    );                                             \
   }
   
 #define lua_CTestCall(numArgs)        \
   lua_pushstring(lstate, __FILE__);   \
   lua_pushunsigned(lstate, __LINE__); \
-  lua_errorCall((numArgs)+2)
+  lua_errorCall((numArgs)+2, 0)
 
 #define StartTestSuite(aDesc)              \
   lua_getglobal(lstate, "startTestSuite"); \
@@ -202,6 +209,8 @@ function startTestSuite(aDesc, testFileName, testFileLine)
   local curSuite  = cTests.curSuite
   curSuite.desc   = aDesc
   curSuite.passed = true
+  io.stdout:write("\n-------------------------------------\n")
+  io.stdout:write(sFmt("TS: %s\n", aDesc))
 end
 
 function stopTestSuite(testFileName, testFileLine)
@@ -224,6 +233,7 @@ function startTestCase(
   curCase.startLine = srcStartLine
   curCase.lastLine  = srcLastLine
   curCase.passed    = true
+  io.stdout:write(sFmt("  TC: %s\n", aDesc))
 end
 
 function stopTestCase(testFileName, testFileLine)
@@ -240,6 +250,23 @@ end
 \section[title=Assertions]
 
 \startLuaCode
+local function logFailure(reason, suiteDesc, caseDesc,
+                          testMsg, errMsg, fileInfo)
+  local failure = {}
+  failure.reason    = reason
+  failure.suiteDesc = suiteDesc
+  failure.caseDesc  = caseDesc
+  failure.testMsg   = testMsg
+  failure.errMsg    = errMsg
+  failure.fileInfo  = fileInfo
+  io.stdout:write(sFmt('    %s\n', reason))
+  io.stdout:write(sFmt('    %s\n', testMsg))
+  io.stdout:write(sFmt('    %s\n', errMsg))
+  io.stdout:write(sFmt('    %s\n', fileInfo))
+  io.stdout:write('\n\n')
+  return failure
+end
+
 function reportCAssertion(
   theCondition, aMessage, theReason,
   testFileName, testFileLine)
@@ -278,7 +305,7 @@ function reportCAssertion(
     end
     
     if theReason ~= nil then
-      theReason = sFmt('Expcedted inner assertion [%s] to fail',
+      theReason = sFmt('Expected inner assertion [%s] to fail',
         innerMessage)
     end
     aMessage = shouldFail.message
@@ -377,7 +404,7 @@ end
 \startTestCase[should always succeed]
 
 \startCTest
-  AssertSucceed(tc);
+  AssertSucceed();
 \stopCTest
 \stopTestCase
 
@@ -676,8 +703,8 @@ end
   lua_CTestCall(3);                                        \
 }
 
-#define AssertStrNotEquals(aStr, aPattern) \
-  AssertStrNotEqualsMsg(aStr, aPattern, "")
+#define AssertStrDoesNotMatch(aStr, aPattern) \
+  AssertStrDoesNotMatchMsg(aStr, aPattern, "")
 \stopCHeader
 
 \stopTestSuite
@@ -720,6 +747,8 @@ end
 
 #define AssertDblNotEquals(dblA, dblB, tol) \
   AssertDblNotEqualsMsg(dblA, dblB, "")
+
+// end of t-contests.h
 \stopCHeader
 
 \stopTestSuite

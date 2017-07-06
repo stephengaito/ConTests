@@ -2,7 +2,7 @@
 
 -- from file: cTests.tex after line: 150
 
--- from file: cTests.tex after line: 150
+-- from file: cTests.tex after line: 200
 
 -- This is the lua code associated with the t-contests-cTests
 
@@ -15,6 +15,8 @@ function startTestSuite(aDesc, testFileName, testFileLine)
   local curSuite  = cTests.curSuite
   curSuite.desc   = aDesc
   curSuite.passed = true
+  io.stdout:write("\n-------------------------------------\n")
+  io.stdout:write(sFmt("TS: %s\n", aDesc))
 end
 
 function stopTestSuite(testFileName, testFileLine)
@@ -37,6 +39,7 @@ function startTestCase(
   curCase.startLine = srcStartLine
   curCase.lastLine  = srcLastLine
   curCase.passed    = true
+  io.stdout:write(sFmt("  TC: %s\n", aDesc))
 end
 
 function stopTestCase(testFileName, testFileLine)
@@ -49,7 +52,24 @@ function stopTestCase(testFileName, testFileLine)
   curSuite.curCase = { }
 end
 
--- from file: cTests.tex after line: 200
+-- from file: cTests.tex after line: 250
+
+local function logFailure(reason, suiteDesc, caseDesc,
+                          testMsg, errMsg, fileInfo)
+  local failure = {}
+  failure.reason    = reason
+  failure.suiteDesc = suiteDesc
+  failure.caseDesc  = caseDesc
+  failure.testMsg   = testMsg
+  failure.errMsg    = errMsg
+  failure.fileInfo  = fileInfo
+  io.stdout:write(sFmt('    %s\n', reason))
+  io.stdout:write(sFmt('    %s\n', testMsg))
+  io.stdout:write(sFmt('    %s\n', errMsg))
+  io.stdout:write(sFmt('    %s\n', fileInfo))
+  io.stdout:write('\n\n')
+  return failure
+end
 
 function reportCAssertion(
   theCondition, aMessage, theReason,
@@ -89,7 +109,7 @@ function reportCAssertion(
     end
  
     if theReason ~= nil then
-      theReason = sFmt('Expcedted inner assertion [%s] to fail',
+      theReason = sFmt('Expected inner assertion [%s] to fail',
         innerMessage)
     end
     aMessage = shouldFail.message
@@ -117,7 +137,7 @@ function reportCAssertion(
   end
 end
 
--- from file: cTests.tex after line: 300
+-- from file: cTests.tex after line: 350
 
 function startCShouldFail(
   messagePattern, reasonPattern, aMessage,

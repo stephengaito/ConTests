@@ -34,6 +34,10 @@ local moduleTargets = {
   't-contests-cTests.lua'
 }
 
+local testExecs = {
+  'allCTests'
+}
+
 local buildTargets   = { }
 local diffTargets    = { }
 local installTargets = { }
@@ -59,6 +63,21 @@ for i, aTarget in ipairs(moduleTargets) do
   ))
 end
 
+for i, anExec in ipairs(testExecs) do
+
+  table.insert(buildTargets, target(
+    'build/'..anExec..'.c',
+    srcFiles,
+    contextDoc
+  ))
+
+  c.program{
+    'build/'..anExec,
+    src='build/'..anExec..'.c',
+    needs='lua5.2'
+  }
+end
+
 table.insert(buildTargets, target(
   'build/lakefile',
   srcFiles,
@@ -80,6 +99,8 @@ table.insert(installTargets, target(
 target('install', installTargets)
 
 target('diff', diffTargets)
+
+target('tests', 'build/'..table.concat(testExecs, ' build/'))
 
 default(buildTargets)
 

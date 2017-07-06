@@ -1157,7 +1157,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
     outFile:write('\n\n')
   end
 
-  outFile:write('#include <t-contests.h>\n')
+  outFile:write('#include "t-contests.h"\n')
   outFile:write('\n\n')
 
   if type(aCodeStream) ~= 'string'
@@ -1195,7 +1195,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
       tInsert(suiteNums, i)
       outFile:write('//-------------------------------------------------------\n')
       outFile:write(tConcat(suiteCaseBuf))
-      outFile:write('void ts'..toStr(i)..'(lua_State *lstate)\n\n')
+      outFile:write('void ts'..toStr(i)..'(lua_State *lstate){\n\n')
       outFile:write('  StartTestSuite(\n')
       outFile:write('    "'..aTestSuite.desc..'"\n')
       outFile:write('  );\n\n')
@@ -1210,10 +1210,16 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   outFile:write('//-------------------------------------------------------\n')
   outFile:write('int main(){\n\n')
   outFile:write('  lua_State *lstate = luaL_newstate();\n')
-  outFile:write('  luaL_openlibs(lstate);\n\n')
+  outFile:write('  luaL_openlibs(lstate);\n')
+  outFile:write('  if luaL_dofile(lstate, "build/t-contests-cTests.lua") {\n')
+  outFile:write('    fprintf(stderr, "Could not load cTests\\n");\n')
+  outFile:write('    fprintf(stderr, "%s\\n", lua_tostring(lstate, 1));\n')
+  outFile:write('    exit(-1);\n')
+  outFile:write('  }\n\n')
   for i, aSuiteNum in ipairs(suiteNums) do
     outFile:write('  ts'..toStr(aSuiteNum)..'(lstate);\n')
   end
+  outFile:write('\n  return 0;\n')
   outFile:write('}\n')
 
   outFile:close()
