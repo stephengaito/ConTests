@@ -1,6 +1,6 @@
 -- A Lua file for CTests
 
--- from file: cTests.tex after line: 150
+-- from file: cTests.tex after line: 200
 
 -- from file: cTests.tex after line: 200
 
@@ -135,6 +135,8 @@ function reportCAssertion(
     )
     tInsert(cTests.failures, failure)
   end
+
+  return theCondition
 end
 
 -- from file: cTests.tex after line: 350
