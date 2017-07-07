@@ -891,12 +891,12 @@ StopAssertShouldFail();
 #define AssertStrMatchesMsg(aStr, aPattern, aMessage, sStop) \
 {                                                            \
   lua_getglobal(lstate, "string");                           \
-  lua_getfield(lstate, -1, "match")                          \
+  lua_getfield(lstate, -1, "match");                         \
   lua_remove(lstate, -2);                                    \
   lua_pushstring(lstate, (aStr));                            \
   lua_pushstring(lstate, (aPattern));                        \
   lua_errorCall(2, 1);                                       \
-  int matched = lua_isnil(lstate, 1);                        \
+  int matched = !lua_isnil(lstate, -1);                      \
   lua_pop(lstate, 1);                                        \
   lua_getglobal(lstate, "reportCAssertion");                 \
   lua_pushboolean(lstate, matched);                          \
@@ -916,6 +916,21 @@ StopAssertShouldFail();
   AssertStrMatchesMsg(aStr, aPattern, "", FALSE)
 \stopCHeader
 
+\startTestCase[should succeed if a string mathces a pattern]
+\startCTest
+AssertStrMatches("a test string", "test");
+AssertStrMatches("a test string", "te%a+");
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail is a string does not match a pattern]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertStrMatches("a test string", "no match");
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assertStrNotMatch]
@@ -924,15 +939,15 @@ StopAssertShouldFail();
 #define AssertStrDoesNotMatchMsg(aStr, aPattern, aMessage, sStop) \
 {                                                                 \
   lua_getglobal(lstate, "string");                                \
-  lua_getfield(lstate, -1, "match")                               \
+  lua_getfield(lstate, -1, "match");                              \
   lua_remove(lstate, -2);                                         \
   lua_pushstring(lstate, (aStr));                                 \
   lua_pushstring(lstate, (aPattern));                             \
   lua_errorCall(2, 1);                                            \
-  int matched = lua_isnil(lstate, 1);                             \
+  int matched = !lua_isnil(lstate, -1);                           \
   lua_pop(lstate, 1);                                             \
   lua_getglobal(lstate, "reportCAssertion");                      \
-  lua_pushboolean(lstate, ! matched);                             \
+  lua_pushboolean(lstate, !matched);                              \
   lua_pushstring(lstate, (aMessage));                             \
   lua_pushfstring(lstate,                                         \
       "Expected [%s] to not match pattern [%s].",                 \
@@ -948,6 +963,20 @@ StopAssertShouldFail();
 #define AssertStrDoesNotMatch(aStr, aPattern)         \
   AssertStrDoesNotMatchMsg(aStr, aPattern, "", FALSE)
 \stopCHeader
+
+\startTestCase[should succeed if a string does not match a pattern]
+\startCTest
+AssertStrDoesNotMatch("a test string", "no match");
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if a string does match a pattern]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertStrDoesNotMatch("a test string", "test");
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 
 \stopTestSuite
 

@@ -334,12 +334,12 @@
 #define AssertStrMatchesMsg(aStr, aPattern, aMessage, sStop) \
 {                                                            \
   lua_getglobal(lstate, "string");                           \
-  lua_getfield(lstate, -1, "match")                          \
+  lua_getfield(lstate, -1, "match");                         \
   lua_remove(lstate, -2);                                    \
   lua_pushstring(lstate, (aStr));                            \
   lua_pushstring(lstate, (aPattern));                        \
   lua_errorCall(2, 1);                                       \
-  int matched = lua_isnil(lstate, 1);                        \
+  int matched = !lua_isnil(lstate, -1);                      \
   lua_pop(lstate, 1);                                        \
   lua_getglobal(lstate, "reportCAssertion");                 \
   lua_pushboolean(lstate, matched);                          \
@@ -363,15 +363,15 @@
 #define AssertStrDoesNotMatchMsg(aStr, aPattern, aMessage, sStop) \
 {                                                                 \
   lua_getglobal(lstate, "string");                                \
-  lua_getfield(lstate, -1, "match")                               \
+  lua_getfield(lstate, -1, "match");                              \
   lua_remove(lstate, -2);                                         \
   lua_pushstring(lstate, (aStr));                                 \
   lua_pushstring(lstate, (aPattern));                             \
   lua_errorCall(2, 1);                                            \
-  int matched = lua_isnil(lstate, 1);                             \
+  int matched = !lua_isnil(lstate, -1);                           \
   lua_pop(lstate, 1);                                             \
   lua_getglobal(lstate, "reportCAssertion");                      \
-  lua_pushboolean(lstate, ! matched);                             \
+  lua_pushboolean(lstate, !matched);                              \
   lua_pushstring(lstate, (aMessage));                             \
   lua_pushfstring(lstate,                                         \
       "Expected [%s] to not match pattern [%s].",                 \
@@ -407,7 +407,7 @@
 #define AssertDblEquals(dblA, dblB, tol)         \
   AssertDblEqualsMsg(dblA, dblB, tol, "", FALSE)
 
-// from file: cTests.tex after line: 950
+// from file: cTests.tex after line: 1000
 
 #define AssertDblNotEqualsMsg(dblA, dblB, tol, aMessage, sStop)  \
   lua_getglobal(lstate, "reportCAssertion");                     \
