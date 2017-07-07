@@ -218,6 +218,8 @@ contests.createCTestFile = createCTestFile
 
 local cTests  = { }
 local tInsert = table.insert
+local tRemove = table.remove
+local tSort   = table.sort
 local sFmt    = string.format
 local toStr   = tostring
 
@@ -267,6 +269,52 @@ end
 \section[title=Assertions]
 
 \startLuaCode
+local function compareKeyValues(a, b)
+  return (a[1] < b[1])
+end
+
+local function prettyPrint(anObj, indent)
+  local result = ""
+  indent = indent or ""
+  if type(anObj) == 'nil' then
+    result = 'nil'
+  elseif type(anObj) == 'boolean' then
+    if anObj then result = 'true' else result = 'false' end
+  elseif type(anObj) == 'number' then
+    result = toStr(anObj)
+  elseif type(anObj) == 'string' then
+    result = '"'..anObj..'"'
+  elseif type(anObj) == 'function' then
+    result = toStr(anObj)
+  elseif type(anObj) == 'userdata' then
+    result = toStr(anObj)
+  elseif type(anObj) == 'thread' then
+    result = toStr(anObj)
+  elseif type(anObj) == 'table' then
+    local origIndent = indent
+    indent = indent..'  '
+    result = '{\n'
+    for i, aValue in ipairs(anObj) do
+      result = result..indent..prettyPrint(aValue, indent)..',\n'
+    end
+    local theKeyValues = { }
+    for aKey, aValue in pairs(anObj) do
+      if type(aKey) ~= 'number' or aKey < 1 or #anObj < aKey then
+        tInsert(theKeyValues,
+          { prettyPrint(aKey), aKey, prettyPrint(aValue, indent) })
+      end
+    end
+    tSort(theKeyValues, compareKeyValues)
+    for i, aKeyValue in ipairs(theKeyValues) do
+      result = result..indent..'['..aKeyValue[1]..'] = '..aKeyValue[3]..',\n'
+    end
+    result = result..origIndent..'}'
+  else
+    result = 'UNKNOWN TYPE: ['..toStr(anObj)..']'
+  end
+  return result
+end
+
 local function logFailure(reason, suiteDesc, caseDesc,
                           testMsg, errMsg, fileInfo)
   local failure = {}
@@ -289,13 +337,18 @@ end
 function reportCAssertion(
   theCondition, aMessage, theReason,
   testFileName, testFileLine)
-  cTests.curSuite  = cTests.curSuite or { }
-  local curSuite   = cTests.curSuite
-  curSuite.curCase = curSuite.curCase or { }
-  local curCase    = curSuite.curCase
+  cTests.curSuite    = cTests.curSuite or { }
+  local curSuite     = cTests.curSuite
+  curSuite.curCase   = curSuite.curCase or { }
+  local curCase      = curSuite.curCase
+  curCase.shouldFail = curCase.shouldFail or { }
+
+  io.stderr:write('shouldFail (reportCAssertion): \n')
+  io.stderr:write(prettyPrint(curCase.shouldFail))
+  io.stderr:write('\n')
   
-  if type(curCase.shouldFail) == 'table' then
-    local shouldFail   = curCase.shouldFail
+  if 0 < #curCase.shouldFail then
+    local shouldFail   = tRemove(curCase.shouldFail)
     local innerMessage = aMessage
     local innerReason  = theReason
     theReason          = nil
@@ -379,17 +432,61 @@ function startCShouldFail(
   local curSuite     = cTests.curSuite
   curSuite.curCase   = curSuite.curCase or { }
   local curCase      = curSuite.curCase
-  curCase.shouldFail = { }
-  local shouldFail   = curCase.shouldFail
-  shouldFail.messagePattern = messagePattern
-  shouldFail.reasonPattern  = reasonPattern
-  shouldFail.message        = aMessage
+  local curShouldFail   = { }
+  curShouldFail.messagePattern = messagePattern
+  curShouldFail.reasonPattern  = reasonPattern
+  curShouldFail.message        = aMessage
+  
+  curCase.shouldFail = curCase.shouldFail or { }
+  tInsert(curCase.shouldFail, curShouldFail)
+  
+  io.stderr:write('shouldFail (startShouldFail): \n')
+  io.stderr:write(prettyPrint(curCase.shouldFail))
+  io.stderr:write('\n')
 end
 
 function stopCShouldFail(testFileName, testFileLine)
   -- do nothing at the moment
 end
 \stopLuaCode
+
+\startTestCase[should succeed if an inner assertion fails]
+
+\startCTest
+StartAssertShouldFail("Inner message", "(Failed)","Outer message");
+  AssertFailMsg("Inner message");
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if an inner assertion does not fail]
+
+\startCTest
+StartAssertShouldFail(
+  "Inner message","Expected something","Outer message");
+  StartAssertShouldFail("","","Inner message");
+    AssertSucceedMsg("no flies on us.");
+  StopAssertShouldFail();
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if inner assertion fails with wrong message or reason]
+
+\startConTest
+\startAssertShouldFail{First outer message}{}{First outermost message}
+\startAssertShouldFail{wrong}{}{First outer message}
+  \assertFail{First inner message}
+\stopAssertShouldFail
+\stopAssertShouldFail
+
+\startAssertShouldFail{Second outer message}{}{Second outermost message}
+\startAssertShouldFail{}{wrong}{Second outer message}
+  \assertFail{Second inner message}
+\stopAssertShouldFail
+\stopAssertShouldFail
+\stopConTest
+\skipTestCase
 
 \stopTestSuite
 
