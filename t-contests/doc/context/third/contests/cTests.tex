@@ -98,7 +98,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
         tInsert(suiteCaseBuf, '  );\n\n  ')
         local cTestsCode = tConcat(cTests[aCodeStream], '\n')
         cTestsCode       = litProgs.splitString(cTestsCode)
-        tInsert(suiteCaseBuf, tConcat(cTestsCode, '\n\n  '))
+        tInsert(suiteCaseBuf, tConcat(cTestsCode, '\n  '))
         tInsert(suiteCaseBuf, '\n\n  StopTestCase();\n\n')
         tInsert(suiteCaseBuf, '}\n\n')
       end
@@ -112,9 +112,9 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
       outFile:write('    "'..aTestSuite.desc..'"\n')
       outFile:write('  );\n\n')
       for j, aCaseNum in ipairs(caseNums) do
-        outFile:write('  ts'..toStr(i)..'_tc'..toStr(aCaseNum)..'(lstate);\n\n')
+        outFile:write('  ts'..toStr(i)..'_tc'..toStr(aCaseNum)..'(lstate);\n')
       end
-      outFile:write('  StopTestSuite();\n\n')
+      outFile:write('\n  StopTestSuite();\n\n')
       outFile:write('}\n\n')
     end
   end
@@ -131,7 +131,8 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   for i, aSuiteNum in ipairs(suiteNums) do
     outFile:write('  ts'..toStr(aSuiteNum)..'(lstate);\n')
   end
-  outFile:write('\n  return 0;\n')
+  outFile:write('\n  fprintf(stdout, "\\n");\n\n')
+  outFile:write('  return 0;\n')
   outFile:write('}\n')
 
   outFile:close()
@@ -144,6 +145,7 @@ contests.createCTestFile = createCTestFile
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
@@ -465,6 +467,14 @@ end
   AssertIntTrue(TRUE);
 \stopCTest
 \stopTestCase
+
+\startTestCase[should fail if false]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertIntTrue(FALSE);
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 \stopTestSuite
 
 \startTestSuite[assertIntFalse]
@@ -487,6 +497,22 @@ end
   AssertIntFalseMsg(anInt, "", FALSE)
 \stopCHeader
 
+\startTestCase[should succeed if false]
+\startCTest
+  AssertIntFalse(FALSE);
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if true]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertIntFalse(TRUE);
+StopAssertShouldFail();
+StartAssertShouldFail("","","");
+  AssertIntFalse(42);
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 \stopTestSuite
 
 \startTestSuite[assertIntEquals]
@@ -510,6 +536,19 @@ end
   AssertIntEqualsMsg(intA, intB, "", FALSE)
 \stopCHeader
 
+\startTestCase[should succeed if two integers are equal]
+\startCTest
+  AssertIntEquals(42, 42);
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if two integers are not equal]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertIntEquals(3,42);
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 \stopTestSuite
 
 \startTestSuite[assertIntNotEquals]
@@ -533,6 +572,19 @@ end
   AssertIntNotEqualsMsg(intA, intB, "", FALSE)
 \stopCHeader
 
+\startTestCase[should succeed if two integers are not equal]
+\startCTest
+  AssertIntNotEquals(3,42);
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if two integers are equal]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertIntNotEquals(42,42);
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 \stopTestSuite
 
 \startTestSuite[assertPrtNull]
@@ -548,13 +600,26 @@ end
     );                                          \
   lua_CTestCall(3, sStop)
 
-#define AssertPtrNull(aPtr)    \
+#define AssertPtrNullStop(aPtr)    \
   AssertPtrNullMsg(aPtr, "", TRUE)
 
-#define AssertPtrNullCont(aPtr)     \
+#define AssertPtrNull(aPtr)         \
   AssertPtrNullMsg(aPtr, "", FALSE)
 \stopCHeader
 
+\startTestCase[should succeed if pointer is NULL]
+\startCTest
+  AssertPtrNull(NULL);
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if pointer is not NULL]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertPtrNull("this is a pointer which is not null");
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 \stopTestSuite
 
 \startTestSuite[assertPtrNotNull]
@@ -570,13 +635,26 @@ end
     );                                             \
   lua_CTestCall(3, sStop)
 
-#define AssertPtrNotNullStop(aPtr)    \
+#define AssertPtrNotNull(aPtr)        \
   AssertPtrNotNullMsg(aPtr, "", TRUE)
 
-#define AssertPtrNotNull(aPtr)         \
+#define AssertPtrNotNullCont(aPtr)     \
   AssertPtrNotNullMsg(aPtr, "", FALSE)
 \stopCHeader
 
+\startTestCase[should succeed if a pointer is not NULL]
+\startCTest
+  AssertPtrNotNull("this is another pointer which is not null");
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if a pointer is NULL]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertPtrNotNull(NULL);
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 \stopTestSuite
 
 \startTestSuite[assertPtrEquals]
@@ -600,6 +678,20 @@ end
   AssertPtrEqualsMsg(ptrA, ptrB, "", FALSE)
 \stopCHeader
 
+\startTestCase[should succeed if two pointers are equal]
+\startCTest
+  char* aTest = "aTest";
+  AssertPtrEquals(aTest, aTest);
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if two pointers are not equal]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertPtrEquals("ptr1", "ptr2");
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 \stopTestSuite
 
 \startTestSuite[assertPtrNotEquals]
@@ -623,6 +715,20 @@ end
   AssertPtrNotEqualsMsg(ptrA, ptrB, "", FALSE)
 \stopCHeader
 
+\startTestCase[should succeed if two pointers are not equal]
+\startCTest
+  AssertPtrNotEquals("ptr1","ptr2");
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if two pointers are equal]
+\startCTest
+StartAssertShouldFail("","","");
+  char* aTest = "aTest";
+  AssertPtrNotEquals(aTest, aTest);
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 \stopTestSuite
 
 \startTestSuite[assertStrEmpty]
@@ -644,6 +750,19 @@ end
   AssertStrEmptyMsg(aStr, "", FALSE)
 \stopCHeader
 
+\startTestCase[should succeed if a string is empty]
+\startCTest
+  AssertStrEmpty("");
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if a string is empty]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertStrEmpty("a non empty string");
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 \stopTestSuite
 
 \startTestSuite[assertStrNotEmpty]
@@ -665,6 +784,20 @@ end
 #define AssertStrNotEmpty(aStr)         \
   AssertStrNotEmptyMsg(aStr, "", FALSE)
 \stopCHeader
+
+\startTestCase[should succeed if a string is not empty]
+\startCTest
+  AssertStrNotEmpty("a non empty string");
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail is a string is empty]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertStrNotEmpty("");
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 
 \stopTestSuite
 
@@ -689,6 +822,25 @@ end
   AssertStrEqualsMsg(strA, strB, "", FALSE)
 \stopCHeader
 
+\startTestCase[should succeed if two strings are equal]
+\startCTest
+char* str1 = "aString";
+char str2[256];
+strncpy(str2, str1, 255);
+
+AssertPtrNotEquals(str1, str2);
+AssertStrEquals(str1, str2);
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if two strings are not equal]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertStrEquals("str1", "str2");
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assertStrNotEquals]
@@ -711,6 +863,25 @@ end
 #define AssertStrNotEquals(strA, strB)         \
   AssertStrNotEqualsMsg(strA, strB, "", FALSE)
 \stopCHeader
+
+\startTestCase[should succeed if two strings are not equal]
+\startCTest
+AssertStrNotEquals("str1", "str2");
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if two strings are equal]
+\startCTest
+char* str1 = "aString";
+char str2[256];
+strncpy(str2, str1, 255);
+
+AssertPtrNotEquals(str1, str2);
+StartAssertShouldFail("","","");
+  AssertStrNotEquals(str1, str2);
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 
 \stopTestSuite
 
@@ -802,6 +973,20 @@ end
   AssertDblEqualsMsg(dblA, dblB, tol, "", FALSE)
 \stopCHeader
 
+\startTestCase[should succeed if two doubles are equal]
+\startCTest
+AssertDblEquals(0.1, 0.1, 0.1);
+AssertDblEquals(0.11, 0.1, 0.2);
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if two doubles are not equal]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertDblEquals(1.1, 2.1, 0.1);
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 \stopTestSuite
 
 \startTestSuite[assertDblNotEqals]
@@ -817,15 +1002,32 @@ end
       (dblB),                                                    \
       (tol)                                                      \
     );                                                           \
-  lua_CTestCall(3)
+  lua_CTestCall(3, sStop)
 
 #define AssertDblNotEqualsStop(dblA, dblB, tol) \
-  AssertDblNotEqualsMsg(dblA, dblB, "", TRUE)
+  AssertDblNotEqualsMsg(dblA, dblB, tol, "", TRUE)
 
 #define AssertDblNotEquals(dblA, dblB, tol)    \
-  AssertDblNotEqualsMsg(dblA, dblB, "", FALSE)
+  AssertDblNotEqualsMsg(dblA, dblB, tol, "", FALSE)
 
 // end of t-contests.h
 \stopCHeader
+
+\startTestCase[should succeed if two doubles are not equal]
+\startCTest
+AssertDblNotEquals(1.1, 2.1, 0.1);
+\stopCTest
+\stopTestCase
+
+\startTestCase[should fail if two doubles are equal]
+\startCTest
+StartAssertShouldFail("","","");
+  AssertDblNotEquals(0.1, 0.1, 0.1);
+StopAssertShouldFail();
+StartAssertShouldFail("","","");
+  AssertDblNotEquals(0.11, 0.1, 0.2);
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 
 \stopTestSuite

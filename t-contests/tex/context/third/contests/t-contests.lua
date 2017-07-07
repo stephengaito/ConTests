@@ -1186,7 +1186,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
         tInsert(suiteCaseBuf, '  );\n\n  ')
         local cTestsCode = tConcat(cTests[aCodeStream], '\n')
         cTestsCode       = litProgs.splitString(cTestsCode)
-        tInsert(suiteCaseBuf, tConcat(cTestsCode, '\n\n  '))
+        tInsert(suiteCaseBuf, tConcat(cTestsCode, '\n  '))
         tInsert(suiteCaseBuf, '\n\n  StopTestCase();\n\n')
         tInsert(suiteCaseBuf, '}\n\n')
       end
@@ -1200,9 +1200,9 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
       outFile:write('    "'..aTestSuite.desc..'"\n')
       outFile:write('  );\n\n')
       for j, aCaseNum in ipairs(caseNums) do
-        outFile:write('  ts'..toStr(i)..'_tc'..toStr(aCaseNum)..'(lstate);\n\n')
+        outFile:write('  ts'..toStr(i)..'_tc'..toStr(aCaseNum)..'(lstate);\n')
       end
-      outFile:write('  StopTestSuite();\n\n')
+      outFile:write('\n  StopTestSuite();\n\n')
       outFile:write('}\n\n')
     end
   end
@@ -1219,7 +1219,8 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   for i, aSuiteNum in ipairs(suiteNums) do
     outFile:write('  ts'..toStr(aSuiteNum)..'(lstate);\n')
   end
-  outFile:write('\n  return 0;\n')
+  outFile:write('\n  fprintf(stdout, "\\n");\n\n')
+  outFile:write('  return 0;\n')
   outFile:write('}\n')
 
   outFile:close()
