@@ -272,7 +272,7 @@
 #define AssertStrEmpty(aStr)         \
   AssertStrEmptyMsg(aStr, "", FALSE)
 
-// from file: cTests.tex after line: 600
+// from file: cTests.tex after line: 650
 
 #define AssertStrNotEmptyMsg(aStr, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");        \
@@ -357,7 +357,7 @@
 #define AssertStrMatches(aStr, aPattern)         \
   AssertStrMatchesMsg(aStr, aPattern, "", FALSE)
 
-// from file: cTests.tex after line: 700
+// from file: cTests.tex after line: 750
 
 #define AssertStrDoesNotMatchMsg(aStr, aPattern, aMessage, sStop) \
 {                                                                 \

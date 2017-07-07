@@ -9,6 +9,7 @@
 local cTests  = { }
 local tInsert = table.insert
 local sFmt    = string.format
+local toStr   = tostring
 
 function startTestSuite(aDesc, testFileName, testFileLine)
   cTests.curSuite = { }
@@ -64,7 +65,9 @@ local function logFailure(reason, suiteDesc, caseDesc,
   failure.errMsg    = errMsg
   failure.fileInfo  = fileInfo
   io.stdout:write(sFmt('    %s\n', reason))
-  io.stdout:write(sFmt('    %s\n', testMsg))
+  if 0 < #testMsg then
+    io.stdout:write(sFmt('    %s\n', testMsg))
+  end
   io.stdout:write(sFmt('    %s\n', errMsg))
   io.stdout:write(sFmt('    %s\n', fileInfo))
   io.stdout:write('\n\n')
@@ -133,6 +136,7 @@ function reportCAssertion(
         toStr(curCase.lastLine)
       )
     )
+    cTests.failures = cTests.failures or { }
     tInsert(cTests.failures, failure)
   end
 
