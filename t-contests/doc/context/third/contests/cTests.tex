@@ -401,6 +401,16 @@ end
   AssertFailMsg("")
 \stopCHeader
 
+\startTestCase[assertFail should always fail]
+
+\startCTest
+  StartAssertShouldFail(".*", ".*", "outerMessage")
+    AssertFail()
+  StopAssertShouldFail
+\stopCTest
+
+\stopTestCase
+
 \stopTestSuite
 
 \startTestSuite[assertSucceed]

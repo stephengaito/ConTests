@@ -32,6 +32,7 @@ local testExecs = {
 local buildTargets   = { }
 local diffTargets    = { }
 local installTargets = { }
+local testTargets    = { }
 
 for i, aTarget in ipairs(moduleTargets) do
 
@@ -68,6 +69,12 @@ for i, anExec in ipairs(testExecs) do
     cdir='build',
     needs='lua5.2'
   }
+ 
+  table.insert(testTargets, target(
+    'build/'..anExec..'-results.lua',
+    'build/'..anExec,
+    './build/'..anExec
+  ))
 end
 
 table.insert(buildTargets, target(
@@ -92,6 +99,6 @@ target('install', installTargets)
 
 target('diff', diffTargets)
 
-target('tests', 'build/'..table.concat(testExecs, ' build/'))
+target('tests', testTargets)
 
 default(buildTargets)
