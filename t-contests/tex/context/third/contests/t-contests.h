@@ -44,7 +44,7 @@
   lua_pushstring(lstate, (aDesc));         \
   lua_fileCall(1, 0)
 
-#define StopTestSuite                     \
+#define StopTestSuite()                   \
   lua_getglobal(lstate, "stopTestSuite"); \
   lua_fileCall(0, 0)
 
@@ -56,7 +56,7 @@
   lua_pushunsigned(lstate, (lastLine));                      \
   lua_fileCall(4, 0)
 
-#define StopTestCase                     \
+#define StopTestCase()                   \
   lua_getglobal(lstate, "stopTestCase"); \
   lua_fileCall(0, 0)
 
@@ -79,7 +79,7 @@
   lua_pushstring(lstate, (aMessage));                                  \
   lua_fileCall(3, 0)
 
-#define StopAssertShouldFail                \
+#define StopAssertShouldFail()              \
   lua_getglobal(lstate, "stopCShouldFail"); \
   lua_fileCall(0, 0)
 

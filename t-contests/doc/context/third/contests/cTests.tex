@@ -99,7 +99,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
         local cTestsCode = tConcat(cTests[aCodeStream], '\n')
         cTestsCode       = litProgs.splitString(cTestsCode)
         tInsert(suiteCaseBuf, tConcat(cTestsCode, '\n\n  '))
-        tInsert(suiteCaseBuf, '\n\n  StopTestCase;\n\n')
+        tInsert(suiteCaseBuf, '\n\n  StopTestCase();\n\n')
         tInsert(suiteCaseBuf, '}\n\n')
       end
     end
@@ -114,7 +114,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
       for j, aCaseNum in ipairs(caseNums) do
         outFile:write('  ts'..toStr(i)..'_tc'..toStr(aCaseNum)..'(lstate);\n\n')
       end
-      outFile:write('  StopTestSuite;\n\n')
+      outFile:write('  StopTestSuite();\n\n')
       outFile:write('}\n\n')
     end
   end
@@ -183,7 +183,7 @@ contests.createCTestFile = createCTestFile
   lua_pushstring(lstate, (aDesc));         \
   lua_fileCall(1, 0)
 
-#define StopTestSuite                     \
+#define StopTestSuite()                   \
   lua_getglobal(lstate, "stopTestSuite"); \
   lua_fileCall(0, 0)
 
@@ -195,7 +195,7 @@ contests.createCTestFile = createCTestFile
   lua_pushunsigned(lstate, (lastLine));                      \
   lua_fileCall(4, 0)
 
-#define StopTestCase                     \
+#define StopTestCase()                   \
   lua_getglobal(lstate, "stopTestCase"); \
   lua_fileCall(0, 0)
 
@@ -360,7 +360,7 @@ end
   lua_pushstring(lstate, (aMessage));                                  \
   lua_fileCall(3, 0)
 
-#define StopAssertShouldFail                \
+#define StopAssertShouldFail()              \
   lua_getglobal(lstate, "stopCShouldFail"); \
   lua_fileCall(0, 0)
 \stopCHeader
@@ -404,9 +404,9 @@ end
 \startTestCase[assertFail should always fail]
 
 \startCTest
-  StartAssertShouldFail(".*", ".*", "outerMessage")
-    AssertFail()
-  StopAssertShouldFail
+  StartAssertShouldFail(".*", ".*", "outerMessage");
+    AssertFail();
+  StopAssertShouldFail();
 \stopCTest
 
 \stopTestCase
