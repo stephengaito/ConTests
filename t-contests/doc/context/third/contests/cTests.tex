@@ -344,6 +344,11 @@ function reportCAssertion(
   curCase.shouldFail = curCase.shouldFail or { }
   
   if 0 < #curCase.shouldFail then
+    io.stdout:write('reportCAssertion shouldFail\n')
+    io.stdout:write(prettyPrint(theCondition)..'\n')
+    io.stdout:write(prettyPrint(aMessage)..'\n')
+    io.stdout:write(prettyPrint(theReason)..'\n')
+    io.stdout:write(prettyPrint(curCase.shouldFail)..'\n')
     -- we are wrapped in a shouldFail
     --
     local shouldFail   = tRemove(curCase.shouldFail)
