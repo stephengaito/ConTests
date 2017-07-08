@@ -8,6 +8,8 @@
 
 local cTests  = { }
 local tInsert = table.insert
+local tRemove = table.remove
+local tSort   = table.sort
 local sFmt    = string.format
 local toStr   = tostring
 
@@ -55,6 +57,52 @@ end
 
 -- from file: cTests.tex after line: 250
 
+local function compareKeyValues(a, b)
+  return (a[1] < b[1])
+end
+
+local function prettyPrint(anObj, indent)
+  local result = ""
+  indent = indent or ""
+  if type(anObj) == 'nil' then
+    result = 'nil'
+  elseif type(anObj) == 'boolean' then
+    if anObj then result = 'true' else result = 'false' end
+  elseif type(anObj) == 'number' then
+    result = toStr(anObj)
+  elseif type(anObj) == 'string' then
+    result = '"'..anObj..'"'
+  elseif type(anObj) == 'function' then
+    result = toStr(anObj)
+  elseif type(anObj) == 'userdata' then
+    result = toStr(anObj)
+  elseif type(anObj) == 'thread' then
+    result = toStr(anObj)
+  elseif type(anObj) == 'table' then
+    local origIndent = indent
+    indent = indent..'  '
+    result = '{\n'
+    for i, aValue in ipairs(anObj) do
+      result = result..indent..prettyPrint(aValue, indent)..',\n'
+    end
+    local theKeyValues = { }
+    for aKey, aValue in pairs(anObj) do
+      if type(aKey) ~= 'number' or aKey < 1 or #anObj < aKey then
+        tInsert(theKeyValues,
+          { prettyPrint(aKey), aKey, prettyPrint(aValue, indent) })
+      end
+    end
+    tSort(theKeyValues, compareKeyValues)
+    for i, aKeyValue in ipairs(theKeyValues) do
+      result = result..indent..'['..aKeyValue[1]..'] = '..aKeyValue[3]..',\n'
+    end
+    result = result..origIndent..'}'
+  else
+    result = 'UNKNOWN TYPE: ['..toStr(anObj)..']'
+  end
+  return result
+end
+
 local function logFailure(reason, suiteDesc, caseDesc,
                           testMsg, errMsg, fileInfo)
   local failure = {}
@@ -77,19 +125,23 @@ end
 function reportCAssertion(
   theCondition, aMessage, theReason,
   testFileName, testFileLine)
-  cTests.curSuite  = cTests.curSuite or { }
-  local curSuite   = cTests.curSuite
-  curSuite.curCase = curSuite.curCase or { }
-  local curCase    = curSuite.curCase
+  cTests.curSuite    = cTests.curSuite or { }
+  local curSuite     = cTests.curSuite
+  curSuite.curCase   = curSuite.curCase or { }
+  local curCase      = curSuite.curCase
+  curCase.shouldFail = curCase.shouldFail or { }
  
-  if type(curCase.shouldFail) == 'table' then
-    local shouldFail   = curCase.shouldFail
+  if 0 < #curCase.shouldFail then
+    -- we are wrapped in a shouldFail
+    --
+    local shouldFail   = tRemove(curCase.shouldFail)
     local innerMessage = aMessage
     local innerReason  = theReason
     theReason          = nil
     theCondition       = not theCondition
-
-    if theReason ~= nil
+ 
+    if theReason == nil
+      and innerMessage ~= nil
       and shouldFail.messagePattern ~= nil
       and type(shouldFail.messagePattern) == 'string'
       and 0 < #shouldFail.messagePattern
@@ -100,7 +152,7 @@ function reportCAssertion(
         innerMessage, shouldFail.messagePattern)
     end
 
-    if theReason ~= nil
+    if theReason == nil
       and shouldFail.reasonPattern ~= nil
       and type(shouldFail.reasonPattern) == 'string'
       and 0 < #shouldFail.reasonPattern
@@ -111,14 +163,23 @@ function reportCAssertion(
         innerReason, shouldFail.reasonPattern)
     end
  
-    if theReason ~= nil then
+    if theReason == nil then
       theReason = sFmt('Expected inner assertion [%s] to fail',
         innerMessage)
     end
     aMessage = shouldFail.message
-    curCase.shouldFail = nil
-  end
  
+    return reportCAssertion(
+      theCondition,
+      aMessage,
+      theReason,
+      testFileName,
+      testFileLine
+    )
+  end
+  -- there are no more wrapping shouldFails
+  -- so report the resulting condition
+  --
   if theCondition then
     -- record stats
   else
@@ -139,11 +200,10 @@ function reportCAssertion(
     cTests.failures = cTests.failures or { }
     tInsert(cTests.failures, failure)
   end
-
   return theCondition
 end
 
--- from file: cTests.tex after line: 350
+-- from file: cTests.tex after line: 400
 
 function startCShouldFail(
   messagePattern, reasonPattern, aMessage,
@@ -152,11 +212,13 @@ function startCShouldFail(
   local curSuite     = cTests.curSuite
   curSuite.curCase   = curSuite.curCase or { }
   local curCase      = curSuite.curCase
-  curCase.shouldFail = { }
-  local shouldFail   = curCase.shouldFail
-  shouldFail.messagePattern = messagePattern
-  shouldFail.reasonPattern  = reasonPattern
-  shouldFail.message        = aMessage
+  local curShouldFail   = { }
+  curShouldFail.messagePattern = messagePattern
+  curShouldFail.reasonPattern  = reasonPattern
+  curShouldFail.message        = aMessage
+ 
+  curCase.shouldFail = curCase.shouldFail or { }
+  tInsert(curCase.shouldFail, curShouldFail)
 end
 
 function stopCShouldFail(testFileName, testFileLine)

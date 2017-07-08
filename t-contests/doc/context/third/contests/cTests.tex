@@ -342,19 +342,18 @@ function reportCAssertion(
   curSuite.curCase   = curSuite.curCase or { }
   local curCase      = curSuite.curCase
   curCase.shouldFail = curCase.shouldFail or { }
-
-  io.stderr:write('shouldFail (reportCAssertion): \n')
-  io.stderr:write(prettyPrint(curCase.shouldFail))
-  io.stderr:write('\n')
   
   if 0 < #curCase.shouldFail then
+    -- we are wrapped in a shouldFail
+    --
     local shouldFail   = tRemove(curCase.shouldFail)
     local innerMessage = aMessage
     local innerReason  = theReason
     theReason          = nil
     theCondition       = not theCondition
-
-    if theReason ~= nil
+  
+    if theReason == nil
+      and innerMessage ~= nil
       and shouldFail.messagePattern ~= nil
       and type(shouldFail.messagePattern) == 'string'
       and 0 < #shouldFail.messagePattern
@@ -365,7 +364,7 @@ function reportCAssertion(
         innerMessage, shouldFail.messagePattern)
     end
 
-    if theReason ~= nil
+    if theReason == nil
       and shouldFail.reasonPattern ~= nil
       and type(shouldFail.reasonPattern) == 'string'
       and 0 < #shouldFail.reasonPattern
@@ -376,14 +375,23 @@ function reportCAssertion(
         innerReason, shouldFail.reasonPattern)
     end
     
-    if theReason ~= nil then
+    if theReason == nil then
       theReason = sFmt('Expected inner assertion [%s] to fail',
         innerMessage)
     end
     aMessage = shouldFail.message
-    curCase.shouldFail = nil
+    
+    return reportCAssertion(
+      theCondition,
+      aMessage,
+      theReason,
+      testFileName,
+      testFileLine
+    )
   end
-  
+  -- there are no more wrapping shouldFails
+  -- so report the resulting condition
+  --
   if theCondition then
     -- record stats
   else
@@ -404,7 +412,6 @@ function reportCAssertion(
     cTests.failures = cTests.failures or { }
     tInsert(cTests.failures, failure)
   end
-
   return theCondition
 end
 \stopLuaCode
@@ -439,10 +446,6 @@ function startCShouldFail(
   
   curCase.shouldFail = curCase.shouldFail or { }
   tInsert(curCase.shouldFail, curShouldFail)
-  
-  io.stderr:write('shouldFail (startShouldFail): \n')
-  io.stderr:write(prettyPrint(curCase.shouldFail))
-  io.stderr:write('\n')
 end
 
 function stopCShouldFail(testFileName, testFileLine)
@@ -473,20 +476,20 @@ StopAssertShouldFail();
 
 \startTestCase[should fail if inner assertion fails with wrong message or reason]
 
-\startConTest
-\startAssertShouldFail{First outer message}{}{First outermost message}
-\startAssertShouldFail{wrong}{}{First outer message}
-  \assertFail{First inner message}
-\stopAssertShouldFail
-\stopAssertShouldFail
+\startCTest
+StartAssertShouldFail("First outer message","","First outermost message");
+StartAssertShouldFail("wrong","","First outer message");
+  AssertFailMsg("First inner message");
+StopAssertShouldFail();
+StopAssertShouldFail();
 
-\startAssertShouldFail{Second outer message}{}{Second outermost message}
-\startAssertShouldFail{}{wrong}{Second outer message}
-  \assertFail{Second inner message}
-\stopAssertShouldFail
-\stopAssertShouldFail
-\stopConTest
-\skipTestCase
+StartAssertShouldFail("Second outer message","","Second outermost message");
+StartAssertShouldFail("","wrong","Second outer message");
+  AssertFailMsg("Second inner message");
+StopAssertShouldFail();
+StopAssertShouldFail();
+\stopCTest
+\stopTestCase
 
 \stopTestSuite
 
