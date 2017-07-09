@@ -144,23 +144,28 @@ function reportCAssertion(
       and innerMessage ~= nil
       and shouldFail.messagePattern ~= nil
       and type(shouldFail.messagePattern) == 'string'
-      and 0 < #shouldFail.messagePattern
-      and innerMessage:match(shouldFail.messagePattern) then
-      -- do nothing
-    else
-      theReason = sFmt('Expected inner message [%s] to match [%s]',
-        innerMessage, shouldFail.messagePattern)
+      and 0 < #shouldFail.messagePattern then
+      if innerMessage:match(shouldFail.messagePattern) then
+        -- do nothing
+      else
+        theReason = sFmt('Expected inner message [%s] to match [%s]',
+          innerMessage, shouldFail.messagePattern)
+        theCondition = false
+      end
     end
 
     if theReason == nil
+      and innerReason ~= nil
       and shouldFail.reasonPattern ~= nil
       and type(shouldFail.reasonPattern) == 'string'
-      and 0 < #shouldFail.reasonPattern
-      and innerReason:match(shouldFail.reasonPattern) then
-      -- do nothing
-    else
-      theReason = sFmt('Expected inner failure reason [%s] to match [%s]',
-        innerReason, shouldFail.reasonPattern)
+      and 0 < #shouldFail.reasonPattern then
+      if innerReason:match(shouldFail.reasonPattern) then
+        -- do nothing
+      else
+        theReason = sFmt('Expected inner failure reason [%s] to match [%s]',
+          innerReason, shouldFail.reasonPattern)
+        theCondition = false
+      end
     end
  
     if theReason == nil then
