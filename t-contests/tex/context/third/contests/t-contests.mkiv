@@ -372,6 +372,21 @@
   \directlua{thirddata.contests.showLuaTest()}
 }
 
+% from file: luaTests.tex after line: 200
+
+\appendtoks
+  \setuevalue{\e!get\currentbuffer Name}{\currentdefinedbuffer}%
+\to \everydefinebuffer
+
+\definebuffer[LuaConTest]
+
+\let\oldStopLuaConTest=\stopLuaConTest
+\def\stopLuaConTest{%
+  \oldStopLuaConTest%
+  %\directlua{thirddata.contests.runLuaConTest('\getConTestLuaName')}
+  \directlua{texio.write_nl('\getLuaConTestName')}
+}
+
 % from file: cTests.tex after line: 0
 
 \definetyping[CTest]

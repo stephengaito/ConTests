@@ -54,11 +54,15 @@ interface. We tailor these ideas for use \emph{inside} \ConTeXt.
 }
 \stopMkIVCode
 
-We provide local names for both \type{string.format} and \type{tostring}. 
-We will make extensive use of both of these functions, in the next 
-section, to format the reason each assertion fails. We defined these both 
-now since we also make use of them to format the error messages returned 
-by \type{runCurLuaTestCase}. 
+Next, we define the \type{addLuaTest} and \type{showLuaTest} Lua methods. 
+The \type{addLuaTest} method simply appends the contents of the 
+\type{_typing_} buffer to the current case's lua array. The 
+\type{showLuaTest} method, makes use of the \type{buildLuaChunk} method to 
+log the actual lua chunk used to run the current case's lua tests. The 
+\type{buildLuaChunk} method takes either an array of strings or a single 
+string containing the Lua code required to run a given Lua test. It then 
+inserts it into the text of a Lua method which provides some standard 
+local values and returns true. 
 
 \startLuaCode
 local function addLuaTest(bufferName)
@@ -71,13 +75,20 @@ end
 
 contests.addLuaTest = addLuaTest
 
-local function buildLuaChunk(case)
-  case.lua = case.lua or { }
-  local luaChunk = tConcat(case.lua, '\n')
+local function buildLuaChunk(luaChunk)
+  if type(luaChunk) == 'table' then
+    luaChunk = tConcat(luaChunk, '\n')
+  end
+
+  if type(luaChunk) ~= 'string' then
+    return nil
+  end
+
   if luaChunk:match('^%s*$') then
-    luaChunk = nil
-  else
-    luaChunk = [=[
+    return nil
+  end
+
+  return [=[
 ---
 local assert    = thirddata.contests.assert
 local showValue = thirddata.contests.showValue
@@ -87,13 +98,13 @@ local showValue = thirddata.contests.showValue
 ---
 return true
 ]=]
-  end
-  return luaChunk
 end
+
+contests.buildLuaChunk = buildLuaChunk
 
 local function showLuaTest()
   texio.write_nl('-----------------------------------------------')
-  local luaChunk = buildLuaChunk(tests.curSuite.curCase)
+  local luaChunk = buildLuaChunk(tests.curSuite.curCase.lua)
   if luaChunk then
     texio.write_nl('Lua Test: ')
     texio.write_nl(luaChunk)
@@ -105,10 +116,23 @@ local function showLuaTest()
 end
 
 contests.showLuaTest = showLuaTest
+\stopLuaCode
 
-local function runCurLuaTestCase(suite, case)
+The \type{runALuaTest} and \type{runCurLuaTestCase} methods together run a 
+Lua test case. The \type{runALuaTest} method expects to be provided with 
+the text of a Lua test to be run in a given suite and case. The 
+\type{runCurLuaTestCase} has the correct patterns of arguments to be a 
+test runner. It uses \type{runALuaTest} to actually \emph{run} to contents 
+of the current test case's lua table. The \type{runALuaTest} runs both the 
+compilation and execution of the test of the Lua test case inside Lua 
+\type{pcall}s in order to ensure all errors are caught and properly dealt 
+with. In particular all errors ensure the current suite and current case 
+both fail. 
+
+\startLuaCode
+local function runALuaTest(luaTest, suite, case)
   case.passed = case.passed or true
-  local luaChunk = buildLuaChunk(case)
+  local luaChunk = buildLuaChunk(luaTest)
   if luaChunk then
     local caseStats = tests.stats.lua.cases
     caseStats.attempted = caseStats.attempted + 1  
@@ -171,8 +195,60 @@ local function runCurLuaTestCase(suite, case)
   end
 end
 
+contests.runALuaTest = runALuaTest
+
+local function runCurLuaTestCase(suite, case)
+  runALuaTest(case.lua, suite, case)
+end
+
 contests.testRunners.runCurLuaTestCase = runCurLuaTestCase
 \stopLuaCode
+
+\section[title=Additional MkIV assertions]
+
+\startTestSuite[ConTestLua environment]
+
+As literate programmers we are making extensive use of \ConTeXt\ macros as 
+interfaces to Lua code. This means that we often want to verify that the 
+expansion of a given \ConTeXt\ macro makes associated changes to the state 
+of Lua data structures. To do this we would like to run arbitrary Lua 
+tests at appropriate points in a ConTest. We can do this by using the 
+\type{ConTestLua} environment. 
+
+The \type{ConTestLua} environment is implemented using the \ConTeXt\ 
+buffer environment. and \type{\stopConTestLua} macros use the 
+\type{\directlua} macro to call the corresponding \type{something}. 
+
+\startMkIVCode
+\appendtoks
+  \setuevalue{\e!get\currentbuffer Name}{\currentdefinedbuffer}%
+\to \everydefinebuffer
+
+\definebuffer[LuaConTest]
+
+\let\oldStopLuaConTest=\stopLuaConTest
+\def\stopLuaConTest{%
+  \oldStopLuaConTest%
+  \directlua{thirddata.contests.runConTestLuaTest('\getConTestLuaName')}
+}
+\stopMkIVCode
+
+\startLuaCode
+local function runLuaConTestTest(bufferName)
+  texio.write_nl(bufferName)
+end
+\stopLuaCode
+
+\startTestCase[getCurBufferName]
+\startConTest
+  \assertDefined(startLuaConTest)
+  \assertDefined(stopLuaConTest)
+  \assertDefined(oldStopLuaConTest)
+  \assertDefined{getLuaConTestName}
+\stopConTest
+\stopTestCase
+
+\stopTestSuite
 
 \section[title=Lua Assertions]
 

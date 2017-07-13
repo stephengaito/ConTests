@@ -576,13 +576,20 @@ end
 
 contests.addLuaTest = addLuaTest
 
-local function buildLuaChunk(case)
-  case.lua = case.lua or { }
-  local luaChunk = tConcat(case.lua, '\n')
+local function buildLuaChunk(luaChunk)
+  if type(luaChunk) == 'table' then
+    luaChunk = tConcat(luaChunk, '\n')
+  end
+
+  if type(luaChunk) ~= 'string' then
+    return nil
+  end
+
   if luaChunk:match('^%s*$') then
-    luaChunk = nil
-  else
-    luaChunk = [=[
+    return nil
+  end
+
+  return [=[
 ---
 local assert    = thirddata.contests.assert
 local showValue = thirddata.contests.showValue
@@ -592,13 +599,13 @@ local showValue = thirddata.contests.showValue
 ---
 return true
 ]=]
-  end
-  return luaChunk
 end
+
+contests.buildLuaChunk = buildLuaChunk
 
 local function showLuaTest()
   texio.write_nl('-----------------------------------------------')
-  local luaChunk = buildLuaChunk(tests.curSuite.curCase)
+  local luaChunk = buildLuaChunk(tests.curSuite.curCase.lua)
   if luaChunk then
     texio.write_nl('Lua Test: ')
     texio.write_nl(luaChunk)
@@ -611,9 +618,11 @@ end
 
 contests.showLuaTest = showLuaTest
 
-local function runCurLuaTestCase(suite, case)
+-- from file: luaTests.tex after line: 100
+
+local function runALuaTest(luaTest, suite, case)
   case.passed = case.passed or true
-  local luaChunk = buildLuaChunk(case)
+  local luaChunk = buildLuaChunk(luaTest)
   if luaChunk then
     local caseStats = tests.stats.lua.cases
     caseStats.attempted = caseStats.attempted + 1
@@ -674,6 +683,12 @@ local function runCurLuaTestCase(suite, case)
       tInsert(tests.failures, failure)
     end
   end
+end
+
+contests.runALuaTest = runALuaTest
+
+local function runCurLuaTestCase(suite, case)
+  runALuaTest(case.lua, suite, case)
 end
 
 contests.testRunners.runCurLuaTestCase = runCurLuaTestCase
@@ -745,7 +760,7 @@ function assert.fail(aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 350
+-- from file: luaTests.tex after line: 400
 
 function assert.succeed(aMessage)
   return reportLuaAssertion(
@@ -795,7 +810,7 @@ function assert.isFalse(aBoolean, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 550
+-- from file: luaTests.tex after line: 600
 
 function assert.isNil(anObj, aMessage)
   return reportLuaAssertion(
@@ -967,7 +982,7 @@ function assert.length(anObj, aLength, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1300
+-- from file: luaTests.tex after line: 1350
 
 function assert.isNotLength(anObj, aLength, aMessage)
   return reportLuaAssertion(
@@ -978,7 +993,7 @@ function assert.isNotLength(anObj, aLength, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1350
+-- from file: luaTests.tex after line: 1400
 
 function assert.isNotString(anObj, aMessage)
   return reportLuaAssertion(
@@ -1040,7 +1055,7 @@ function assert.isFunction(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1600
+-- from file: luaTests.tex after line: 1650
 
 function assert.isNotFunction(anObj, aMessage)
   return reportLuaAssertion(
@@ -1082,7 +1097,7 @@ function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1750
+-- from file: luaTests.tex after line: 1800
 
 function assert.doesNotHaveMetaTable(anObj, aMessage)
   return reportLuaAssertion(
@@ -1122,7 +1137,7 @@ function assert.isUserData(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1900
+-- from file: luaTests.tex after line: 1950
 
 function assert.isNotUserData(anObj, aMessage)
   return reportLuaAssertion(
