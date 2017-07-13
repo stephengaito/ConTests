@@ -38,19 +38,21 @@ The method then appends the buffer string to the end of the
 suite. 
 
 \startLuaCode
-function contests.addConTest(bufferName)
+local function addConTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
   local suite = tests.curSuite
   local case  = suite.curCase
   case.mkiv   = case.mkiv or {}
   tInsert(case.mkiv, bufferContents)
 end
+
+contests.addConTest = addConTest
 \stopLuaCode
 
 TODO discuss \type{runCurMkIVTestCase}.
 
 \startLuaCode
-function contests.runCurMkIVTestCase(suite, case)
+local function runCurMkIVTestCase(suite, case)
   case.passed = case.passed or true
   case.mkiv   = case.mkiv   or { }
   local mkivChunk = tConcat(case.mkiv, '\n')
@@ -69,11 +71,15 @@ function contests.runCurMkIVTestCase(suite, case)
   end
 end
 
-function contests.startConTestImplementation()
+contests.testRunners.runCurMkIVTestCase = runCurMkIVTestCase
+
+local function startConTestImplementation()
   -- nothing to do at the moment
 end
 
-function contests.stopConTestImplementation()
+contests.startConTestImplementation = startConTestImplementation
+
+local function stopConTestImplementation()
   local curCase  = tests.curSuite.curCase
   local caseStats = mkivStats.cases
   if curCase.passed then
@@ -83,6 +89,7 @@ function contests.stopConTestImplementation()
   end
 end
 
+contests.stopConTestImplementation = stopConTestImplementation
 \stopLuaCode
 
 \section[title=Assertions]

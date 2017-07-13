@@ -12,22 +12,23 @@ if not modules then modules = { } end modules ['t-contests'] = {
     license   = "MIT License"
 }
 
-thirddata          = thirddata          or {}
-thirddata.contests = thirddata.contests or {}
+thirddata            = thirddata          or {}
+thirddata.contests   = thirddata.contests or {}
 
-local contests   = thirddata.contests
-contests.tests   = {}
-local tests      = contests.tests
-tests.suites     = {}
-tests.failures   = {}
-contests.assert  = {}
-local assert     = contests.assert
-contests.expInfo = {}
-local expInfo    = contests.expInfo
+local contests       = thirddata.contests
+contests.tests       = {}
+local tests          = contests.tests
+tests.suites         = {}
+tests.failures       = {}
+contests.assert      = {}
+local assert         = contests.assert
+contests.testRunners = {}
+contests.expInfo     = {}
+local expInfo        = contests.expInfo
 
-local litProgs     = thirddata.literateProgs
-litProgs.templates = litProgs.templates or {}
-local templates    = litProgs.templates
+local litProgs       = thirddata.literateProgs
+litProgs.templates   = litProgs.templates or {}
+local templates      = litProgs.templates
 
 local function initRawStats()
   local raw = {}
@@ -97,8 +98,11 @@ function contests.stopTestCase()
   local curSuite   = tests.curSuite
   local curCase    = curSuite.curCase
   curCase.lastLine = status.linenumber
-  contests.runCurMkIVTestCase(curSuite, curCase)
-  contests.runCurLuaTestCase(curSuite, curCase)
+  for runnerName, runner in pairs(contests.testRunners) do
+    if type(runner) == 'function' then
+      runner(curSuite, curCase)
+    end
+  end
   tInsert(curSuite.cases, curCase)
 end
 
@@ -162,7 +166,7 @@ function contests.reportFailures()
   end
 end
 
--- from file: testSuites.tex after line: 250
+-- from file: testSuites.tex after line: 300
 
 function contests.reportStats(statsType)
   local stats = tests.stats[statsType]
@@ -189,7 +193,7 @@ end
 
 -- from file: mkivTests.tex after line: 0
 
-function contests.addConTest(bufferName)
+local function addConTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
   local suite = tests.curSuite
   local case  = suite.curCase
@@ -197,9 +201,11 @@ function contests.addConTest(bufferName)
   tInsert(case.mkiv, bufferContents)
 end
 
+contests.addConTest = addConTest
+
 -- from file: mkivTests.tex after line: 50
 
-function contests.runCurMkIVTestCase(suite, case)
+local function runCurMkIVTestCase(suite, case)
   case.passed = case.passed or true
   case.mkiv   = case.mkiv   or { }
   local mkivChunk = tConcat(case.mkiv, '\n')
@@ -218,11 +224,15 @@ function contests.runCurMkIVTestCase(suite, case)
   end
 end
 
-function contests.startConTestImplementation()
+contests.testRunners.runCurMkIVTestCase = runCurMkIVTestCase
+
+local function startConTestImplementation()
   -- nothing to do at the moment
 end
 
-function contests.stopConTestImplementation()
+contests.startConTestImplementation = startConTestImplementation
+
+local function stopConTestImplementation()
   local curCase  = tests.curSuite.curCase
   local caseStats = mkivStats.cases
   if curCase.passed then
@@ -231,6 +241,8 @@ function contests.stopConTestImplementation()
     caseStats.failed = caseStats.failed + 1
   end
 end
+
+contests.stopConTestImplementation = stopConTestImplementation
 
 -- from file: mkivTests.tex after line: 100
 
@@ -299,7 +311,7 @@ end
 
 contests.reportMkIVAssertion = reportMkIVAssertion
 
--- from file: mkivTests.tex after line: 150
+-- from file: mkivTests.tex after line: 200
 
 function contests.mkivAssertShouldFail(messagePattern, reasonPattern, aMessage)
   local curCase = tests.curSuite.curCase
@@ -346,7 +358,7 @@ end
 
 contests.setExpansionLogging = setExpansionLogging
 
--- from file: mkivTests.tex after line: 750
+-- from file: mkivTests.tex after line: 800
 
 local function recordExpansion(macroName,
                                callType,
@@ -554,13 +566,15 @@ contests.showValue = showValue
 
 -- from file: luaTests.tex after line: 50
 
-function contests.addLuaTest(bufferName)
+local function addLuaTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
   local suite = tests.curSuite
   local case  = suite.curCase
   case.lua    = case.lua or {}
   tInsert(case.lua, bufferContents)
 end
+
+contests.addLuaTest = addLuaTest
 
 local function buildLuaChunk(case)
   case.lua = case.lua or { }
@@ -582,7 +596,7 @@ return true
   return luaChunk
 end
 
-function contests.showLuaTest()
+local function showLuaTest()
   texio.write_nl('-----------------------------------------------')
   local luaChunk = buildLuaChunk(tests.curSuite.curCase)
   if luaChunk then
@@ -595,7 +609,9 @@ function contests.showLuaTest()
   texio.write_nl('-----------------------------------------------')
 end
 
-function contests.runCurLuaTestCase(suite, case)
+contests.showLuaTest = showLuaTest
+
+local function runCurLuaTestCase(suite, case)
   case.passed = case.passed or true
   local luaChunk = buildLuaChunk(case)
   if luaChunk then
@@ -659,6 +675,8 @@ function contests.runCurLuaTestCase(suite, case)
     end
   end
 end
+
+contests.testRunners.runCurLuaTestCase = runCurLuaTestCase
 
 -- from file: luaTests.tex after line: 150
 
@@ -767,7 +785,7 @@ function assert.isTrue(aBoolean, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 500
+-- from file: luaTests.tex after line: 550
 
 function assert.isFalse(aBoolean, aMessage)
   return reportLuaAssertion(

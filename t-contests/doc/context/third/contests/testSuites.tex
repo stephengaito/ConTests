@@ -2,17 +2,17 @@
 
 \startchapter[title=Unit Testing]
 
-Inspired by the Behavioural Driven Development (BDD) paradigm as 
-implemented by, for example, Ruby's RSpec testing tool, we use a 
-hierarchical structure for our tests. At the top level a particular 
-behaviour is tested in a \quote{TestSuite}. Different examples of this 
-behaviour are tested in various \quote{TestCases} contained in a 
-\quote{TestSuite}. Finally particular \quote{assertions} are listed in one 
-or more \quote{Tests} contained in a given \quote{TestCase}. Paralleling 
-the companion Literate Programming \ConTeXt\ module, we have three types 
-of tests, \quote{ConTests}, \quote{LuaTests} and \quote{CTests} to test 
-collections of assertions written in \TeX\ or \ConTeXt\ macros, Lua, or 
-ANSI-C code respectively. 
+Inspired by the Behaviour Driven Development (BDD) paradigm as implemented 
+by, for example, Ruby's RSpec testing tool, we use a hierarchical 
+structure for our tests. At the top level a particular behaviour is tested 
+in a \quote{TestSuite}. Different examples of this behaviour are tested in 
+various \quote{TestCases} contained in a \quote{TestSuite}. Finally 
+particular \quote{assertions} are listed in one or more \quote{Tests} 
+contained in a given \quote{TestCase}. Paralleling the companion Literate 
+Programming \ConTeXt\ module, we have three types of tests, 
+\quote{ConTests}, \quote{LuaTests} and \quote{CTests} to test collections 
+of assertions written in \TeX\ or \ConTeXt\ macros, Lua, or ANSI-C code 
+respectively. 
 
 \section[title=TestSuites]
 
@@ -141,12 +141,21 @@ TestCases are failing to perform as expected.
 
 The \type{stopTestCase} and \type{skipTestCase} methods, both ensure that 
 the current TestCase is appended to the TestSuite's \type{case} entry for 
-any future use. Most importantly the \type{stopTestCase} calls the 
-\type{runCurMkIVTestCase} and \type{runLuaTestCase} methods which ensure 
-the tests contained in any ConTest and LuaTest environments defined in the 
-current TestCase are \quote{executed}. These two \type{runXXXTestCase} 
-methods are defined below in their respective sections as part of the 
-overall ConTest or LuaTest unit test definitions. 
+any future use.
+
+To be extensible we provide the ability to add test runner Lua methods to 
+the \type{thirddata.contests.testRunners} Lua (hash) table. Any Lua method 
+found in the \type{thirddata.contests.testRunner} \emph{hash} will be run 
+by the \type{stopTestCase} method at the end of every test case. These 
+test runner Lua methods must accept two arguments, the \type{curSuite} and 
+the \type{curCase}, which are the Lua table containing the current test 
+suite and test case respectively. 
+
+This \ConTeXt\ module defines two test runners, \type{runCurMkIVTestCase} 
+and \type{runLuaTestCase}, to run the ConTest and LuaTest tests defined by 
+a given test case. These two test runners are defined below in their 
+respective sections as part of the overall ConTest or LuaTest unit test 
+definitions. 
 
 \startLuaCode
 function contests.startTestCase(aDesc)
@@ -163,8 +172,11 @@ function contests.stopTestCase()
   local curSuite   = tests.curSuite
   local curCase    = curSuite.curCase
   curCase.lastLine = status.linenumber
-  contests.runCurMkIVTestCase(curSuite, curCase)
-  contests.runCurLuaTestCase(curSuite, curCase)
+  for runnerName, runner in pairs(contests.testRunners) do
+    if type(runner) == 'function' then
+      runner(curSuite, curCase)
+    end
+  end
   tInsert(curSuite.cases, curCase)
 end
 

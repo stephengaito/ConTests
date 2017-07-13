@@ -61,13 +61,15 @@ now since we also make use of them to format the error messages returned
 by \type{runCurLuaTestCase}. 
 
 \startLuaCode
-function contests.addLuaTest(bufferName)
+local function addLuaTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
   local suite = tests.curSuite
   local case  = suite.curCase
   case.lua    = case.lua or {}
   tInsert(case.lua, bufferContents)
 end
+
+contests.addLuaTest = addLuaTest
 
 local function buildLuaChunk(case)
   case.lua = case.lua or { }
@@ -89,7 +91,7 @@ return true
   return luaChunk
 end
 
-function contests.showLuaTest()
+local function showLuaTest()
   texio.write_nl('-----------------------------------------------')
   local luaChunk = buildLuaChunk(tests.curSuite.curCase)
   if luaChunk then
@@ -102,7 +104,9 @@ function contests.showLuaTest()
   texio.write_nl('-----------------------------------------------')
 end
 
-function contests.runCurLuaTestCase(suite, case)
+contests.showLuaTest = showLuaTest
+
+local function runCurLuaTestCase(suite, case)
   case.passed = case.passed or true
   local luaChunk = buildLuaChunk(case)
   if luaChunk then
@@ -167,6 +171,7 @@ function contests.runCurLuaTestCase(suite, case)
   end
 end
 
+contests.testRunners.runCurLuaTestCase = runCurLuaTestCase
 \stopLuaCode
 
 \section[title=Lua Assertions]

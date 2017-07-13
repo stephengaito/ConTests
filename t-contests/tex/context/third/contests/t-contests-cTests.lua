@@ -2,8 +2,6 @@
 
 -- from file: cTests.tex after line: 200
 
--- from file: cTests.tex after line: 200
-
 -- This is the lua code associated with the t-contests-cTests
 
 local cTests  = { }

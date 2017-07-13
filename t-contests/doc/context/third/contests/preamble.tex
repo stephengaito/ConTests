@@ -64,22 +64,23 @@ if not modules then modules = { } end modules ['t-contests'] = {
     license   = "MIT License"
 }
 
-thirddata          = thirddata          or {}
-thirddata.contests = thirddata.contests or {}
+thirddata            = thirddata          or {}
+thirddata.contests   = thirddata.contests or {}
 
-local contests   = thirddata.contests
-contests.tests   = {}
-local tests      = contests.tests
-tests.suites     = {}
-tests.failures   = {}
-contests.assert  = {}
-local assert     = contests.assert
-contests.expInfo = {}
-local expInfo    = contests.expInfo
+local contests       = thirddata.contests
+contests.tests       = {}
+local tests          = contests.tests
+tests.suites         = {}
+tests.failures       = {}
+contests.assert      = {}
+local assert         = contests.assert
+contests.testRunners = {}
+contests.expInfo     = {}
+local expInfo        = contests.expInfo
 
-local litProgs     = thirddata.literateProgs
-litProgs.templates = litProgs.templates or {}
-local templates    = litProgs.templates
+local litProgs       = thirddata.literateProgs
+litProgs.templates   = litProgs.templates or {}
+local templates      = litProgs.templates
 
 local function initRawStats()
   local raw = {}
