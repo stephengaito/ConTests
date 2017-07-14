@@ -133,66 +133,75 @@ both fail.
 local function runALuaTest(luaTest, suite, case)
   case.passed = case.passed or true
   local luaChunk = buildLuaChunk(luaTest)
-  if luaChunk then
-    local caseStats = tests.stats.lua.cases
-    caseStats.attempted = caseStats.attempted + 1  
-    local luaFunc, errMessage = load(luaChunk)
-    if luaFunc then
-      local ok, errObj = pcall(luaFunc)
-      if ok then
-        caseStats.passed = caseStats.passed + 1
-        tex.print("\\noindent{\\green PASSED}")
-      else
-        case.passed  = false
-        suite.passed = false
-        caseStats.failed = caseStats.failed + 1
-        if type(errObj) == 'string' then
-          errObj = {
-            message = 'Could not execute the LuaTest.',
-            reason = errObj..'.'
-          }
-        end
-        if type(errObj) ~= 'table' then
-          errObj = {
-            message = 'Could not execute the LuaTest.',
-            reason = 'Is something unexpectedly nil?'
-          }
-        end
-        if errObj.message == nil then
-          errObj.message = 'Could not execute the LuaTest.'
-        end
-        if errObj.reason == nil then
-          errObj.reason = 'Is something unexpectedly nil?'
-        end
-        local failure = logFailure(
-          "LuaTest FAILED",
-          suite.desc,
-          case.desc,
-          errObj.message,
-          toStr(errObj.reason),
-          sFmt("in file: %s between lines %s and %s",
-            case.fileName, toStr(case.startLine), toStr(case.lastLine))
-        )
-        reportFailure(failure, false)
-        tInsert(tests.failures, failure)
-      end
-    else
-      case.passed  = false
-      suite.passed = false
-      caseStats.failed = caseStats.failed + 1
-      local failure = logFailure(
-        "LuaTest FAILED TO COMPILE",
-        suite.desc,
-        case.desc,
-        "",
-        errMessage,
-        sFmt("in file: %s between lines %s and %s",
-          case.fileName, toStr(case.startLine), toStr(case.lastLine))
-      )
-      reportFailure(failure, false)
-      tInsert(tests.failures, failure)
-    end
+  if not luaChunk then
+    -- nothing to test
+    return true
   end
+
+  local caseStats = tests.stats.lua.cases
+  caseStats.attempted = caseStats.attempted + 1
+  local luaFunc, errMessage = load(luaChunk)
+  if not luaFunc then
+    -- could not compile the lua chunk
+    case.passed  = false
+    suite.passed = false
+    caseStats.failed = caseStats.failed + 1
+    local failure = logFailure(
+      "LuaTest FAILED TO COMPILE",
+      suite.desc,
+      case.desc,
+      "",
+      errMessage,
+      sFmt("in file: %s between lines %s and %s",
+        case.fileName, toStr(case.startLine), toStr(case.lastLine))
+      )
+    reportFailure(failure, false)
+    tInsert(tests.failures, failure)
+    return false
+  end
+
+  local ok, errObj = pcall(luaFunc)
+  if not ok then
+    -- could not run the tests or one failed
+    case.passed  = false
+    suite.passed = false
+    caseStats.failed = caseStats.failed + 1
+    if type(errObj) == 'string' then
+      errObj = {
+        message = 'Could not execute the LuaTest.',
+        reason = errObj..'.'
+      }
+    end
+    if type(errObj) ~= 'table' then
+      errObj = {
+        message = 'Could not execute the LuaTest.',
+        reason = 'Is something unexpectedly nil?'
+      }
+    end
+    if errObj.message == nil then
+      errObj.message = 'Could not execute the LuaTest.'
+    end
+    if errObj.reason == nil then
+      errObj.reason = 'Is something unexpectedly nil?'
+    end
+    local failure = logFailure(
+      "LuaTest FAILED",
+      suite.desc,
+      case.desc,
+      errObj.message,
+      toStr(errObj.reason),
+      sFmt("in file: %s between lines %s and %s",
+        case.fileName, toStr(case.startLine), toStr(case.lastLine))
+      )
+    reportFailure(failure, false)
+    tInsert(tests.failures, failure)
+    return false
+  end
+
+  -- all tests passed
+  caseStats.passed = caseStats.passed + 1
+  tex.print("\\noindent{\\green PASSED}")
+  return true
 end
 
 contests.runALuaTest = runALuaTest
@@ -206,45 +215,68 @@ contests.testRunners.runCurLuaTestCase = runCurLuaTestCase
 
 \section[title=Additional MkIV assertions]
 
-\startTestSuite[ConTestLua environment]
+\startTestSuite[LuaConTest environment]
 
 As literate programmers we are making extensive use of \ConTeXt\ macros as 
 interfaces to Lua code. This means that we often want to verify that the 
 expansion of a given \ConTeXt\ macro makes associated changes to the state 
 of Lua data structures. To do this we would like to run arbitrary Lua 
 tests at appropriate points in a ConTest. We can do this by using the 
-\type{ConTestLua} environment. 
+\type{LuaConTest} environment. 
 
-The \type{ConTestLua} environment is implemented using the \ConTeXt\ 
-buffer environment. and \type{\stopConTestLua} macros use the 
-\type{\directlua} macro to call the corresponding \type{something}. 
+The \type{LuaConTest} environment is implemented using the \ConTeXt\ 
+buffer environment. The \type{\stopLuaConTest} macro uses the 
+\type{\directlua} macro to call the \type{runLuaConTest} method with the 
+name of the \type{LuaConTest} buffer. We define the 
+\type{\getLuaConTestName} macro to be able to capture the correct name of 
+the \type{LuaConTest} buffer. 
 
 \startMkIVCode
 \appendtoks
-  \setuevalue{\e!get\currentbuffer Name}{\currentdefinedbuffer}%
+  \setevalue{\e!get\currentbuffer Name}{\currentdefinedbuffer}%
 \to \everydefinebuffer
 
 \definebuffer[LuaConTest]
 
-\let\oldStopLuaConTest=\stopLuaConTest
 \def\stopLuaConTest{%
-  \oldStopLuaConTest%
-  \directlua{thirddata.contests.runConTestLuaTest('\getConTestLuaName')}
+  \directlua{thirddata.contests.runLuaConTest('\getLuaConTestName')}
 }
 \stopMkIVCode
 
+The \type{runLuaConTest} Lua method, takes the \type{bufferName} and uses 
+it to get the contents of the buffer, corrects the line endings, and then 
+passed the contents to the \type{runALuaTest} method. The results of 
+running the Lua test is then provided to the \type{reportMkIVAssertion} 
+method to ensure the LuaConTest environment is treated as a ConTest 
+assertion. 
+
 \startLuaCode
-local function runLuaConTestTest(bufferName)
-  texio.write_nl(bufferName)
+local function runLuaConTest(bufferName)
+  local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
+  local curSuite       = tests.curSuite
+  local curCase        = curSuite.curCase
+  local result         = runALuaTest(bufferContents, curSuite, curCase)
+  reportMkIVAssertion(
+    result,
+    'LuaConTest failed',
+    'expected LuaConTest ['..bufferContents..'] to succeed'
+  )
 end
+
+contests.runLuaConTest = runLuaConTest
 \stopLuaCode
 
-\startTestCase[getCurBufferName]
+\startTestCase[should be able to run simple LuaConTests]
 \startConTest
-  \assertDefined(startLuaConTest)
-  \assertDefined(stopLuaConTest)
-  \assertDefined(oldStopLuaConTest)
-  \assertDefined{getLuaConTestName}
+  \assertDefined{startLuaConTest}{}
+  \assertDefined{stopLuaConTest}{}
+  \assertDefined{getLuaConTestName}{}
+  \startLuaConTest
+    assert.throwsError(assert.fail)
+  \stopLuaConTest
+  \startLuaConTest
+    assert.succeed("this is a test")
+  \stopLuaConTest
 \stopConTest
 \stopTestCase
 

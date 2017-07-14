@@ -623,66 +623,75 @@ contests.showLuaTest = showLuaTest
 local function runALuaTest(luaTest, suite, case)
   case.passed = case.passed or true
   local luaChunk = buildLuaChunk(luaTest)
-  if luaChunk then
-    local caseStats = tests.stats.lua.cases
-    caseStats.attempted = caseStats.attempted + 1
-    local luaFunc, errMessage = load(luaChunk)
-    if luaFunc then
-      local ok, errObj = pcall(luaFunc)
-      if ok then
-        caseStats.passed = caseStats.passed + 1
-        tex.print("\\noindent{\\green PASSED}")
-      else
-        case.passed  = false
-        suite.passed = false
-        caseStats.failed = caseStats.failed + 1
-        if type(errObj) == 'string' then
-          errObj = {
-            message = 'Could not execute the LuaTest.',
-            reason = errObj..'.'
-          }
-        end
-        if type(errObj) ~= 'table' then
-          errObj = {
-            message = 'Could not execute the LuaTest.',
-            reason = 'Is something unexpectedly nil?'
-          }
-        end
-        if errObj.message == nil then
-          errObj.message = 'Could not execute the LuaTest.'
-        end
-        if errObj.reason == nil then
-          errObj.reason = 'Is something unexpectedly nil?'
-        end
-        local failure = logFailure(
-          "LuaTest FAILED",
-          suite.desc,
-          case.desc,
-          errObj.message,
-          toStr(errObj.reason),
-          sFmt("in file: %s between lines %s and %s",
-            case.fileName, toStr(case.startLine), toStr(case.lastLine))
-        )
-        reportFailure(failure, false)
-        tInsert(tests.failures, failure)
-      end
-    else
-      case.passed  = false
-      suite.passed = false
-      caseStats.failed = caseStats.failed + 1
-      local failure = logFailure(
-        "LuaTest FAILED TO COMPILE",
-        suite.desc,
-        case.desc,
-        "",
-        errMessage,
-        sFmt("in file: %s between lines %s and %s",
-          case.fileName, toStr(case.startLine), toStr(case.lastLine))
-      )
-      reportFailure(failure, false)
-      tInsert(tests.failures, failure)
-    end
+  if not luaChunk then
+    -- nothing to test
+    return true
   end
+
+  local caseStats = tests.stats.lua.cases
+  caseStats.attempted = caseStats.attempted + 1
+  local luaFunc, errMessage = load(luaChunk)
+  if not luaFunc then
+    -- could not compile the lua chunk
+    case.passed  = false
+    suite.passed = false
+    caseStats.failed = caseStats.failed + 1
+    local failure = logFailure(
+      "LuaTest FAILED TO COMPILE",
+      suite.desc,
+      case.desc,
+      "",
+      errMessage,
+      sFmt("in file: %s between lines %s and %s",
+        case.fileName, toStr(case.startLine), toStr(case.lastLine))
+      )
+    reportFailure(failure, false)
+    tInsert(tests.failures, failure)
+    return false
+  end
+
+  local ok, errObj = pcall(luaFunc)
+  if not ok then
+    -- could not run the tests or one failed
+    case.passed  = false
+    suite.passed = false
+    caseStats.failed = caseStats.failed + 1
+    if type(errObj) == 'string' then
+      errObj = {
+        message = 'Could not execute the LuaTest.',
+        reason = errObj..'.'
+      }
+    end
+    if type(errObj) ~= 'table' then
+      errObj = {
+        message = 'Could not execute the LuaTest.',
+        reason = 'Is something unexpectedly nil?'
+      }
+    end
+    if errObj.message == nil then
+      errObj.message = 'Could not execute the LuaTest.'
+    end
+    if errObj.reason == nil then
+      errObj.reason = 'Is something unexpectedly nil?'
+    end
+    local failure = logFailure(
+      "LuaTest FAILED",
+      suite.desc,
+      case.desc,
+      errObj.message,
+      toStr(errObj.reason),
+      sFmt("in file: %s between lines %s and %s",
+        case.fileName, toStr(case.startLine), toStr(case.lastLine))
+      )
+    reportFailure(failure, false)
+    tInsert(tests.failures, failure)
+    return false
+  end
+
+  -- all tests passed
+  caseStats.passed = caseStats.passed + 1
+  tex.print("\\noindent{\\green PASSED}")
+  return true
 end
 
 contests.runALuaTest = runALuaTest
@@ -693,7 +702,23 @@ end
 
 contests.testRunners.runCurLuaTestCase = runCurLuaTestCase
 
--- from file: luaTests.tex after line: 150
+-- from file: luaTests.tex after line: 250
+
+local function runLuaConTest(bufferName)
+  local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
+  local curSuite       = tests.curSuite
+  local curCase        = curSuite.curCase
+  local result         = runALuaTest(bufferContents, curSuite, curCase)
+  reportMkIVAssertion(
+    result,
+    'LuaConTest failed',
+    'expected LuaConTest ['..bufferContents..'] to succeed'
+  )
+end
+
+contests.runLuaConTest = runLuaConTest
+
+-- from file: luaTests.tex after line: 250
 
 function reportLuaAssertion(theCondition, aMessage, theReason)
   local assertionStats = tests.stats.lua.assertions
@@ -713,7 +738,7 @@ function reportLuaAssertion(theCondition, aMessage, theReason)
   assertionStats.passed = assertionStats.passed + 1
 end
 
--- from file: luaTests.tex after line: 200
+-- from file: luaTests.tex after line: 300
 
 function assert.throwsError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
@@ -731,7 +756,7 @@ function assert.throwsError(aFunction, aMessage, ...)
   )
 end
 
--- from file: luaTests.tex after line: 300
+-- from file: luaTests.tex after line: 400
 
 function assert.throwsNoError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
@@ -750,7 +775,7 @@ function assert.throwsNoError(aFunction, aMessage, ...)
   )
 end
 
--- from file: luaTests.tex after line: 350
+-- from file: luaTests.tex after line: 450
 
 function assert.fail(aMessage)
   return reportLuaAssertion(
@@ -760,7 +785,7 @@ function assert.fail(aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 400
+-- from file: luaTests.tex after line: 500
 
 function assert.succeed(aMessage)
   return reportLuaAssertion(
@@ -770,7 +795,7 @@ function assert.succeed(aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 400
+-- from file: luaTests.tex after line: 500
 
 function assert.isBoolean(anObj, aMessage)
   return reportLuaAssertion(
@@ -780,7 +805,7 @@ function assert.isBoolean(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 450
+-- from file: luaTests.tex after line: 550
 
 function assert.isNotBoolean(anObj, aMessage)
   return reportLuaAssertion(
@@ -790,7 +815,7 @@ function assert.isNotBoolean(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 500
+-- from file: luaTests.tex after line: 600
 
 function assert.isTrue(aBoolean, aMessage)
   return reportLuaAssertion(
@@ -800,7 +825,7 @@ function assert.isTrue(aBoolean, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 550
+-- from file: luaTests.tex after line: 650
 
 function assert.isFalse(aBoolean, aMessage)
   return reportLuaAssertion(
@@ -810,7 +835,7 @@ function assert.isFalse(aBoolean, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 600
+-- from file: luaTests.tex after line: 700
 
 function assert.isNil(anObj, aMessage)
   return reportLuaAssertion(
@@ -820,7 +845,7 @@ function assert.isNil(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 600
+-- from file: luaTests.tex after line: 700
 
 function assert.isNotNil(anObj, aMessage)
   return reportLuaAssertion(
@@ -830,7 +855,7 @@ function assert.isNotNil(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 650
+-- from file: luaTests.tex after line: 750
 
 function assert.isEqual(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -841,7 +866,7 @@ function assert.isEqual(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 700
+-- from file: luaTests.tex after line: 800
 
 function assert.isEqualWithIn(numA, numB,
   tolerance, aMessage)
@@ -854,7 +879,7 @@ function assert.isEqualWithIn(numA, numB,
   )
 end
 
--- from file: luaTests.tex after line: 750
+-- from file: luaTests.tex after line: 850
 
 function assert.isNotEqual(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -865,7 +890,7 @@ function assert.isNotEqual(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 800
+-- from file: luaTests.tex after line: 900
 
 function assert.isNotEqualWithIn(numA, numB, tolerance, aMessage)
   return reportLuaAssertion(
@@ -877,7 +902,7 @@ function assert.isNotEqualWithIn(numA, numB, tolerance, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 850
+-- from file: luaTests.tex after line: 950
 
 function assert.isNumber(anObj, aMessage)
   return reportLuaAssertion(
@@ -887,7 +912,7 @@ function assert.isNumber(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 900
+-- from file: luaTests.tex after line: 1000
 
 function assert.isGT(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -897,7 +922,7 @@ function assert.isGT(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 950
+-- from file: luaTests.tex after line: 1050
 
 function assert.isGTE(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -907,7 +932,7 @@ function assert.isGTE(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1000
+-- from file: luaTests.tex after line: 1100
 
 function assert.isLT(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -917,7 +942,7 @@ function assert.isLT(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1050
+-- from file: luaTests.tex after line: 1150
 
 function assert.isLTE(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -927,7 +952,7 @@ function assert.isLTE(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1100
+-- from file: luaTests.tex after line: 1200
 
 function assert.isNotNumber(anObj, aMessage)
   return reportLuaAssertion(
@@ -937,7 +962,7 @@ function assert.isNotNumber(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1150
+-- from file: luaTests.tex after line: 1250
 
 function assert.isString(anObj, aMessage)
   return reportLuaAssertion(
@@ -947,7 +972,7 @@ function assert.isString(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1200
+-- from file: luaTests.tex after line: 1300
 
 function assert.matches(anObj, aPattern, aMessage)
   return reportLuaAssertion(
@@ -959,7 +984,7 @@ function assert.matches(anObj, aPattern, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1250
+-- from file: luaTests.tex after line: 1350
 
 function assert.doesNotMatch(anObj, aPattern, aMessage)
   return reportLuaAssertion(
@@ -971,7 +996,7 @@ function assert.doesNotMatch(anObj, aPattern, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1300
+-- from file: luaTests.tex after line: 1400
 
 function assert.length(anObj, aLength, aMessage)
   return reportLuaAssertion(
@@ -982,7 +1007,7 @@ function assert.length(anObj, aLength, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1350
+-- from file: luaTests.tex after line: 1450
 
 function assert.isNotLength(anObj, aLength, aMessage)
   return reportLuaAssertion(
@@ -993,7 +1018,7 @@ function assert.isNotLength(anObj, aLength, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1400
+-- from file: luaTests.tex after line: 1500
 
 function assert.isNotString(anObj, aMessage)
   return reportLuaAssertion(
@@ -1003,7 +1028,7 @@ function assert.isNotString(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1400
+-- from file: luaTests.tex after line: 1500
 
 function assert.isTable(anObj, aMessage)
   return reportLuaAssertion(
@@ -1013,7 +1038,7 @@ function assert.isTable(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1450
+-- from file: luaTests.tex after line: 1550
 
 function assert.hasKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
@@ -1024,7 +1049,7 @@ function assert.hasKey(anObj, aKey, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1500
+-- from file: luaTests.tex after line: 1600
 
 function assert.doesNotHaveKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
@@ -1035,7 +1060,7 @@ function assert.doesNotHaveKey(anObj, aKey, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1550
+-- from file: luaTests.tex after line: 1650
 
 function assert.isNotTable(anObj, aMessage)
   return reportLuaAssertion(
@@ -1045,7 +1070,7 @@ function assert.isNotTable(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1600
+-- from file: luaTests.tex after line: 1700
 
 function assert.isFunction(anObj, aMessage)
   return reportLuaAssertion(
@@ -1055,7 +1080,7 @@ function assert.isFunction(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1650
+-- from file: luaTests.tex after line: 1750
 
 function assert.isNotFunction(anObj, aMessage)
   return reportLuaAssertion(
@@ -1065,7 +1090,7 @@ function assert.isNotFunction(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1650
+-- from file: luaTests.tex after line: 1750
 
 function assert.hasMetaTable(anObj, aMessage)
   return reportLuaAssertion(
@@ -1075,7 +1100,7 @@ function assert.hasMetaTable(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1700
+-- from file: luaTests.tex after line: 1800
 
 function assert.metaTableEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
@@ -1086,7 +1111,7 @@ function assert.metaTableEqual(anObj, aMetaTable, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1750
+-- from file: luaTests.tex after line: 1850
 
 function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
@@ -1097,7 +1122,7 @@ function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1800
+-- from file: luaTests.tex after line: 1900
 
 function assert.doesNotHaveMetaTable(anObj, aMessage)
   return reportLuaAssertion(
@@ -1107,7 +1132,7 @@ function assert.doesNotHaveMetaTable(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1800
+-- from file: luaTests.tex after line: 1900
 
 function assert.isThread(anObj, aMessage)
   return reportLuaAssertion(
@@ -1117,7 +1142,7 @@ function assert.isThread(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1850
+-- from file: luaTests.tex after line: 1950
 
 function assert.isNotThread(anObj, aMessage)
   return reportLuaAssertion(
@@ -1127,7 +1152,7 @@ function assert.isNotThread(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1900
+-- from file: luaTests.tex after line: 2000
 
 function assert.isUserData(anObj, aMessage)
   return reportLuaAssertion(
@@ -1137,7 +1162,7 @@ function assert.isUserData(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1950
+-- from file: luaTests.tex after line: 2050
 
 function assert.isNotUserData(anObj, aMessage)
   return reportLuaAssertion(
