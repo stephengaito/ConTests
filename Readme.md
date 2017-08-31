@@ -1,5 +1,11 @@
 # ConTests
 
+# Requirements
+
+Currently required liblua5.2-dev
+
+> sudo apt-get install liblua5.2-dev
+
 A ConTeXt unit testing module.
 
 # Installation
