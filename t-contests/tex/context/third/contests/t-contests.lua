@@ -1198,6 +1198,17 @@ end
 
 contests.setCTestStream = setCTestStream
 
+local function addCTestInclude(anInclude)
+  tests.cIncludes        = tests.cIncludes or { }
+  local cIncludes        = tests.cIncludes
+  tests.curCTestStream   = tests.curCTestStream or 'default'
+  local cTestStream      = tests.curCTestStream
+  cIncludes[cTestStream] = cIncludes[cTestStream] or { }
+  tInsert(cIncludes[cTestStream], anInclude)
+end
+
+contests.addCTestInclude = addCTestInclude
+
 local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   if type(aFilePath) ~= 'string'
     or #aFilePath < 1 then
@@ -1215,15 +1226,26 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
     outFile:write('\n\n')
   end
 
-  outFile:write('#include "t-contests.h"\n')
-  outFile:write('\n\n')
+  tests.suites = tests.suites or { }
 
   if type(aCodeStream) ~= 'string'
     or #aCodeStream < 1 then
     aCodeStream = 'default'
   end
 
-  tests.suites = tests.suites or { }
+  outFile:write('#include <t-contests.h>\n')
+  outFile:write('\n\n')
+
+  outFile:write('//-------------------------------------------------------\n')
+  tests.cIncludes = tests.cIncludes or { }
+  local cIncludes = tests.cIncludes
+
+  cIncludes[aCodeStream] = cIncludes[aCodeStream] or { }
+
+  for i, anInclude in ipairs(cIncludes[aCodeStream]) do
+    outFile:write('#include '..anInclude..'\n')
+  end
+  outFile:write('\n\n')
 
   local suiteNums = { }
   for i, aTestSuite in ipairs(tests.suites) do

@@ -401,6 +401,12 @@
   }
 }
 
+\def\addCTestInclude#1{%
+  \directlua{
+    thirddata.contests.addCTestInclude('#1')
+  }
+}
+
 \def\createCTestFile#1#2#3{%
   \directlua{
     thirddata.contests.createCTestFile('#1', '#2', '#3')
