@@ -31,6 +31,12 @@ We will eventually include a collection of C unit tests.
     thirddata.contests.createCTestFile('#1', '#2', '#3')
   }
 }
+
+\def\addCTestTargets#1{%
+  \directlua{
+    thirddata.contests.addCTestTargets('#1')
+  }
+}
 \stopMkIVCode
 
 \startLuaCode
@@ -70,11 +76,23 @@ end
 contests.addCTestInclude = addCTestInclude
 
 local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
-  if type(aFilePath) ~= 'string'
-    or #aFilePath < 1 then
+  if not build.buildDir then
+    texio.write('\nERROR: document directory NOT yet defined\n')
+    texio.write('       NOT creating code file ['..aFilePath..']\n\n')
     return
   end
 
+  if type(aFilePath) ~= 'string'
+    or #aFilePath < 1 then
+    texio.write('\nERROR: no file name provided for cTests\n\n')
+    return
+  end
+
+  build.testTargets = build.testTargets or { }
+  local aTestExec = aFilePath:gsub('%..+$','')
+  tInsert(build.testTargets, aTestExec)
+
+  aFilePath = build.buildDir .. '/build/' .. aFilePath
   local outFile = io.open(aFilePath, 'w')
   if not outFile then
     return
@@ -167,6 +185,43 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
 end
 
 contests.createCTestFile = createCTestFile
+
+local function addCTestTargets(aCodeStream)
+  litProgs.setCodeStream('Lakefile', aCodeStream)
+  litProgs.markCodeOrigin('Lakefile')
+  local lf = {}
+  tInsert(lf, "-----------------------------")
+  tInsert(lf, "-- ADD targets for all CTests\n")
+  tInsert(lf, "local testTargets = {}\n")
+  for i, aTestExec in ipairs(build.testTargets) do
+    tInsert(lf, "---------------------------------------")
+    tInsert(lf, "-- ADD targets for CTests "..aTestExec.."\n")
+    tInsert(lf, "tInsert(buildTargets, target(")
+    tInsert(lf, "  'build/"..aTestExec..".c',")
+    tInsert(lf, "  docFiles,")
+    tInsert(lf, "  contextDoc")
+    tInsert(lf, "))\n")
+    tInsert(lf, "c.program{")
+    tInsert(lf, "  'build/"..aTestExec.."',")
+    tInsert(lf, "  src={ '"..aTestExec..".c' },")
+    tInsert(lf, "  cdir='build',")
+    tInsert(lf, "  needs='lua5.2'")
+    tInsert(lf, "}\n")
+    tInsert(lf, "tInsert(testTargets, target(")
+    tInsert(lf, "  'build/"..aTestExec.."-results.lua',")
+    tInsert(lf, "  'build/"..aTestExec.."',")
+    tInsert(lf, "  './build/"..aTestExec.."'")
+    tInsert(lf, "))\n")
+  end
+  litProgs.setPrepend('Lakefile', aCodeStream, true)
+  litProgs.addCode.default('Lakefile', tConcat(lf, '\n'))
+  lf = {}
+  tInsert(lf, "target('tests', testTargets)")
+  litProgs.setPrepend('Lakefile', aCodeStream, false)
+  litProgs.addCode.default('Lakefile', tConcat(lf, '\n'))
+end
+
+contests.addCTestTargets = addCTestTargets
 \stopLuaCode
 
 \startCHeader

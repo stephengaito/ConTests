@@ -413,6 +413,12 @@
   }
 }
 
+\def\addCTestTargets#1{%
+  \directlua{
+    thirddata.contests.addCTestTargets('#1')
+  }
+}
+
 % from file: conclusion.tex after line: 0
 
 \protect \endinput

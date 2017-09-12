@@ -6,44 +6,63 @@
 \protect \endinput
 \stopMkIVCode
 
+\addDocumentDirectory%
+  {t-contests/doc/context/third/contests}
+
 \createMkIVCodeFile%
   {default}%
-  {../../../../../build/t-contests.mkiv}%
+  {t-contests.mkiv}%
   {A ConTeXt MkIV module}
 
 \createLuaCodeFile%
   {default}%
-  {../../../../../build/t-contests.lua}%
+  {t-contests.lua}%
   {-- A Lua file}
 
 \createCHeaderFile%
   {default}%
-  {../../../../../build/t-contests.h}%
+  {t-contests.h}%
   {// An ANSI-C header file}
 
 \createCCodeFile%
   {default}%
-  {../../../../../build/t-contests.c}%
+  {t-contests.c}%
   {// An ANSI-C code file}
 
   \createLuaCodeFile%
   {cTests}%
-  {../../../../../build/t-contests-cTests.lua}%
+  {t-contests-cTests.lua}%
   {-- A Lua file for CTests}
 
 \createCTestFile%
   {default}%
-  {../../../../../build/allCTests.c}%
+  {allCTests.c}%
   {// A CTests file}
 
 \createLuaTemplateFile%
   {default}%
-  {../../../../../build/t-contests-templates.lua}%
+  {t-contests-templates.lua}%
   {-- A Lua template file}
+
+\addMainDocument{contests.tex}
+\addSubDocument{overview.tex}
+\addSubDocument{preamble.tex}
+\addSubDocument{testSuites.tex}
+\addSubDocument{mkivTests.tex}
+\addSubDocument{luaTests.tex}
+\addSubDocument{cTests.tex}
+\addSubDocument{conclusion.tex}
+
+\addConTeXtModuleDirectory%
+  {t-contests/tex/context/third/contests}
+
+\addCTestTargets{default}
+  
+\compileLakefile{default}
 
 \createLakefileFile%
   {default}%
-  {../../../../../build/lakefile}%
-  {}
+  {lakefile}%
+  {-- A Lua Lakefile}
 
 \stopchapter

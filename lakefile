@@ -1,104 +1,188 @@
 -- A Lua Lakefile
 
-local docDir    = 't-contests/doc/context/third/contests'
-local moduleDir = 't-contests/tex/context/third/contests'
-local srcFiles = {
-  docDir..'/contests.tex',
-  docDir..'/overview.tex',
-  docDir..'/preamble.tex',
-  docDir..'/testSuites.tex',
-  docDir..'/mkivTests.tex',
-  docDir..'/luaTests.tex',
-  docDir..'/cTests.tex',
-  docDir..'/lakefile.tex',
-  docDir..'/conclusion.tex'
+local tInsert    = table.insert
+
+local docDir     = 't-contests/doc/context/third/contests'
+local moduleDir  = 't-contests/tex/context/third/contests'
+
+local contextDoc = 'cd t-contests/doc/context/third/contests ; context contests.tex'
+
+local docFiles = {
+  'contests.tex',
+  'overview.tex',
+  'preamble.tex',
+  'testSuites.tex',
+  'mkivTests.tex',
+  'luaTests.tex',
+  'cTests.tex',
+  'conclusion.tex',
 }
 
-local contextDoc =
-  'cd '..docDir..' ; context contests.tex '
-
-local moduleTargets = {
+local srcFiles = {
   't-contests.mkiv',
   't-contests.lua',
-  't-contests-templates.lua',
   't-contests.h',
-  't-contests-cTests.lua'
+  't-contests-cTests.lua',
+  't-contests-templates.lua',
 }
 
-local testExecs = {
-  'allCTests'
-}
+-------------------------------------
+-- ADD build targets for each srcFile
 
-local buildTargets   = { }
-local diffTargets    = { }
-local installTargets = { }
-local testTargets    = { }
+local buildTargets = {}
 
-for i, aTarget in ipairs(moduleTargets) do
-
-  table.insert(buildTargets, target(
-    'build/'..aTarget,
-    srcFiles,
-    contextDoc
-  ))
-
-  table.insert(diffTargets, target(
-    'diff-'..aTarget,
-    'build/'..aTarget,
-    'diff $(DEPENDS) '..moduleDir..'/'..aTarget
-  ))
-
-  table.insert(installTargets, target(
-    moduleDir..'/'..aTarget,
-    'build/'..aTarget,
-    'cp $(DEPENDS) $(TARGET)'
-  ))
-end
-
-for i, anExec in ipairs(testExecs) do
-
-  table.insert(buildTargets, target(
-    'build/'..anExec..'.c',
-    srcFiles,
-    contextDoc
-  ))
-
-  c.program{
-    'build/'..anExec,
-    src=anExec..'.c',
-    cdir='build',
-    needs='lua5.2'
-  }
- 
-  table.insert(testTargets, target(
-    'build/'..anExec..'-results.lua',
-    'build/'..anExec,
-    './build/'..anExec
-  ))
-end
-
-table.insert(buildTargets, target(
-  'build/lakefile',
-  srcFiles,
+tInsert(buildTargets, target(
+  'build/t-contests.mkiv',
+  docFiles,
   contextDoc
 ))
 
-table.insert(diffTargets, target(
+tInsert(buildTargets, target(
+  'build/t-contests.lua',
+  docFiles,
+  contextDoc
+))
+
+tInsert(buildTargets, target(
+  'build/t-contests.h',
+  docFiles,
+  contextDoc
+))
+
+tInsert(buildTargets, target(
+  'build/t-contests-cTests.lua',
+  docFiles,
+  contextDoc
+))
+
+tInsert(buildTargets, target(
+  'build/t-contests-templates.lua',
+  docFiles,
+  contextDoc
+))
+
+------------------------------------
+-- ADD diff targets for each srcFile
+
+local diffTargets = {}
+
+tInsert(diffTargets, target(
+  'diff-t-contests.mkiv',
+  'build/t-contests.mkiv',
+  'diff build/t-contests.mkiv t-contests/tex/context/third/contests/t-contests.mkiv'
+))
+
+tInsert(diffTargets, target(
+  'diff-t-contests.lua',
+  'build/t-contests.lua',
+  'diff build/t-contests.lua t-contests/tex/context/third/contests/t-contests.lua'
+))
+
+tInsert(diffTargets, target(
+  'diff-t-contests.h',
+  'build/t-contests.h',
+  'diff build/t-contests.h t-contests/tex/context/third/contests/t-contests.h'
+))
+
+tInsert(diffTargets, target(
+  'diff-t-contests-cTests.lua',
+  'build/t-contests-cTests.lua',
+  'diff build/t-contests-cTests.lua t-contests/tex/context/third/contests/t-contests-cTests.lua'
+))
+
+tInsert(diffTargets, target(
+  'diff-t-contests-templates.lua',
+  'build/t-contests-templates.lua',
+  'diff build/t-contests-templates.lua t-contests/tex/context/third/contests/t-contests-templates.lua'
+))
+
+---------------------------------------
+-- ADD install targets for each srcFile
+
+local installTargets = {}
+
+tInsert(installTargets, target(
+  't-contests/tex/context/third/contests/t-contests.mkiv',
+  'build/t-contests.mkiv',
+  'cp build/t-contests.mkiv t-contests/tex/context/third/contests/t-contests.mkiv'
+))
+
+tInsert(installTargets, target(
+  't-contests/tex/context/third/contests/t-contests.lua',
+  'build/t-contests.lua',
+  'cp build/t-contests.lua t-contests/tex/context/third/contests/t-contests.lua'
+))
+
+tInsert(installTargets, target(
+  't-contests/tex/context/third/contests/t-contests.h',
+  'build/t-contests.h',
+  'cp build/t-contests.h t-contests/tex/context/third/contests/t-contests.h'
+))
+
+tInsert(installTargets, target(
+  't-contests/tex/context/third/contests/t-contests-cTests.lua',
+  'build/t-contests-cTests.lua',
+  'cp build/t-contests-cTests.lua t-contests/tex/context/third/contests/t-contests-cTests.lua'
+))
+
+tInsert(installTargets, target(
+  't-contests/tex/context/third/contests/t-contests-templates.lua',
+  'build/t-contests-templates.lua',
+  'cp build/t-contests-templates.lua t-contests/tex/context/third/contests/t-contests-templates.lua'
+))
+
+-------------------------------
+-- ADD targets for the lakefile
+
+tInsert(buildTargets, target(
+  'build/lakefile',
+  docFiles,
+  contextDoc
+))
+
+tInsert(diffTargets, target(
   'diff-lakefile',
   'build/lakefile',
-  'diff $(DEPENDS) lakefile'
+  'diff build/lakefile lakefile'
 ))
 
-table.insert(installTargets, target(
+tInsert(installTargets, target(
   'lakefile',
   'build/lakefile',
-  'cp $(DEPENDS) $(TARGET)'
+ 'cp build/lakefile lakefile'
 ))
 
-target('install', installTargets)
 
-target('diff', diffTargets)
+-----------------------------
+-- ADD targets for all CTests
+
+local testTargets = {}
+
+---------------------------------------
+-- ADD targets for CTests allCTests
+
+tInsert(buildTargets, target(
+  'build/allCTests.c',
+  docFiles,
+  contextDoc
+))
+
+c.program{
+  'build/allCTests',
+  src={ 'allCTests.c' },
+  cdir='build',
+  needs='lua5.2'
+}
+
+tInsert(testTargets, target(
+  'build/allCTests-results.lua',
+  'build/allCTests',
+  './build/allCTests'
+))
+
 
 target('tests', testTargets)
 
+target('install', installTargets)
+target('diff', diffTargets)
 default(buildTargets)
