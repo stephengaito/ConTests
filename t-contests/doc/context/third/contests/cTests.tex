@@ -187,38 +187,33 @@ end
 contests.createCTestFile = createCTestFile
 
 local function addCTestTargets(aCodeStream)
-  litProgs.setCodeStream('Lakefile', aCodeStream)
-  litProgs.markCodeOrigin('Lakefile')
-  local lf = {}
-  tInsert(lf, "-----------------------------")
-  tInsert(lf, "-- ADD targets for all CTests\n")
-  tInsert(lf, "local testTargets = {}\n")
+  litProgs.setCodeStream('Lmsfile', aCodeStream)
+  litProgs.markCodeOrigin('Lmsfile')
+  local lmsfile = {}
+  tInsert(lmsfile, "require 'lms.contests'\n")
+  tInsert(lmsfile, "contests.targets{")
+  tInsert(lmsfile, "  testExecs = {")
   for i, aTestExec in ipairs(build.testTargets) do
-    tInsert(lf, "---------------------------------------")
-    tInsert(lf, "-- ADD targets for CTests "..aTestExec.."\n")
-    tInsert(lf, "tInsert(buildTargets, target(")
-    tInsert(lf, "  'build/"..aTestExec..".c',")
-    tInsert(lf, "  docFiles,")
-    tInsert(lf, "  contextDoc")
-    tInsert(lf, "))\n")
-    tInsert(lf, "c.program{")
-    tInsert(lf, "  'build/"..aTestExec.."',")
-    tInsert(lf, "  src={ '"..aTestExec..".c' },")
-    tInsert(lf, "  cdir='build',")
-    tInsert(lf, "  needs='lua5.2'")
-    tInsert(lf, "}\n")
-    tInsert(lf, "tInsert(testTargets, target(")
-    tInsert(lf, "  'build/"..aTestExec.."-results.lua',")
-    tInsert(lf, "  'build/"..aTestExec.."',")
-    tInsert(lf, "  './build/"..aTestExec.."'")
-    tInsert(lf, "))\n")
+    tInsert(lmsfile, "    '"..aTestExec.."',")
   end
-  litProgs.setPrepend('Lakefile', aCodeStream, true)
-  litProgs.addCode.default('Lakefile', tConcat(lf, '\n'))
-  lf = {}
-  tInsert(lf, "target('tests', testTargets)")
-  litProgs.setPrepend('Lakefile', aCodeStream, false)
-  litProgs.addCode.default('Lakefile', tConcat(lf, '\n'))
+  tInsert(lmsfile, "  },")
+  tInsert(lmsfile, "  mainDoc = '"..build.mainDoc.."',")
+  tInsert(lmsfile, "  docFiles = {")
+  for i, aSubDoc in ipairs(build.subDocs) do
+    tInsert(lmsfile, "    '"..aSubDoc.."',")
+  end
+  tInsert(lmsfile, "  },")
+  tInsert(lmsfile, "  contextDoc")
+  tInsert(lmsfile, "  buildDir  = 'build',")
+  tInsert(lmsfile, "  docDir    = '"..build.docDir.."',")
+  tInsert(lmsfile, "  moduleDir = '"..build.contextModuleDir.."',")
+  tInsert(lmsfile, "}")
+  litProgs.setPrepend('Lmsfile', aCodeStream, true)
+  litProgs.addCode.default('Lmsfile', tConcat(lmsfile, '\n'))
+  lmsfile = {}
+  tInsert(lmsfile, "target{'tests',   testTargets}")
+  litProgs.setPrepend('Lmsfile', aCodeStream, false)
+  litProgs.addCode.default('Lmsfile', tConcat(lmsfile, '\n'))
 end
 
 contests.addCTestTargets = addCTestTargets
