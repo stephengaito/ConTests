@@ -1339,7 +1339,11 @@ local function addCTestTargets(aCodeStream)
     tInsert(lmsfile, "    '"..aSubDoc.."',")
   end
   tInsert(lmsfile, "  },")
-  tInsert(lmsfile, "  contextDoc")
+  tInsert(lmsfile, "  srcFiles = {")
+  for i, aSrcFile in ipairs(build.srcTargets) do
+    tInsert(lmsfile, "    '"..aSrcFile.."',")
+  end
+  tInsert(lmsfile, "  },")
   tInsert(lmsfile, "  buildDir  = 'build',")
   tInsert(lmsfile, "  docDir    = '"..build.docDir.."',")
   tInsert(lmsfile, "  moduleDir = '"..build.contextModuleDir.."',")

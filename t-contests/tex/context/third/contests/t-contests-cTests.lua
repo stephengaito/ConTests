@@ -53,7 +53,7 @@ function stopTestCase(testFileName, testFileLine)
   curSuite.curCase = { }
 end
 
--- from file: cTests.tex after line: 300
+-- from file: cTests.tex after line: 350
 
 local function compareKeyValues(a, b)
   return (a[1] < b[1])

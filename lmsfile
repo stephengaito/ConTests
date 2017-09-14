@@ -25,13 +25,35 @@ litProgs.targets{
   moduleDir = 't-contests/tex/context/third/contests',
 }
 
---require 'lms.contests'
+require 'lms.contests'
 
---contests.targets{
---
---}
+contests.targets{
+  testExecs = {
+    'allCTests',
+  },
+  mainDoc = 'contests.tex',
+  docFiles = {
+    'overview.tex',
+    'preamble.tex',
+    'testSuites.tex',
+    'mkivTests.tex',
+    'luaTests.tex',
+    'cTests.tex',
+    'conclusion.tex',
+  },
+  srcFiles = {
+    't-contests.mkiv',
+    't-contests.lua',
+    't-contests.h',
+    't-contests-cTests.lua',
+    't-contests-templates.lua',
+  },
+  buildDir  = 'build',
+  docDir    = 't-contests/doc/context/third/contests',
+  moduleDir = 't-contests/tex/context/third/contests',
+}
 
---target{'tests',   testTargets}
+target{'tests',   testTargets}
 
 target{'doc',     docTargets}
 target{'diff',    diffTargets}
