@@ -218,7 +218,7 @@
 #define AssertPtrNotNullCont(aPtr)     \
   AssertPtrNotNullMsg(aPtr, "", FALSE)
 
-// from file: cTests.tex after line: 800
+// from file: cTests.tex after line: 850
 
 #define AssertPtrEqualsMsg(ptrA, ptrB, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");            \
