@@ -56,10 +56,3 @@ contests.targets{
   docDir    = 't-contests/doc/context/third/contests',
   moduleDir = 't-contests/tex/context/third/contests',
 }
-
-target{'tests',   testTargets}
-
-target{'doc',     docTargets}
-target{'diff',    diffTargets}
-target{'install', installTargets}
-target{'default', buildTargets}

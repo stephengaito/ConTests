@@ -1351,10 +1351,6 @@ local function addCTestTargets(aCodeStream)
   tInsert(lmsfile, "}")
   litProgs.setPrepend('Lmsfile', aCodeStream, true)
   litProgs.addCode.default('Lmsfile', tConcat(lmsfile, '\n'))
-  lmsfile = {}
-  tInsert(lmsfile, "target{'tests',   testTargets}")
-  litProgs.setPrepend('Lmsfile', aCodeStream, false)
-  litProgs.addCode.default('Lmsfile', tConcat(lmsfile, '\n'))
 end
 
 contests.addCTestTargets = addCTestTargets
