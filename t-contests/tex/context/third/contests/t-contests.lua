@@ -68,7 +68,8 @@ local toStr   = tostring
 -- from file: testSuites.tex after line: 50
 
 local function initSuite()
-  local curSuite = {}
+  tests.stage     = ''
+  local curSuite  = {}
   curSuite.passed = true
   curSuite.cases  = {}
   return curSuite
@@ -1174,14 +1175,41 @@ function assert.isNotUserData(anObj, aMessage)
   )
 end
 
--- from file: cTests.tex after line: 0
+-- from file: cTests.tex after line: 50
 
 local function addCTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
-  local suite          = tests.curSuite
-  local case           = suite.curCase
-  case.cTests          = case.cTests or { }
+  local suite          = tests.curSuite  or { }
+  local case           = suite.curCase   or { }
+  case.cTests          = case.cTests     or { }
   local cTests         = case.cTests
+  local curStage       = tests.stage:lower()
+  if curStage:find('global') then
+    if curStage:find('up') then
+      tests.setup      = tests.setup     or { }
+      local setup      = tests.setup
+      setup.cTests     = setup.cTests    or { }
+      cTests           = setup.cTests
+    elseif curStage:find('down') then
+      tests.teardown   = tests.teardown  or { }
+      local teardown   = tests.teardown
+      teardown.cTests  = teardown.cTests or { }
+      cTests           = teardown.cTests
+    end
+  elseif curStage:find('suite') then
+    if curStage:find('up') then
+      suite.setup      = suite.setup     or { }
+      local setup      = suite.setup
+      setup.cTests     = setup.cTests    or { }
+      cTests           = setup.cTests
+    elseif curStage:find('down') then
+      suite.teardown   = suite.teardown  or { }
+      local teardown   = suite.teardown
+      teardown.cTests  = teardown.cTests or { }
+      cTests           = suite.teardown
+    end
+  end
+  tests.stage          = ''
   tests.curCTestStream = tests.curCTestStream or 'default'
   local cTestStream    = tests.curCTestStream
   cTests[cTestStream]  = cTests[cTestStream] or { }
@@ -1189,6 +1217,12 @@ local function addCTest(bufferName)
 end
 
 contests.addCTest = addCTest
+
+local function setCTestStage(suiteCase, setupTeardown)
+  tests.stage = suiteCase..'-'..setupTeardown
+end
+
+contests.setCTestStage = setCTestStage
 
 local function setCTestStream(aCodeStream)
   if type(aCodeStream) ~= 'string'
@@ -1261,46 +1295,6 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   end
   outFile:write('\n\n')
 
-  local suiteNums = { }
-  for i, aTestSuite in ipairs(tests.suites) do
-    aTestSuite.cases = aTestSuite.cases or { }
-    local suiteCaseBuf = { }
-    local caseNums     = { }
-    for j, aTestCase in ipairs(aTestSuite.cases) do
-      aTestCase.cTests = aTestCase.cTests or { }
-      local cTests     = aTestCase.cTests
-      if cTests[aCodeStream] then
-        tInsert(caseNums, j)
-        tInsert(suiteCaseBuf, 'void ts'..toStr(i)..'_tc'..toStr(j)..'(lua_State *lstate){\n\n')
-        tInsert(suiteCaseBuf, '  StartTestCase(\n')
-        tInsert(suiteCaseBuf, '    "'..aTestCase.desc..'",\n')
-        tInsert(suiteCaseBuf, '    "'..aTestCase.fileName..'",\n')
-        tInsert(suiteCaseBuf, '    '..toStr(aTestCase.startLine)..',\n')
-        tInsert(suiteCaseBuf, '    '..toStr(aTestCase.lastLine)..'\n')
-        tInsert(suiteCaseBuf, '  );\n\n  ')
-        local cTestsCode = tConcat(cTests[aCodeStream], '\n')
-        cTestsCode       = litProgs.splitString(cTestsCode)
-        tInsert(suiteCaseBuf, tConcat(cTestsCode, '\n  '))
-        tInsert(suiteCaseBuf, '\n\n  StopTestCase();\n\n')
-        tInsert(suiteCaseBuf, '}\n\n')
-      end
-    end
-    if 0 < #suiteCaseBuf then
-      tInsert(suiteNums, i)
-      outFile:write('//-------------------------------------------------------\n')
-      outFile:write(tConcat(suiteCaseBuf))
-      outFile:write('void ts'..toStr(i)..'(lua_State *lstate){\n\n')
-      outFile:write('  StartTestSuite(\n')
-      outFile:write('    "'..aTestSuite.desc..'"\n')
-      outFile:write('  );\n\n')
-      for j, aCaseNum in ipairs(caseNums) do
-        outFile:write('  ts'..toStr(i)..'_tc'..toStr(aCaseNum)..'(lstate);\n')
-      end
-      outFile:write('\n  StopTestSuite();\n\n')
-      outFile:write('}\n\n')
-    end
-  end
-
   outFile:write('//-------------------------------------------------------\n')
   outFile:write('int main(){\n\n')
   outFile:write('  lua_State *lstate = luaL_newstate();\n')
@@ -1311,9 +1305,68 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   outFile:write('    fprintf(stderr, "%s\\n", lua_tostring(lstate, 1));\n')
   outFile:write('    exit(-1);\n')
   outFile:write('  }\n\n')
-  for i, aSuiteNum in ipairs(suiteNums) do
-    outFile:write('  ts'..toStr(aSuiteNum)..'(lstate);\n')
+
+  tests.setup = tests.setup or { }
+  if tests.setup[aCodeStream] then
+    outFile:write('  '..tConcat(tests.setup[aCodeStream],'\n  '))
+    outFile:write('\n\n')
   end
+
+  for i, aTestSuite in ipairs(tests.suites) do
+    aTestSuite.cases = aTestSuite.cases or { }
+    local suiteCaseBuf = { }
+
+    for j, aTestCase in ipairs(aTestSuite.cases) do
+      aTestCase.cTests = aTestCase.cTests or { }
+      local cTests     = aTestCase.cTests
+      if cTests[aCodeStream] then
+        tInsert(suiteCaseBuf, '    for (size_t i = 0; i < 1; i++) {\n\n')
+        tInsert(suiteCaseBuf, '      StartTestCase(\n')
+        tInsert(suiteCaseBuf, '        "'..aTestCase.desc..'",\n')
+        tInsert(suiteCaseBuf, '        "'..aTestCase.fileName..'",\n')
+        tInsert(suiteCaseBuf, '        '..toStr(aTestCase.startLine)..',\n')
+        tInsert(suiteCaseBuf, '        '..toStr(aTestCase.lastLine)..'\n')
+        tInsert(suiteCaseBuf, '      );\n\n  ')
+        local cTestsCode = tConcat(cTests[aCodeStream], '\n')
+        cTestsCode       = litProgs.splitString(cTestsCode)
+        tInsert(suiteCaseBuf, '    '..tConcat(cTestsCode, '\n      '))
+        tInsert(suiteCaseBuf, '\n\n      StopTestCase();\n\n')
+        tInsert(suiteCaseBuf, '    }\n\n')
+      end
+    end
+
+    if 0 < #suiteCaseBuf then
+      outFile:write('  //-------------------------------------------------------\n')
+      outFile:write('  for (size_t i = 0; i < 1; i++) {\n\n')
+      outFile:write('    StartTestSuite(\n')
+      outFile:write('      "'..aTestSuite.desc..'"\n')
+      outFile:write('    );\n\n')
+
+      aTestSuite.setup = aTestSuite.setup or { }
+      if aTestSuite.setup[aCodeStream] then
+        outFile:write('  '..tConcat(aTestSuite.setup[aCodeStream],'\n  '))
+        outFile:write('\n\n')
+      end
+
+      outFile:write(tConcat(suiteCaseBuf))
+
+      aTestSuite.teardown = aTestSuite.teardown or { }
+      if aTestSuite.teardown[aCodeStream] then
+        outFile:write('  '..tConcat(aTestSuite.teardown[aCodeStream],'\n  '))
+        outFile:write('\n\n')
+      end
+
+      outFile:write('\n    StopTestSuite();\n\n')
+      outFile:write('  }\n\n')
+    end
+  end
+
+  tests.teardown = tests.teardown or { }
+  if tests.teardown[aCodeStream] then
+    outFile:write('  '..tConcat(tests.teardown[aCodeStream],'\n  '))
+    outFile:write('\n\n')
+  end
+
   outFile:write('\n  fprintf(stdout, "\\n");\n\n')
   outFile:write('  return 0;\n')
   outFile:write('}\n')

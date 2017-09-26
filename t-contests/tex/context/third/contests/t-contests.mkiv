@@ -395,6 +395,28 @@
   \directlua{thirddata.contests.addCTest('_typing_')}
 }
 
+\def\setCTestStage#1#2{%
+  \directlua{%
+    thirddata.contests.setCTestStage('#1', '#2')
+  }
+}
+
+\def\CTestsSetup{%
+  \setCTestStage{Global}{Setup}
+}
+
+\def\CTestsTeardown{%
+  \setCTestStage{Global}{Teardown}
+}
+
+\def\CTestSuiteSetup{%
+  \setCTestStage{TestSuite}{Setup}
+}
+
+\def\CTestSuiteTeardown{%
+  \setCTestStage{TestSuite}{Teardown}
+}
+
 \def\setCTestStream#1{%
   \directlua{
     thirddata.contests.setCTestStream('#1')

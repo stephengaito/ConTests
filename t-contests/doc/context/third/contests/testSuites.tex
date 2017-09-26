@@ -62,7 +62,8 @@ TestSuite.
 
 \startLuaCode
 local function initSuite()
-  local curSuite = {}
+  tests.stage     = ''
+  local curSuite  = {}
   curSuite.passed = true
   curSuite.cases  = {}
   return curSuite
