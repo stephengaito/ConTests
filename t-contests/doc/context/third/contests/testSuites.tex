@@ -194,6 +194,7 @@ function contests.skipTestCase()
     local caseStats = luaStats.cases
     caseStats.skipped = caseStats.skipped + 1
   end
+  curCase.cTests = { }
   tex.print('{\\magenta SKIPPED}')
 end
 \stopLuaCode
