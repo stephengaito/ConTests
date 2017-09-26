@@ -206,7 +206,7 @@ function reportCAssertion(
   return theCondition
 end
 
--- from file: cTests.tex after line: 550
+-- from file: cTests.tex after line: 600
 
 function startCShouldFail(
   messagePattern, reasonPattern, aMessage,

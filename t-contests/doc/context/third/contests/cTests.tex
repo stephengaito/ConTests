@@ -204,7 +204,11 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
     for j, aTestCase in ipairs(aTestSuite.cases) do
       aTestCase.cTests = aTestCase.cTests or { }
       local cTests     = aTestCase.cTests
-      if cTests[aCodeStream] then
+      if aTestCase.desc and
+        aTestCase.fileName and
+        aTestCase.startLine and
+        aTestCase.lastLine and
+        cTests[aCodeStream] then
         tInsert(suiteCaseBuf, '    for (size_t i = 0; i < 1; i++) {\n\n')
         tInsert(suiteCaseBuf, '      StartTestCase(\n')
         tInsert(suiteCaseBuf, '        "'..aTestCase.desc..'",\n')
@@ -217,10 +221,19 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
         tInsert(suiteCaseBuf, '    '..tConcat(cTestsCode, '\n      '))
         tInsert(suiteCaseBuf, '\n\n      StopTestCase();\n\n')
         tInsert(suiteCaseBuf, '    }\n\n')
+      elseif (not aTestCase.desc or
+        not aTestCase.fileName or
+        not aTestCase.startLine or
+        not aTestCase.lastLine) and
+        cTests[aCodeStream] then
+        texio.write("\nERROR missing \\startTestCase\n")
+        texio.write("near:\n")
+        texio.write(tConcat(cTests[aCodeStream], '\n'))
+        texio.write('\n')
       end
     end
 
-    if 0 < #suiteCaseBuf then
+    if aTestSuite.desc and (0 < #suiteCaseBuf) then
       outFile:write('  //-------------------------------------------------------\n')
       outFile:write('  for (size_t i = 0; i < 1; i++) {\n\n')
       outFile:write('    StartTestSuite(\n')
@@ -243,6 +256,11 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
 
       outFile:write('\n    StopTestSuite();\n\n')
       outFile:write('  }\n\n')
+    elseif not aTestSuite.desc and (0 < #suiteCaseBuf) then
+      texio.write("\nERROR missing \\startTestSuite\n")
+      texio.write("near:\n")
+      texio.write(tConcat(suiteCaseBuf, '\n'))
+      texio.write('\n')
     end
   end
 
