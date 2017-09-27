@@ -1207,7 +1207,7 @@ local function addCTest(bufferName)
       suite.teardown   = suite.teardown  or { }
       local teardown   = suite.teardown
       teardown.cTests  = teardown.cTests or { }
-      cTests           = suite.teardown
+      cTests           = teardown.cTests
     end
   end
   tests.stage          = ''
@@ -1269,6 +1269,8 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
     return
   end
 
+  texio.write('creating CTest file: ['..aFilePath..']\n')
+
   if type(aFileHeader) == 'string'
     and 0 < #aFileHeader then
     outFile:write(aFileHeader)
@@ -1308,8 +1310,12 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   outFile:write('  }\n\n')
 
   tests.setup = tests.setup or { }
-  if tests.setup[aCodeStream] then
-    outFile:write('  '..tConcat(tests.setup[aCodeStream],'\n  '))
+  if tests.setup.cTests and
+    tests.setup.cTests[aCodeStream] then
+    outFile:write('  // CTests setup\n')
+    local setupCode = tConcat(tests.setup.cTests[aCodeStream],'\n')
+    setupCode       = litProgs.splitString(setupCode)
+    outFile:write('  '..tConcat(setupCode, '\n  '))
     outFile:write('\n\n')
   end
 
@@ -1357,16 +1363,24 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
       outFile:write('    );\n\n')
 
       aTestSuite.setup = aTestSuite.setup or { }
-      if aTestSuite.setup[aCodeStream] then
-        outFile:write('  '..tConcat(aTestSuite.setup[aCodeStream],'\n  '))
+      if aTestSuite.setup.cTests and
+        aTestSuite.setup.cTests[aCodeStream] then
+        outFile:write('    // TestSuite setup\n')
+        local setupCode = tConcat(aTestSuite.setup.cTests[aCodeStream],'\n  ')
+        setupCode = litProgs.splitString(setupCode, '\n')
+        outFile:write('    '..tConcat(setupCode, '\n    '))
         outFile:write('\n\n')
       end
 
       outFile:write(tConcat(suiteCaseBuf))
 
       aTestSuite.teardown = aTestSuite.teardown or { }
-      if aTestSuite.teardown[aCodeStream] then
-        outFile:write('  '..tConcat(aTestSuite.teardown[aCodeStream],'\n  '))
+      if aTestSuite.teardown.cTests and
+        aTestSuite.teardown.cTests[aCodeStream] then
+        outFile:write('    // TestSuite teardown\n')
+        local teardownCode = tConcat(aTestSuite.teardown.cTests[aCodeStream],'\n  ')
+        teardownCode = litProgs.splitString(teardownCode, '\n')
+        outFile:write('    '..tConcat(teardownCode, '\n    '))
         outFile:write('\n\n')
       end
 
@@ -1381,8 +1395,12 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   end
 
   tests.teardown = tests.teardown or { }
-  if tests.teardown[aCodeStream] then
-    outFile:write('  '..tConcat(tests.teardown[aCodeStream],'\n  '))
+  if tests.teardown.cTests and
+    tests.teardown.cTests[aCodeStream] then
+    outFile:write('  // CTests teardown\n')
+    local teardownCode =tConcat(tests.teardown.cTests[aCodeStream],'\n  ')
+    teardownCode = litProgs.splitString(teardownCode, '\n')
+    outFile:write('  '..tConcat(teardownCode, '\n  '))
     outFile:write('\n\n')
   end
 
