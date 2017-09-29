@@ -429,6 +429,18 @@
   }
 }
 
+\def\addCTestLibDir#1{%
+  \directlua{
+    thirddata.contests.addCTestLibDir('#1')
+  }
+}
+
+\def\addCTestLib#1{%
+  \directlua{
+    thirddata.contests.addCTestLib('#1')
+  }
+}
+
 \def\createCTestFile#1#2#3{%
   \directlua{
     thirddata.contests.createCTestFile('#1', '#2', '#3')

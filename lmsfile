@@ -52,6 +52,10 @@ contests.targets{
     't-contests-cTests.lua',
     't-contests-templates.lua',
   },
+  testLibDirs = {
+  },
+  testLibs = {
+  },
   buildDir  = 'build',
   docDir    = 't-contests/doc/context/third/contests',
   moduleDir = 't-contests/tex/context/third/contests',

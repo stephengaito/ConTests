@@ -1246,6 +1246,28 @@ end
 
 contests.addCTestInclude = addCTestInclude
 
+local function addCTestLibDir(aLibDir)
+  tests.cLibDirs        = tests.cLibDirs or { }
+  local cLibDirs        = tests.cLibDirs
+  tests.curCTestStream  = tests.curCTestStream or 'default'
+  local cTestStream     = tests.curCTestStream
+  cLibDirs[cTestStream] = cLibDirs[cTestStream] or { }
+  tInsert(cLibDirs[cTestStream], aLibDir)
+end
+
+contests.addCTestLibDir = addCTestLibDir
+
+local function addCTestLib(aLib)
+  tests.cLibs          = tests.cLibs or { }
+  local cLibs          = tests.cLibs
+  tests.curCTestStream = tests.curCTestStream or 'default'
+  local cTestStream    = tests.curCTestStream
+  cLibs[cTestStream]   = cLibs[cTestStream] or { }
+  tInsert(cLibs[cTestStream], aLib)
+end
+
+contests.addCTestLib = addCTestLib
+
 local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   if not build.buildDir then
     texio.write('\nERROR: document directory NOT yet defined\n')
@@ -1433,6 +1455,20 @@ local function addCTestTargets(aCodeStream)
   tInsert(lmsfile, "  srcFiles = {")
   for i, aSrcFile in ipairs(build.srcTargets) do
     tInsert(lmsfile, "    '"..aSrcFile.."',")
+  end
+  tInsert(lmsfile, "  },")
+  tInsert(lmsfile, "  testLibDirs = {")
+  if tests.cLibDirs and tests.cLibDirs[aCodeStream] then
+    for i, aLibDir in ipairs(tests.cLibDirs[aCodeStream]) do
+      tInsert(lmsfile, "    '"..aLibDir.."',")
+    end
+  end
+  tInsert(lmsfile, "  },")
+  tInsert(lmsfile, "  testLibs = {")
+  if tests.cLibs and tests.cLibs[aCodeStream] then
+    for i, aLib in ipairs(tests.cLibs[aCodeStream]) do
+      tInsert(lmsfile, "    '"..aLib.."',")
+    end
   end
   tInsert(lmsfile, "  },")
   tInsert(lmsfile, "  buildDir  = 'build',")
