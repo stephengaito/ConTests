@@ -81,13 +81,18 @@
   \stoptextrule%
 }
 
+\def\ignoreTestCase{%
+  \directlua{thirddata.contests.ignoreTestCase()}
+  \stoptextrule%
+}
+
 % from file: testSuites.tex after line: 250
 
 \def\reportFailures{%
   \directlua{thirddata.contests.reportFailures()}
 }
 
-% from file: testSuites.tex after line: 250
+% from file: testSuites.tex after line: 300
 
 \def\reportMkIVStats{%
   \directlua{thirddata.contests.reportStats('mkiv')}

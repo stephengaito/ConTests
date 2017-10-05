@@ -434,6 +434,10 @@ contests.addCTestTargets = addCTestTargets
   lua_pushunsigned(lstate, (lastLine));                      \
   lua_fileCall(4, 0)
 
+#define SkipTestCase()                   \
+  lua_getglobal(lstate, "skipTestCase"); \
+  lua_fileCall(0, 0)
+
 #define StopTestCase()                   \
   lua_getglobal(lstate, "stopTestCase"); \
   lua_fileCall(0, 0)
@@ -490,6 +494,10 @@ function startTestCase(
   curCase.lastLine  = srcLastLine
   curCase.passed    = true
   io.stdout:write(sFmt("  TC: %s\n", aDesc))
+end
+
+function skipTestCase(testFileName, testFileLine)
+  io.stdout:write("    SKIPPED\n")
 end
 
 function stopTestCase(testFileName, testFileLine)
@@ -747,7 +755,6 @@ StopAssertShouldFail();
 \startCTest
   // this is the assertShouldFail testSuite teardown
 \stopCTest
-
 
 \stopTestSuite
 

@@ -43,6 +43,10 @@ function startTestCase(
   io.stdout:write(sFmt("  TC: %s\n", aDesc))
 end
 
+function skipTestCase(testFileName, testFileLine)
+  io.stdout:write("    SKIPPED\n")
+end
+
 function stopTestCase(testFileName, testFileLine)
   cTests.curSuite = cTests.curSuite or { }
   local curSuite  = cTests.curSuite

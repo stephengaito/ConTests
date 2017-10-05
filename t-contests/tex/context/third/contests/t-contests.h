@@ -57,6 +57,10 @@
   lua_pushunsigned(lstate, (lastLine));                      \
   lua_fileCall(4, 0)
 
+#define SkipTestCase()                   \
+  lua_getglobal(lstate, "skipTestCase"); \
+  lua_fileCall(0, 0)
+
 #define StopTestCase()                   \
   lua_getglobal(lstate, "stopTestCase"); \
   lua_fileCall(0, 0)
@@ -180,7 +184,7 @@
 #define AssertIntNotZero(anInt)     \
   AssertIntNotZeroMsg(anInt, "", FALSE)
 
-// from file: cTests.tex after line: 900
+// from file: cTests.tex after line: 950
 
 #define AssertIntEqualsMsg(intA, intB, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");            \
@@ -309,7 +313,7 @@
 #define AssertStrEmpty(aStr)         \
   AssertStrEmptyMsg(aStr, "", FALSE)
 
-// from file: cTests.tex after line: 1150
+// from file: cTests.tex after line: 1200
 
 #define AssertStrNotEmptyMsg(aStr, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");        \

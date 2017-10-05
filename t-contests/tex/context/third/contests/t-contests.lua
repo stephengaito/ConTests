@@ -122,8 +122,16 @@ function contests.skipTestCase()
     local caseStats = luaStats.cases
     caseStats.skipped = caseStats.skipped + 1
   end
-  curCase.cTests = { }
+  curCase.cTests.default = { "SkipTestCase();" }
   tex.print('{\\magenta SKIPPED}')
+end
+
+function contests.ignoreTestCase()
+  local curSuite   = tests.curSuite
+  local curCase    = curSuite.curCase
+  curCase.lastLine = status.linenumber
+  curCase.cTests = { }
+  tex.print('{\\magenta IGNORED}')
 end
 
 -- from file: testSuites.tex after line: 200
@@ -140,7 +148,7 @@ local function logFailure(reason, suiteDesc, caseDesc,
   return failure
 end
 
--- from file: testSuites.tex after line: 200
+-- from file: testSuites.tex after line: 250
 
 local function reportFailure(aFailure, fullReport)
   tex.print("\\noindent{\\red "..aFailure.reason.."}:\\\\")
