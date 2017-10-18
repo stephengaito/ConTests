@@ -57,7 +57,7 @@ function stopTestCase(testFileName, testFileLine)
   curSuite.curCase = { }
 end
 
--- from file: cTests.tex after line: 500
+-- from file: cTests.tex after line: 550
 
 local function compareKeyValues(a, b)
   return (a[1] < b[1])
@@ -210,7 +210,7 @@ function reportCAssertion(
   return theCondition
 end
 
--- from file: cTests.tex after line: 650
+-- from file: cTests.tex after line: 700
 
 function startCShouldFail(
   messagePattern, reasonPattern, aMessage,

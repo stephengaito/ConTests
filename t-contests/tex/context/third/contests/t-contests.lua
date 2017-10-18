@@ -1188,33 +1188,47 @@ end
 
 local function addCTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
-  local suite          = tests.curSuite  or { }
-  local case           = suite.curCase   or { }
-  case.cTests          = case.cTests     or { }
+  tests.methods        = tests.methods     or { }
+  local methods        = tests.methods
+  local suite          = tests.curSuite    or { }
+  local case           = suite.curCase     or { }
+  case.cTests          = case.cTests       or { }
   local cTests         = case.cTests
   local curStage       = tests.stage:lower()
   if curStage:find('global') then
     if curStage:find('up') then
-      tests.setup      = tests.setup     or { }
+      tests.setup      = tests.setup       or { }
       local setup      = tests.setup
-      setup.cTests     = setup.cTests    or { }
+      setup.cTests     = setup.cTests      or { }
       cTests           = setup.cTests
     elseif curStage:find('down') then
-      tests.teardown   = tests.teardown  or { }
+      tests.teardown   = tests.teardown    or { }
       local teardown   = tests.teardown
-      teardown.cTests  = teardown.cTests or { }
+      teardown.cTests  = teardown.cTests   or { }
       cTests           = teardown.cTests
     end
   elseif curStage:find('suite') then
     if curStage:find('up') then
-      suite.setup      = suite.setup     or { }
+      suite.setup      = suite.setup       or { }
       local setup      = suite.setup
-      setup.cTests     = setup.cTests    or { }
+      setup.cTests     = setup.cTests      or { }
       cTests           = setup.cTests
     elseif curStage:find('down') then
-      suite.teardown   = suite.teardown  or { }
+      suite.teardown   = suite.teardown    or { }
       local teardown   = suite.teardown
-      teardown.cTests  = teardown.cTests or { }
+      teardown.cTests  = teardown.cTests   or { }
+      cTests           = teardown.cTests
+    end
+  elseif curStage:find('method') then
+    if curStage:find('up') then
+      methods.setup    = methods.setup     or { }
+      local setup      = methods.setup
+      setup.cTests     = setup.cTests      or { }
+      cTests           = setup.cTests
+    elseif curStage:find('down') then
+      methods.teardown = methods.teardown or { }
+      local teardown   = methods.teardown
+      teardown.cTests  = teardown.cTests  or { }
       cTests           = teardown.cTests
     end
   end
@@ -1325,6 +1339,25 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
 
   for i, anInclude in ipairs(cIncludes[aCodeStream]) do
     outFile:write('#include '..anInclude..'\n')
+  end
+  outFile:write('\n\n')
+
+  tests.methods = tests.methods or { }
+  local methods = tests.methods
+  methods.setup = methods.setup or { }
+  local mSetup  = methods.setup
+  mSetup.cTests = mSetup.cTests or { }
+  msCTests      = mSetup.cTests
+
+  --msCTests[aCodeStream] = msCTests[aCodeStream] or { }
+
+  if msCTests and
+    msCTests[aCodeStream] then
+    outFile:write('  // CTests methods setup\n')
+    local setupCode = tConcat(msCTests[aCodeStream],'\n')
+    setupCode       = litProgs.splitString(setupCode)
+    outFile:write('  '..tConcat(setupCode, '\n  '))
+    outFile:write('\n\n')
   end
   outFile:write('\n\n')
 
