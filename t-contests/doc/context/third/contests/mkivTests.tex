@@ -820,8 +820,7 @@ local function recordExpansion(macroName,
     texio.write_nl('AT: '..status.filename..'::'..status.linenumber)
   end
   macroName = macroName:gsub('^%s+', ''):gsub('%s+$', '')
-  expInfo[macroName] = expInfo[macroName] or { }
-  local macroInfo    = expInfo[macroName]
+  local macroInfo    = setDefs(expInfo, macroName)
   macroInfo.calls    = macroInfo.calls or { }
   tInsert(macroInfo.calls, { callType, macroArguments})
   return macroInfo
@@ -857,8 +856,7 @@ must be added to the mocked macro's expansion info table.
 \startLuaCode
 local function addMockResult(mockedMacro, returnValue)
   mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
-  expInfo[mockedMacro] = expInfo[mockedMacro] or { }
-  mockedMacro          = expInfo[mockedMacro]
+  mockedMacro          = setDefs(expInfo, mockedMacro)
   mockedMacro.returns  = mockedMacro.returns or { }
   tInsert(mockedMacro.returns, returnValue)
 end

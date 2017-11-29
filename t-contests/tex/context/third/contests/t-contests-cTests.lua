@@ -11,6 +11,12 @@ local tSort   = table.sort
 local sFmt    = string.format
 local toStr   = tostring
 
+function setDefs(varVal, selector, defVal)
+  if not defVal then defVal = { } end
+  varVal[selector] = varVal[selector] or defVal
+  return varVal[selector]
+end
+
 function startTestSuite(aDesc, testFileName, testFileLine)
   cTests.curSuite = { }
   local curSuite  = cTests.curSuite
@@ -31,8 +37,7 @@ end
 function startTestCase(
   aDesc, srcFileName, srcStartLine, srcLastLine,
   testFileName, testFileLine)
-  cTests.curSuite   = cTests.curSuite or { }
-  local curSuite    = cTests.curSuite
+  local curSuite    = setDefs(cTests, 'curSuite')
   curSuite.curCase  = { }
   local curCase     = curSuite.curCase
   curCase.desc      = aDesc
@@ -48,8 +53,7 @@ function skipTestCase(testFileName, testFileLine)
 end
 
 function stopTestCase(testFileName, testFileLine)
-  cTests.curSuite = cTests.curSuite or { }
-  local curSuite  = cTests.curSuite
+  local curSuite  = setDefs(cTests, 'curSuite')
   curSuite.cases  = curSuite.cases or { }
   if curSuite.curCase then
     tInsert(curSuite.cases, curSuite.curCase)
@@ -57,7 +61,7 @@ function stopTestCase(testFileName, testFileLine)
   curSuite.curCase = { }
 end
 
--- from file: cTests.tex after line: 550
+-- from file: cTests.tex after line: 500
 
 local function compareKeyValues(a, b)
   return (a[1] < b[1])
@@ -127,10 +131,8 @@ end
 function reportCAssertion(
   theCondition, aMessage, theReason,
   testFileName, testFileLine)
-  cTests.curSuite    = cTests.curSuite or { }
-  local curSuite     = cTests.curSuite
-  curSuite.curCase   = curSuite.curCase or { }
-  local curCase      = curSuite.curCase
+  local curSuite     = setDefs(cTests, 'curSuite')
+  local curCase      = setDefs(curSuite, 'curCase')
   curCase.shouldFail = curCase.shouldFail or { }
  
   if 0 < #curCase.shouldFail then
@@ -215,10 +217,8 @@ end
 function startCShouldFail(
   messagePattern, reasonPattern, aMessage,
   testFileName, testFileLine)
-  cTests.curSuite    = cTests.curSuite or { }
-  local curSuite     = cTests.curSuite
-  curSuite.curCase   = curSuite.curCase or { }
-  local curCase      = curSuite.curCase
+  local curSuite     = setDefs(cTests, 'curSuite')
+  local curCase      = setDefs(curSuite, 'curCase')
   local curShouldFail   = { }
   curShouldFail.messagePattern = messagePattern
   curShouldFail.reasonPattern  = reasonPattern

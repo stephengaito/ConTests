@@ -16,8 +16,8 @@ modules ['t-contests-templates'] = {
 thirddata               = thirddata               or {}
 thirddata.literateProgs = thirddata.literateProgs or {}
 local litProgs          = thirddata.literateProgs
-litProgs.templates      = litProgs.templates      or {}
-local templates         = litProgs.templates
+local setDefs           = litProgs.setDefs
+local templates         = setDefs(litProgs, 'templates')
 
 local tInsert = table.insert
 local tConcat = table.concat

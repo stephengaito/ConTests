@@ -27,10 +27,9 @@ contests.expInfo     = {}
 local expInfo        = contests.expInfo
 
 local litProgs       = thirddata.literateProgs
-litProgs.templates   = litProgs.templates or {}
-local templates      = litProgs.templates
-litProgs.build       = litProgs.build or {}
-local build          = litProgs.build
+local setDefs        = litProgs.setDefs
+local templates      = setDefs(litProgs, 'templates')
+local build          = setDefs(litProgs, 'build')
 
 local function initRawStats()
   local raw = {}
@@ -389,8 +388,7 @@ local function recordExpansion(macroName,
     texio.write_nl('AT: '..status.filename..'::'..status.linenumber)
   end
   macroName = macroName:gsub('^%s+', ''):gsub('%s+$', '')
-  expInfo[macroName] = expInfo[macroName] or { }
-  local macroInfo    = expInfo[macroName]
+  local macroInfo    = setDefs(expInfo, macroName)
   macroInfo.calls    = macroInfo.calls or { }
   tInsert(macroInfo.calls, { callType, macroArguments})
   return macroInfo
@@ -416,8 +414,7 @@ contests.returnMockedResults = returnMockedResults
 
 local function addMockResult(mockedMacro, returnValue)
   mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
-  expInfo[mockedMacro] = expInfo[mockedMacro] or { }
-  mockedMacro          = expInfo[mockedMacro]
+  mockedMacro          = setDefs(expInfo, mockedMacro)
   mockedMacro.returns  = mockedMacro.returns or { }
   tInsert(mockedMacro.returns, returnValue)
 end
@@ -1189,55 +1186,40 @@ end
 
 local function addCTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
-  tests.methods        = tests.methods     or { }
-  local methods        = tests.methods
-  local suite          = tests.curSuite    or { }
-  local case           = suite.curCase     or { }
-  case.cTests          = case.cTests       or { }
-  local cTests         = case.cTests
+  local methods        = setDefs(tests, 'methods')
+  local suite          = setDefs(tests, 'curSuite')
+  local case           = setDefs(suite, 'curCase')
+  local cTests         = setDefs(case, 'cTests')
   local curStage       = tests.stage:lower()
   if curStage:find('global') then
     if curStage:find('up') then
-      tests.setup      = tests.setup       or { }
-      local setup      = tests.setup
-      setup.cTests     = setup.cTests      or { }
-      cTests           = setup.cTests
+      local setup      = setDefs(tests, 'setup')
+      cTests           = setDefs(setup, 'cTests')
     elseif curStage:find('down') then
-      tests.teardown   = tests.teardown    or { }
-      local teardown   = tests.teardown
-      teardown.cTests  = teardown.cTests   or { }
-      cTests           = teardown.cTests
+      local teardown   = setDefs(tests, 'teardown')
+      cTests           = setDefs(teardown, 'cTests')
     end
   elseif curStage:find('suite') then
     if curStage:find('up') then
-      suite.setup      = suite.setup       or { }
-      local setup      = suite.setup
-      setup.cTests     = setup.cTests      or { }
-      cTests           = setup.cTests
+      local setup      = setDefs(suite, 'setup')
+      cTests           = setDefs(setup, 'cTests')
     elseif curStage:find('down') then
-      suite.teardown   = suite.teardown    or { }
-      local teardown   = suite.teardown
-      teardown.cTests  = teardown.cTests   or { }
-      cTests           = teardown.cTests
+      local teardown   = setDefs(suite, 'teardown')
+      cTests           = setDefs(teardown, 'cTests')
     end
   elseif curStage:find('method') then
     if curStage:find('up') then
-      methods.setup    = methods.setup     or { }
-      local setup      = methods.setup
-      setup.cTests     = setup.cTests      or { }
-      cTests           = setup.cTests
+      local setup      = setDefs(methods, 'setup')
+      cTests           = setDefs(setup, 'cTests')
     elseif curStage:find('down') then
-      methods.teardown = methods.teardown or { }
-      local teardown   = methods.teardown
-      teardown.cTests  = teardown.cTests  or { }
-      cTests           = teardown.cTests
+      local teardown   = setDefs(methods, 'teardown')
+      cTests           = setDefs(teardown, 'cTests')
     end
   end
   tests.stage          = ''
-  tests.curCTestStream = tests.curCTestStream or 'default'
-  local cTestStream    = tests.curCTestStream
-  cTests[cTestStream]  = cTests[cTestStream] or { }
-  tInsert(cTests[cTestStream], bufferContents)
+  local cTestStream    = setDefs(tests, 'curCTestStream', 'default')
+  cTestStream          = setDefs(cTests, cTestStream)
+  tInsert(cTestStream, bufferContents)
 end
 
 contests.addCTest = addCTest
@@ -1259,34 +1241,28 @@ end
 contests.setCTestStream = setCTestStream
 
 local function addCTestInclude(anInclude)
-  tests.cIncludes        = tests.cIncludes or { }
-  local cIncludes        = tests.cIncludes
-  tests.curCTestStream   = tests.curCTestStream or 'default'
-  local cTestStream      = tests.curCTestStream
-  cIncludes[cTestStream] = cIncludes[cTestStream] or { }
-  tInsert(cIncludes[cTestStream], anInclude)
+  local cIncludes        = setDefs(tests, 'cIncludes')
+  local cTestStream      = setDefs(tests, 'curCTestStream', 'default')
+  cTestStream            = setDefs(cIncludes, cTestStream)
+  tInsert(cTestStream, anInclude)
 end
 
 contests.addCTestInclude = addCTestInclude
 
 local function addCTestLibDir(aLibDir)
-  tests.cLibDirs        = tests.cLibDirs or { }
-  local cLibDirs        = tests.cLibDirs
-  tests.curCTestStream  = tests.curCTestStream or 'default'
-  local cTestStream     = tests.curCTestStream
-  cLibDirs[cTestStream] = cLibDirs[cTestStream] or { }
-  tInsert(cLibDirs[cTestStream], aLibDir)
+  local cLibDirs        = setDefs(tests, 'cLibDirs')
+  local cTestStream     = setDefs(tests, 'curCTestStream', 'default')
+  cTestStream           = setDefs(cLibDirs, cTestStream)
+  tInsert(cTestStream, aLibDir)
 end
 
 contests.addCTestLibDir = addCTestLibDir
 
 local function addCTestLib(aLib)
-  tests.cLibs          = tests.cLibs or { }
-  local cLibs          = tests.cLibs
-  tests.curCTestStream = tests.curCTestStream or 'default'
-  local cTestStream    = tests.curCTestStream
-  cLibs[cTestStream]   = cLibs[cTestStream] or { }
-  tInsert(cLibs[cTestStream], aLib)
+  local cLibs          = setDefs(tests, 'cLibs')
+  local cTestStream    = setDefs(tests, 'curCTestStream', 'default')
+  cTestStream          = setDefs(cLibs, cTestStream)
+  tInsert(cTestStream, aLib)
 end
 
 contests.addCTestLib = addCTestLib
@@ -1333,8 +1309,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   outFile:write('\n\n')
 
   outFile:write('//-------------------------------------------------------\n')
-  tests.cIncludes = tests.cIncludes or { }
-  local cIncludes = tests.cIncludes
+  local cIncludes = setDefs(tests, 'cIncludes')
 
   cIncludes[aCodeStream] = cIncludes[aCodeStream] or { }
 
@@ -1388,8 +1363,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
     local suiteCaseBuf = { }
 
     for j, aTestCase in ipairs(aTestSuite.cases) do
-      aTestCase.cTests = aTestCase.cTests or { }
-      local cTests     = aTestCase.cTests
+      local cTests     = setDefs(aTestCase, 'cTests')
       if aTestCase.desc and
         aTestCase.fileName and
         aTestCase.startLine and

@@ -79,10 +79,9 @@ contests.expInfo     = {}
 local expInfo        = contests.expInfo
 
 local litProgs       = thirddata.literateProgs
-litProgs.templates   = litProgs.templates or {}
-local templates      = litProgs.templates
-litProgs.build       = litProgs.build or {}
-local build          = litProgs.build
+local setDefs        = litProgs.setDefs
+local templates      = setDefs(litProgs, 'templates')
+local build          = setDefs(litProgs, 'build')
 
 local function initRawStats()
   local raw = {}
@@ -133,8 +132,8 @@ modules ['t-contests-templates'] = {
 thirddata               = thirddata               or {}
 thirddata.literateProgs = thirddata.literateProgs or {}
 local litProgs          = thirddata.literateProgs
-litProgs.templates      = litProgs.templates      or {}
-local templates         = litProgs.templates
+local setDefs           = litProgs.setDefs
+local templates         = setDefs(litProgs, 'templates')
 
 local tInsert = table.insert
 local tConcat = table.concat
