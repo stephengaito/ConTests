@@ -61,7 +61,7 @@ function stopTestCase(testFileName, testFileLine)
   curSuite.curCase = { }
 end
 
--- from file: cTests.tex after line: 500
+-- from file: cTests.tex after line: 550
 
 local function compareKeyValues(a, b)
   return (a[1] < b[1])
@@ -208,8 +208,14 @@ function reportCAssertion(
     )
     cTests.failures = cTests.failures or { }
     tInsert(cTests.failures, failure)
+    cTests.numFailures = #cTests.failures
   end
   return theCondition
+end
+
+function getNumFailures()
+  cTests.numFailures = cTests.numFailures or 0
+  return cTests.numFailures
 end
 
 -- from file: cTests.tex after line: 700

@@ -341,7 +341,19 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   end
 
   outFile:write('\n  fprintf(stdout, "\\n");\n\n')
-  outFile:write('  return 0;\n')
+
+  outFile:write('\n  lua_getglobal(lstate, "getNumFailures");\n')
+  outFile:write(  '  lua_errorCall(0,1);\n')
+  outFile:write(  '  int numFailures = lua_tointeger(lstate, -1);\n')
+  outFile:write(  '  lua_pop(lstate, 1);\n\n')
+
+  outFile:write(  '  if (0 < numFailures) {\n')
+  outFile:write(  '    fprintf(stdout, "FAILURES FOUND: %u\\n",\n')
+  outFile:write(  '      numFailures\n')
+  outFile:write(  '    );\n')
+  outFile:write(  '  }\n')
+
+  outFile:write('\n  return numFailures;\n')
   outFile:write('}\n')
 
   outFile:close()
@@ -682,8 +694,14 @@ function reportCAssertion(
     )
     cTests.failures = cTests.failures or { }
     tInsert(cTests.failures, failure)
+    cTests.numFailures = #cTests.failures
   end
   return theCondition
+end
+
+function getNumFailures()
+  cTests.numFailures = cTests.numFailures or 0
+  return cTests.numFailures
 end
 \stopLuaCode
 
