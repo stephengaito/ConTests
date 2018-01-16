@@ -1,6 +1,6 @@
 -- A Lua file for CTests
 
--- from file: cTests.tex after line: 450
+-- from file: cTests.tex after line: 500
 
 -- This is the lua code associated with the t-contests-cTests
 
@@ -218,7 +218,7 @@ function getNumFailures()
   return cTests.numFailures
 end
 
--- from file: cTests.tex after line: 700
+-- from file: cTests.tex after line: 750
 
 function startCShouldFail(
   messagePattern, reasonPattern, aMessage,

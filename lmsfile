@@ -1,12 +1,8 @@
 -- A Lua Make System file
 
-lfs = require 'lfs'
-
-lfs.mkdir('build')
-
 require 'lms.litProgs'
 
-litProgs.targets{
+lpTargets = litProgs.targets{
   mainDoc  = 'contests.tex',
   docFiles = {
     'overview.tex',
@@ -17,46 +13,33 @@ litProgs.targets{
     'cTests.tex',
     'conclusion.tex',
   },
-  srcFiles = {
+  docDir    = 't-contests/doc/context/third/contests',
+}
+
+require 'lms.contextMod'
+
+contextMod.targets(lpTargets, {
+  moduleFiles = {
     't-contests.mkiv',
     't-contests.lua',
-    't-contests.h',
     't-contests-cTests.lua',
-    't-contests-templates.lua',
   },
-  buildDir  = 'build',
-  docDir    = 't-contests/doc/context/third/contests',
   moduleDir = 't-contests/tex/context/third/contests',
-}
+})
 
 require 'lms.contests'
 
-contests.targets{
+contests.targets(lpTargets, {
   testExecs = {
     'allCTests',
   },
-  mainDoc = 'contests.tex',
-  docFiles = {
-    'overview.tex',
-    'preamble.tex',
-    'testSuites.tex',
-    'mkivTests.tex',
-    'luaTests.tex',
-    'cTests.tex',
-    'conclusion.tex',
-  },
-  srcFiles = {
-    't-contests.mkiv',
-    't-contests.lua',
+  cHeaderFiles = {
     't-contests.h',
-    't-contests-cTests.lua',
-    't-contests-templates.lua',
+  },
+  cCodeFiles = {
   },
   testLibDirs = {
   },
   testLibs = {
   },
-  buildDir  = 'build',
-  docDir    = 't-contests/doc/context/third/contests',
-  moduleDir = 't-contests/tex/context/third/contests',
-}
+})

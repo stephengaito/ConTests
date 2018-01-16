@@ -182,7 +182,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   local aTestExec = aFilePath:gsub('%..+$','')
   tInsert(build.testTargets, aTestExec)
 
-  aFilePath = build.buildDir .. '/build/' .. aFilePath
+  aFilePath = build.buildDir .. '/buildDir/' .. aFilePath
   local outFile = io.open(aFilePath, 'w')
   if not outFile then
     return
@@ -422,7 +422,7 @@ local function addCTestTargets(aCodeStream)
     end
   end
   tInsert(lmsfile, "  },")
---  tInsert(lmsfile, "  buildDir  = 'build',")
+--  tInsert(lmsfile, "  buildDir  = 'buildDir',")
 --  tInsert(lmsfile, "  docDir    = '"..build.docDir.."',")
 --  tInsert(lmsfile, "  moduleDir = '"..build.contextModuleDir.."',")
   tInsert(lmsfile, "})")

@@ -1284,7 +1284,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   local aTestExec = aFilePath:gsub('%..+$','')
   tInsert(build.testTargets, aTestExec)
 
-  aFilePath = build.buildDir .. '/build/' .. aFilePath
+  aFilePath = build.buildDir .. '/buildDir/' .. aFilePath
   local outFile = io.open(aFilePath, 'w')
   if not outFile then
     return
@@ -1483,7 +1483,7 @@ local function addCTestTargets(aCodeStream)
 
   build.srcTargets = build.srcTargets or { }
   local srcTargets = build.srcTargets
-  
+ 
   srcTargets.cHeader = srcTargets.cHeader or { }
   local cHeader      = srcTargets.cHeader
   tInsert(lmsfile, "  cHeaderFiles = {")
@@ -1491,7 +1491,7 @@ local function addCTestTargets(aCodeStream)
     tInsert(lmsfile, "    '"..aSrcFile.."',")
   end
   tInsert(lmsfile, "  },")
-  
+ 
   srcTargets.cCode = srcTargets.cCode or { }
   local cCode      = srcTargets.cCode
   tInsert(lmsfile, "  cCodeFiles = {")
@@ -1506,7 +1506,7 @@ local function addCTestTargets(aCodeStream)
       tInsert(lmsfile, "    '"..aLibDir.."',")
     end
   end
-  if build.cCodeLibDirs then 
+  if build.cCodeLibDirs then
     for i, aLibDir in ipairs(build.cCodeLibDirs) do
       tInsert(lmsfile, "    '"..aLibDir.."',")
     end
@@ -1518,13 +1518,13 @@ local function addCTestTargets(aCodeStream)
       tInsert(lmsfile, "    '"..aLib.."',")
     end
   end
-  if build.cCodeLibs then 
+  if build.cCodeLibs then
     for i, aLib in ipairs(build.cCodeLibs) do
       tInsert(lmsfile, "    '"..aLib.."',")
     end
   end
   tInsert(lmsfile, "  },")
---  tInsert(lmsfile, "  buildDir  = 'build',")
+--  tInsert(lmsfile, "  buildDir  = 'buildDir',")
 --  tInsert(lmsfile, "  docDir    = '"..build.docDir.."',")
 --  tInsert(lmsfile, "  moduleDir = '"..build.contextModuleDir.."',")
   tInsert(lmsfile, "})")

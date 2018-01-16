@@ -6,4 +6,4 @@
 *.swp
 *.d
 *.o
-build
+buildDir
