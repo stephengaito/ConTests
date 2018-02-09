@@ -39,6 +39,7 @@ local function initRawStats()
   raw.skipped    = 0
   return raw
 end
+contests.initRawStats = initRawStats
 
 local function initStats()
   local stats = {}
@@ -47,6 +48,7 @@ local function initStats()
   stats.suites     = initRawStats()
   return stats
 end
+contests.initStats = initStats
 
 tests.stats          = {}
 tests.stats.mkiv     = initStats()
