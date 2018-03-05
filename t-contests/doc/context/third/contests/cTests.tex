@@ -532,7 +532,7 @@ function startTestSuite(aDesc, testFileName, testFileLine)
   curSuite.desc   = aDesc
   curSuite.passed = true
   io.stdout:write("\n-------------------------------------\n")
-  io.stdout:write(sFmt("TS: %s\n", aDesc))
+  io.stdout:write(sFmt("cTS: %s\n", aDesc))
 end
 
 function stopTestSuite(testFileName, testFileLine)
@@ -554,7 +554,7 @@ function startTestCase(
   curCase.startLine = srcStartLine
   curCase.lastLine  = srcLastLine
   curCase.passed    = true
-  io.stdout:write(sFmt("  TC: %s\n", aDesc))
+  io.stdout:write(sFmt("  cTC: %s\n", aDesc))
 end
 
 function skipTestCase(testFileName, testFileLine)
