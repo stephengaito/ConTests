@@ -27,9 +27,9 @@ contextMod.targets(lpTargets, {
   moduleDir = 't-contests/tex/context/third/contests',
 })
 
-require 'lms.contests'
+require 'lms.cTests'
 
-contests.targets(lpTargets, {
+cTests.targets(lpTargets, {
   testExecs = {
     'allCTests',
   },

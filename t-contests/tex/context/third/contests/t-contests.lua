@@ -1282,9 +1282,9 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
     return
   end
 
-  build.testTargets = build.testTargets or { }
+  build.cTestTargets = build.cTestTargets or { }
   local aTestExec = aFilePath:gsub('%..+$','')
-  tInsert(build.testTargets, aTestExec)
+  tInsert(build.cTestTargets, aTestExec)
 
   aFilePath = build.buildDir .. '/buildDir/' .. aFilePath
   local outFile = io.open(aFilePath, 'w')
@@ -1344,7 +1344,7 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   outFile:write('  lua_State *lstate = luaL_newstate();\n')
   outFile:write('  luaL_openlibs(lstate);\n\n')
 
-  outFile:write('  if luaL_dofile(lstate, CONTESTS_STARTUP) {\n')
+  outFile:write('  if luaL_dofile(lstate, CTESTS_STARTUP) {\n')
   outFile:write('    fprintf(stderr, "Could not load cTests\\n");\n')
   outFile:write('    fprintf(stderr, "%s\\n", lua_tostring(lstate, 1));\n')
   outFile:write('    exit(-1);\n')
@@ -1469,10 +1469,10 @@ local function addCTestTargets(aCodeStream)
   litProgs.setCodeStream('Lmsfile', aCodeStream)
   litProgs.markCodeOrigin('Lmsfile')
   local lmsfile = {}
-  tInsert(lmsfile, "require 'lms.contests'\n")
-  tInsert(lmsfile, "contests.targets(lpTargets, {")
+  tInsert(lmsfile, "require 'lms.cTests'\n")
+  tInsert(lmsfile, "cTests.targets(lpTargets, {")
   tInsert(lmsfile, "  testExecs = {")
-  for i, aTestExec in ipairs(build.testTargets) do
+  for i, aTestExec in ipairs(build.cTestTargets) do
     tInsert(lmsfile, "    '"..aTestExec.."',")
   end
   tInsert(lmsfile, "  },")
@@ -1526,9 +1526,6 @@ local function addCTestTargets(aCodeStream)
     end
   end
   tInsert(lmsfile, "  },")
---  tInsert(lmsfile, "  buildDir  = 'buildDir',")
---  tInsert(lmsfile, "  docDir    = '"..build.docDir.."',")
---  tInsert(lmsfile, "  moduleDir = '"..build.contextModuleDir.."',")
   tInsert(lmsfile, "})")
   litProgs.setPrepend('Lmsfile', aCodeStream, true)
   litProgs.addCode.default('Lmsfile', tConcat(lmsfile, '\n'))
