@@ -40,12 +40,12 @@ characters, you can not use \type{"} in the body of the
 
 \startMkIVCode
 \def\startTestSuite[#1]{%
-  \subsection[title=Test Suite: #1]
+  \subsubsection[title=Test Suite: #1]
   \directlua{thirddata.contests.startTestSuite("#1")}
 }
 
 \def\stopTestSuite{%
-  %\stopsubsection%
+  %\stopsubsubsection%
   \directlua{thirddata.contests.stopTestSuite()}
 }
 \stopMkIVCode

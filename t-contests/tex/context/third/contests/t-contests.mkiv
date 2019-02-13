@@ -54,12 +54,12 @@
 % from file: testSuites.tex after line: 0
 
 \def\startTestSuite[#1]{%
-  \subsection[title=Test Suite: #1]
+  \subsubsection[title=Test Suite: #1]
   \directlua{thirddata.contests.startTestSuite("#1")}
 }
 
 \def\stopTestSuite{%
-  %\stopsubsection%
+  %\stopsubsubsection%
   \directlua{thirddata.contests.stopTestSuite()}
 }
 
