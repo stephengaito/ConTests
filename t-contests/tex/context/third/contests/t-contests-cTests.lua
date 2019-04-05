@@ -1,6 +1,6 @@
 -- A Lua file for CTests
 
--- from file: cTests.tex after line: 500
+-- from file: cTests.tex after line: 600
 
 -- This is the lua code associated with the t-contests-cTests
 
@@ -61,7 +61,7 @@ function stopTestCase(testFileName, testFileLine)
   curSuite.curCase = { }
 end
 
--- from file: cTests.tex after line: 550
+-- from file: cTests.tex after line: 700
 
 local function compareKeyValues(a, b)
   return (a[1] < b[1])
@@ -218,7 +218,7 @@ function getNumFailures()
   return cTests.numFailures
 end
 
--- from file: cTests.tex after line: 750
+-- from file: cTests.tex after line: 850
 
 function startCShouldFail(
   messagePattern, reasonPattern, aMessage,
