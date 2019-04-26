@@ -4,15 +4,6 @@ require 'lms.litProgs'
 
 lpTargets = litProgs.targets{
   mainDoc  = 'contests.tex',
-  docFiles = {
-    'overview.tex',
-    'preamble.tex',
-    'testSuites.tex',
-    'mkivTests.tex',
-    'luaTests.tex',
-    'cTests.tex',
-    'conclusion.tex',
-  },
   docDir    = 't-contests/doc/context/third/contests',
 }
 
@@ -43,3 +34,7 @@ cTests.targets(lpTargets, {
   testLibs = {
   },
 })
+
+require 'lms.contextDoc'
+
+contextDoc.targets(lpTargets)

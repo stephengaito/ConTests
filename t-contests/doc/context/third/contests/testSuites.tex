@@ -39,12 +39,12 @@ characters, you can not use \type{"} in the body of the
 \type{\startTestSuite} argument itself. 
 
 \startMkIVCode
-\def\startTestSuite[#1]{%
+\def\startTestSuite[#1]{
   \subsubsection[title=Test Suite: #1]
   \directlua{thirddata.contests.startTestSuite("#1")}
 }
 
-\def\stopTestSuite{%
+\def\stopTestSuite{
   %\stopsubsubsection%
   \directlua{thirddata.contests.stopTestSuite()}
 }
@@ -109,23 +109,23 @@ is quoted in \type{"} characters, you can not use \type{"} in the body of
 the \type{\startTestCase} argument itself. 
 
 \startMkIVCode
-\def\startTestCase[#1]{%
+\def\startTestCase[#1]{
   \starttextrule{Test case}
   \noindent {\tfa #1} \godown[2ex]
   \directlua{thirddata.contests.startTestCase("#1")}
 }
 
-\def\stopTestCase{%
+\def\stopTestCase{
   \directlua{thirddata.contests.stopTestCase()}
   \stoptextrule%
 }
 
-\def\skipTestCase{%
+\def\skipTestCase{
   \directlua{thirddata.contests.skipTestCase()}
   \stoptextrule%
 }
 
-\def\ignoreTestCase{%
+\def\ignoreTestCase{
   \directlua{thirddata.contests.ignoreTestCase()}
   \stoptextrule%
 }
@@ -276,7 +276,7 @@ The \type{\reportFailures} macro uses the \type{reportFailures} and
 of all failures detected in the document's unit tests. 
 
 \startMkIVCode
-\def\reportFailures{%
+\def\reportFailures{
   \directlua{thirddata.contests.reportFailures()}
 }
 \stopMkIVCode
@@ -303,11 +303,11 @@ attempted, passed or failed. These statistics provide a quick summary of
 how well tested a given code project is. 
 
 \startMkIVCode
-\def\reportMkIVStats{%
+\def\reportMkIVStats{
   \directlua{thirddata.contests.reportStats('mkiv')}
 }
 
-\def\reportLuaStats{%
+\def\reportLuaStats{
   \directlua{thirddata.contests.reportStats('lua')}
 }
 \stopMkIVCode
@@ -323,7 +323,7 @@ function contests.reportStats(statsType)
   local cols =
     { 'attempted', 'passed', 'failed', 'skipped' }
   local colCol = { '', '\\green', '\\red', '\\magenta' }
-  tex.print("\\placetable[force,none]{}{%")
+  tex.print("\\placetable[force,none]{}{")
   tex.print("\\starttabulate[|r|c|c|c|c|]\\HL\\NC")
   for j, col in ipairs(cols) do
     tex.print("\\NC "..colCol[j]..' '..col)

@@ -26,8 +26,8 @@ contests.showValue = showValue
 \stopLuaCode
 
 \startMkIVCode
-\def\showLuaValue#1#2{%
-  \directlua{%
+\def\showLuaValue#1#2{
+  \directlua{
     thirddata.contests.showValue(#1, '#2')
   }
 }
@@ -44,12 +44,12 @@ interface. We tailor these ideas for use \emph{inside} \ConTeXt.
 \setuptyping[LuaTest][option=lua]
 
 \let\oldStopLuaTest=\stopLuaTest
-\def\stopLuaTest{%
+\def\stopLuaTest{
   \oldStopLuaTest%
   \directlua{thirddata.contests.addLuaTest('_typing_')}
 }
 
-\def\showLuaTest{%
+\def\showLuaTest{
   \directlua{thirddata.contests.showLuaTest()}
 }
 \stopMkIVCode
@@ -238,7 +238,7 @@ the \type{LuaConTest} buffer.
 
 \definebuffer[LuaConTest]
 
-\def\stopLuaConTest{%
+\def\stopLuaConTest{
   \directlua{thirddata.contests.runLuaConTest('\getLuaConTestName')}
 }
 \stopMkIVCode

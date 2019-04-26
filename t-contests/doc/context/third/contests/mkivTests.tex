@@ -25,7 +25,7 @@ the \type{\stopConTest} \TeX\ macro and then calls the Lua
 \setuptyping[ConTest][option=context]
 
 \let\oldStopConTest=\stopConTest
-\def\stopConTest{%
+\def\stopConTest{
   \oldStopConTest%
   \directlua{thirddata.contests.addConTest('_typing_')}
 }
@@ -99,11 +99,11 @@ that an assertion together with its message and reason (for failure) has
 either failed or succeeded. 
 
 \startMkIVCode
-\def\assertionFailed#1#2{%
+\def\assertionFailed#1#2{
   \directlua{thirddata.contests.reportMkIVAssertion(false, '#1', '#2')}
 }
 
-\def\assertionSucceeded#1{%
+\def\assertionSucceeded#1{
   \directlua{thirddata.contests.reportMkIVAssertion(true, '#1', '')}
 }
 \stopMkIVCode
@@ -191,7 +191,7 @@ provide a way to test that various assertions fail, without those failures
 representing failures of the overall test suite. 
 
 \startMkIVCode
-\def\startAssertShouldFail#1#2#3{%
+\def\startAssertShouldFail#1#2#3{
   \directlua{thirddata.contests.mkivAssertShouldFail('#1', '#2', '#3')}
 }
 
@@ -310,7 +310,7 @@ is defined as a \TeX\ command.
 % See: 13.2.3 on page 141 of TeXbyTopic v1.4-2013
 
 \startMkIVCode
-\def\assertDefined#1#2{%
+\def\assertDefined#1#2{
   \expandafter\ifx\csname#1\endcsname\relax%
     \assertionFailed{#2}{Expected #1 to be defined}%
   \else%
@@ -343,7 +343,7 @@ The \type{\assertNotDefined} assertion confirms that the csname provided
 is not defined as a \TeX\ command. 
 
 \startMkIVCode
-\def\assertNotDefined#1#2{%
+\def\assertNotDefined#1#2{
   \expandafter\ifx\csname#1\endcsname\relax%
     \assertionSucceeded{#2}%
   \else%
@@ -375,7 +375,7 @@ The \type{\assertStringMatches} assertion confirms that the fully expanded
 result, taken as a lua string, matches the associated lua pattern match. 
 
 \startMkIVCode
-\def\assertStringMatches#1#2#3{%
+\def\assertStringMatches#1#2#3{
   \edef\aString{#1}
   \directlua{
     thirddata.contests.reportMkIVAssertion(
@@ -413,7 +413,7 @@ The \type{\assertStringDoesNotMatch} assertion confirms that the fully expanded
 result, taken as a lua string, does not match the associated lua pattern match. 
 
 \startMkIVCode
-\def\assertStringDoesNotMatch#1#2#3{%
+\def\assertStringDoesNotMatch#1#2#3{
   \edef\aString{#1}
   \directlua{
     thirddata.contests.reportMkIVAssertion(
@@ -450,7 +450,7 @@ The \type{\assertFirstArgument} assertion confirms that any previous
 \ConTeXt\ multiple optional argument macro had a first argument. 
 
 \startMkIVCode
-\def\assertFirstArgument#1{%
+\def\assertFirstArgument#1{
   \iffirstargument%
     \assertionSucceeded{#1}%
   \else%
@@ -491,7 +491,7 @@ The \type{\assertNoFirstArgument} assertion confirms that any previous
 \ConTeXt\ multiple optional argument macro did not have a first argument. 
 
 \startMkIVCode
-\def\assertNoFirstArgument#1{%
+\def\assertNoFirstArgument#1{
   \iffirstargument%
     \assertionFailed{#1}{Expected no first argument}%
   \else%
@@ -532,7 +532,7 @@ The \type{\assertSecondArgument} assertion confirms that any previous
 \ConTeXt\ multiple optional argument macro had a second argument. 
 
 \startMkIVCode
-\def\assertSecondArgument#1{%
+\def\assertSecondArgument#1{
   \ifsecondargument%
     \assertionSucceeded{#1}%
   \else%
@@ -573,7 +573,7 @@ The \type{\assertNoSecondArgument} assertion confirms that any previous
 \ConTeXt\ multiple optional argument macro did not have a second argument. 
 
 \startMkIVCode
-\def\assertNoSecondArgument#1{%
+\def\assertNoSecondArgument#1{
   \ifsecondargument%
     \assertionFailed{#1}{Expected no second argument}%
   \else%
@@ -614,7 +614,7 @@ The \type{\assertThirdArgument} assertion confirms that any previous
 \ConTeXt\ multiple optional argument macro had a third argument. 
 
 \startMkIVCode
-\def\assertThirdArgument#1{%
+\def\assertThirdArgument#1{
   \ifthirdargument%
     \assertionSucceeded{#1}%
   \else%
@@ -657,7 +657,7 @@ The \type{\assertNoThirdArgument} assertion confirms that any previous
 \ConTeXt\ multiple optional argument macro did not have a third argument. 
 
 \startMkIVCode
-\def\assertNoThirdArgument#1{%
+\def\assertNoThirdArgument#1{
   \ifthirdargument%
     \assertionFailed{#1}{Expected no third argument}%
   \else%
@@ -733,8 +733,8 @@ contests.clearAllExpansionInfo = clearAllExpansionInfo
 \stopLuaCode
 
 \startMkIVCode
-\def\clearAllExpansionInfo{%
-  \directlua{%
+\def\clearAllExpansionInfo{
+  \directlua{
     thirddata.contests.clearAllExpansionInfo()
   }
 }
@@ -753,8 +753,8 @@ contests.clearExpansionInfoFor = clearExpansionInfoFor
 \stopLuaCode
 
 \startMkIVCode
-\def\clearExpansionInfoFor#1{%
-  \directlua{%
+\def\clearExpansionInfoFor#1{
+  \directlua{
     thirddata.contests.clearExpansionInfoFor('#1')
   }
 }
@@ -785,15 +785,15 @@ We provide the following \TeX\ convenience macros to start and stop
 logging: 
 
 \startMkIVCode
-\def\startLoggingExpansions{%
+\def\startLoggingExpansions{
   \directlua{thirddata.contests.setExpansionLogging(true)}
 }
 
-\def\stopLoggingExpansions{%
+\def\stopLoggingExpansions{
   \directlua{thirddata.contests.setExpansionLogging(false)}
 }
 
-\def\logMessage#1{%
+\def\logMessage#1{
   \writestatus{contests}{#1}#1\\
 }
 \stopMkIVCode
@@ -868,8 +868,8 @@ We define the \type{\addMockResult} macro which adds a return
 value to the appropriate mocked macro. 
 
 \startMkIVCode
-\def\addMockResult#1#2{%
-  \directlua{%
+\def\addMockResult#1#2{
+  \directlua{
     thirddata.contests.addMockResult('#1', '#2')
   }
 }
@@ -916,26 +916,26 @@ number of arguments expected by the macro, and the type of macro (either
 \quote{tex} or \quote{context}) and whether we are tracing or mocking. 
 
 \startMkIVCode
-\def\traceTexMacro#1#2{%
-  \directlua{%
+\def\traceTexMacro#1#2{
+  \directlua{
     thirddata.contests.createMacro('#1', #2, 'tex', 'trace')
   }
 }
 
-\def\traceContextMacro#1#2{%
-  \directlua{%
+\def\traceContextMacro#1#2{
+  \directlua{
     thirddata.contests.createMacro('#1', #2, 'context', 'trace')
   }
 }
 
-\def\mockTexMacro#1#2{%
-  \directlua{%
+\def\mockTexMacro#1#2{
+  \directlua{
     thirddata.contests.createMacro('#1', #2, 'tex', 'mock')
   }
 }
 
-\def\mockContextMacro#1#2{%
-  \directlua{%
+\def\mockContextMacro#1#2{
+  \directlua{
     thirddata.contests.createMacro('#1', #2, 'context', 'mock')
   }
 }
@@ -1038,8 +1038,8 @@ addTemplate(
 \let\old{{= macroName}}=\{{= macroName}}
 \clearExpansionInfoFor{ {{= macroName}} }
 \def\{{= macroName}}{{| argList, emptyStr, cmFormalArgs,
-                        anArg, argTemplate }}{%
-  \directlua{%
+                        anArg, argTemplate }}{
+  \directlua{
     thirddata.contests.recordExpansion(
       '{{= macroName}}',
       '{{= argType}}',
@@ -1069,8 +1069,8 @@ addTemplate(
 \let\old{{= macroName}}=\{{= macroName}}
 \clearExpansionInfoFor{ {{= macroName}} }
 \def\{{= macroName}}{{| argList, emptyStr, cmFormalArgs,
-                        anArg, argTemplate }}{%
-  \directlua{%
+                        anArg, argTemplate }}{
+  \directlua{
     thirddata.contests.mockExpansion(
       '{{= macroName}}',
       '{{= argType}}',
@@ -1164,8 +1164,8 @@ assert.isTable(macroBody)
 assert.length(macroBody, 16)
 assert.isEqual(macroBody[1],  "\\let\\oldtest=\\test")
 assert.isEqual(macroBody[2],  "\\clearExpansionInfoFor{ test }")
-assert.isEqual(macroBody[3],  "\\def\\test[#1][#2][#3]{%")
-assert.isEqual(macroBody[4],  "  \\directlua{%")
+assert.isEqual(macroBody[3],  "\\def\\test[#1][#2][#3]{")
+assert.isEqual(macroBody[4],  "  \\directlua{")
 assert.isEqual(macroBody[5],  "    thirddata.contests.recordExpansion(")
 assert.isEqual(macroBody[6],  "      'test',")
 assert.isEqual(macroBody[7],  "      'context',")
@@ -1184,8 +1184,8 @@ assert.isTable(macroBody)
 assert.length(macroBody, 16)
 assert.isEqual(macroBody[1],  "\\let\\oldtest=\\test")
 assert.isEqual(macroBody[2],  "\\clearExpansionInfoFor{ test }")
-assert.isEqual(macroBody[3],  "\\def\\test#1#2#3{%")
-assert.isEqual(macroBody[4],  "  \\directlua{%")
+assert.isEqual(macroBody[3],  "\\def\\test#1#2#3{")
+assert.isEqual(macroBody[4],  "  \\directlua{")
 assert.isEqual(macroBody[5],  "    thirddata.contests.recordExpansion(")
 assert.isEqual(macroBody[6],  "      'test',")
 assert.isEqual(macroBody[7],  "      'tex',")
@@ -1204,8 +1204,8 @@ assert.isTable(macroBody)
 assert.length(macroBody, 15)
 assert.isEqual(macroBody[1],  "\\let\\oldtest=\\test")
 assert.isEqual(macroBody[2],  "\\clearExpansionInfoFor{ test }")
-assert.isEqual(macroBody[3],  "\\def\\test[#1][#2][#3]{%")
-assert.isEqual(macroBody[4],  "  \\directlua{%")
+assert.isEqual(macroBody[3],  "\\def\\test[#1][#2][#3]{")
+assert.isEqual(macroBody[4],  "  \\directlua{")
 assert.isEqual(macroBody[5],  "    thirddata.contests.mockExpansion(")
 assert.isEqual(macroBody[6],  "      'test',")
 assert.isEqual(macroBody[7],  "      'context',")
@@ -1223,8 +1223,8 @@ assert.isTable(macroBody)
 assert.length(macroBody, 15)
 assert.isEqual(macroBody[1],  "\\let\\oldtest=\\test")
 assert.isEqual(macroBody[2],  "\\clearExpansionInfoFor{ test }")
-assert.isEqual(macroBody[3],  "\\def\\test#1#2#3{%")
-assert.isEqual(macroBody[4],  "  \\directlua{%")
+assert.isEqual(macroBody[3],  "\\def\\test#1#2#3{")
+assert.isEqual(macroBody[4],  "  \\directlua{")
 assert.isEqual(macroBody[5],  "    thirddata.contests.mockExpansion(")
 assert.isEqual(macroBody[6],  "      'test',")
 assert.isEqual(macroBody[7],  "      'tex',")
@@ -1256,26 +1256,26 @@ arguments. For example we might want to assert that a macro does or does
 not \quote{throw} an \type{\errmessage}.
 
 \startMkIVCode
-\def\assertMacroExpanded#1#2{%
-  \directlua{%
+\def\assertMacroExpanded#1#2{
+  \directlua{
     thirddata.contests.assertMacroExpanded('#1', 1, '#2')
   }
 }
 
-\def\assertMacroNeverExpanded#1#2{%
-  \directlua{%
+\def\assertMacroNeverExpanded#1#2{
+  \directlua{
     thirddata.contests.assertMacroNeverExpanded('#1', 1, '#2')
   }
 }
 
-\def\assertMacroExpandedNTimes#1#2#3{%
-  \directlua{%
+\def\assertMacroExpandedNTimes#1#2#3{
+  \directlua{
     thirddata.contests.assertMacroExpanded('#1', #2, '#3')
   }
 }
 
-\def\assertMacroNeverExpandedNTimes#1#2#3{%
-  \directlua{%
+\def\assertMacroNeverExpandedNTimes#1#2#3{
+  \directlua{
     thirddata.contests.assertMacroNeverExpanded('#1', #2, '#3')
   }
 }
@@ -1361,8 +1361,8 @@ mocked macros have never been expanded.
 \startTestSuite[assertMacroNthArgumentOnMthExpansionMatches]
 
 \startMkIVCode
-\def\assertMacroNthArgumentOnMthExpansionMatches#1#2#3#4#5{%
-  \directlua{%
+\def\assertMacroNthArgumentOnMthExpansionMatches#1#2#3#4#5{
+  \directlua{
     thirddata.contests.assertMacroArguments(
       '#1', #3, #2, '#4', '#5'
     )
@@ -1518,10 +1518,10 @@ assertions for macros which \quote{throw} \type{\errmessage}s. We do this
 explicitly mocking \type{\errmessage}. 
 
 \startMkIVCode
-\def\mockErrMessage{%
+\def\mockErrMessage{
   \mockTexMacro{errmessage}{1}
 }
-\def\assertErrorThrown#1{%
+\def\assertErrorThrown#1{
   \assertMacroExpanded{errmessage}{#1}
 }
 \stopMkIVCode

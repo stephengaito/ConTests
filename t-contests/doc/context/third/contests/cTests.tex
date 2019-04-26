@@ -9,84 +9,84 @@ We will eventually include a collection of C unit tests.
 \setuptyping[CTest][option=cpp]
 
 \let\oldStopCTest=\stopCTest
-\def\stopCTest{%
+\def\stopCTest{
   \oldStopCTest%
   \directlua{thirddata.contests.addCTest('_typing_')}
 }
 
-\def\setCTestStage#1#2{%
-  \directlua{%
+\def\setCTestStage#1#2{
+  \directlua{
     thirddata.contests.setCTestStage('#1', '#2')
   }
 }
 
-\def\CTestsMethodSetup{%
+\def\CTestsMethodSetup{
   \setCTestStage{Methods}{Setup}
 }
 
-\def\CTestsMethodTeardown{%
+\def\CTestsMethodTeardown{
   \setCTestStage{Methods}{Teardown}
 }
 
-\def\CTestsSetup{%
+\def\CTestsSetup{
   \setCTestStage{Global}{Setup}
 }
 
-\def\CTestsTeardown{%
+\def\CTestsTeardown{
   \setCTestStage{Global}{Teardown}
 }
 
-\def\CTestsSuiteSetup{%
+\def\CTestsSuiteSetup{
   \setCTestStage{TestSuite}{Setup}
 }
 
-\def\CTestsSuiteTeardown{%
+\def\CTestsSuiteTeardown{
   \setCTestStage{TestSuite}{Teardown}
 }
 
-\def\setCTestStream#1{%
+\def\setCTestStream#1{
   \directlua{
     thirddata.contests.setCTestStream('#1')
   }
 }
 
-\def\addCTestInclude#1{%
+\def\addCTestInclude#1{
   \directlua{
     thirddata.contests.addCTestInclude('#1')
   }
 }
 
-\def\addCTestLibDir#1{%
+\def\addCTestLibDir#1{
   \directlua{
     thirddata.contests.addCTestLibDir('#1')
   }
 }
 
-\def\addCTestLib#1{%
+\def\addCTestLib#1{
   \directlua{
     thirddata.contests.addCTestLib('#1')
   }
 }
 
-\def\addCTestMITLicense#1#2{%
+\def\addCTestMITLicense#1#2{
   \directlua{
     thirddata.contests.addCTestMITLicense('#1', '#2')
   }
 }
 
-\def\addCTestApacheLicense#1#2{%
+\def\addCTestApacheLicense#1#2{
   \directlua{
     thirddata.contests.addCTestApacheLicense('#1', '#2')
   }
 }
 
-\def\createCTestFile#1#2#3{%
+\def\createCTestFile#1#2#3{
   \directlua{
     thirddata.contests.createCTestFile('#1', '#2', '#3')
   }
 }
 
-\def\addCTestTargets#1{%
+\def\addCTestTargets#1{
   \directlua{
     thirddata.contests.addCTestTargets('#1')
   }

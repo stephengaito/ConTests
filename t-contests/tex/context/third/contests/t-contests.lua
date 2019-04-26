@@ -214,7 +214,7 @@ function contests.reportStats(statsType)
   local cols =
     { 'attempted', 'passed', 'failed', 'skipped' }
   local colCol = { '', '\\green', '\\red', '\\magenta' }
-  tex.print("\\placetable[force,none]{}{%")
+  tex.print("\\placetable[force,none]{}{")
   tex.print("\\starttabulate[|r|c|c|c|c|]\\HL\\NC")
   for j, col in ipairs(cols) do
     tex.print("\\NC "..colCol[j]..' '..col)
