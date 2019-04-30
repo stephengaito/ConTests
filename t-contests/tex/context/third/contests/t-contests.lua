@@ -1,6 +1,6 @@
 -- A Lua file
 
--- from file: preamble.tex after line: 0
+-- from file: conclusion.tex after line: 0
 
 -- Copyright 2019 PerceptiSys Ltd (Stephen Gaito)
 --
@@ -1674,3 +1674,4 @@ local function addCTestTargets(aCodeStream)
 end
 
 contests.addCTestTargets = addCTestTargets
+

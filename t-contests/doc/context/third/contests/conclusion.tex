@@ -9,26 +9,38 @@
 \addDocumentDirectory%
   {t-contests/doc/context/third/contests}
 
+\prependMkIVCode{default}
+\addMITLicense{MkIVCode}{}{PerceptiSys Ltd (Stephen Gaito)}
 \createMkIVCodeFile%
   {default}%
   {t-contests.mkiv}%
   {A ConTeXt MkIV module}
 
+\prependLuaCode{default}
+\addMITLicense{LuaCode}{--}{PerceptiSys Ltd (Stephen Gaito)}
 \createLuaCodeFile%
   {default}%
   {t-contests.lua}%
   {-- A Lua file}
 
+
+\prependCHeader{default}
+\addMITLicense{CHeader}{//}{PerceptiSys Ltd (Stephen Gaito)}
 \createCHeaderFile%
   {default}%
   {t-contests.h}%
   {// An ANSI-C header file}
 
+\prependCCode{default}
+\addMITLicense{CCode}{//}{PerceptiSys Ltd (Stephen Gaito)}
 \createCCodeFile%
   {default}%
   {t-contests.c}%
   {// An ANSI-C code file}
 
+\prependLuaCode{cTests}
+\setLuaCodeStream{cTests}
+\addMITLicense{LuaCode}{--}{PerceptiSys Ltd (Stephen Gaito)}
 \createLuaCodeFile%
   {cTests}%
   {t-contests-cTests.lua}%
@@ -40,6 +52,8 @@
   {allCTests.c}%
   {// A CTests file}
 
+\prependLuaTemplate{default}
+\addMITLicense{LuaTemplate}{--}{PerceptiSys Ltd (Stephen Gaito)}
 \createLuaTemplateFile%
   {default}%
   {t-contests-templates.lua}%
@@ -69,6 +83,8 @@ contextDoc.targets(lpTargets)
 
 \stopLmsfile
 
+\prependLmsfile{default}
+\addMITLicense{Lmsfile}{--}{PerceptiSys Ltd (Stephen Gaito)}
 \createLmsfileFile%
   {default}%
   {lmsfile}%
