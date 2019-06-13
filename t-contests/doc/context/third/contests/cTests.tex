@@ -494,7 +494,7 @@ local function addCTestTargets(aCodeStream)
   litProgs.markCodeOrigin('Lmsfile')
   local lmsfile = {}
   tInsert(lmsfile, "require 'lms.cTests'\n")
-  tInsert(lmsfile, "cTests.targets(lpTargets, {")
+  tInsert(lmsfile, "cTests.targets(cTargets, {")
   tInsert(lmsfile, "  testExecs = {")
   for i, aTestExec in ipairs(build.cTestTargets) do
     tInsert(lmsfile, "    '"..aTestExec.."',")
@@ -507,24 +507,24 @@ local function addCTestTargets(aCodeStream)
 --  end
 --  tInsert(lmsfile, "  },")
 
-  build.srcTargets = build.srcTargets or { }
-  local srcTargets = build.srcTargets
+--  build.srcTargets = build.srcTargets or { }
+--  local srcTargets = build.srcTargets
   
-  srcTargets.cHeader = srcTargets.cHeader or { }
-  local cHeader      = srcTargets.cHeader
-  tInsert(lmsfile, "  cHeaderFiles = {")
-  for i, aSrcFile in ipairs(cHeader) do
-    tInsert(lmsfile, "    '"..aSrcFile.."',")
-  end
-  tInsert(lmsfile, "  },")
+--  srcTargets.cHeader = srcTargets.cHeader or { }
+--  local cHeader      = srcTargets.cHeader
+--  tInsert(lmsfile, "  cHeaderFiles = {")
+--  for i, aSrcFile in ipairs(cHeader) do
+--    tInsert(lmsfile, "    '"..aSrcFile.."',")
+--  end
+--  tInsert(lmsfile, "  },")
   
-  srcTargets.cCode = srcTargets.cCode or { }
-  local cCode      = srcTargets.cCode
-  tInsert(lmsfile, "  cCodeFiles = {")
-  for i, aSrcFile in ipairs(cCode) do
-    tInsert(lmsfile, "    '"..aSrcFile.."',")
-  end
-  tInsert(lmsfile, "  },")
+--  srcTargets.cCode = srcTargets.cCode or { }
+--  local cCode      = srcTargets.cCode
+--  tInsert(lmsfile, "  cCodeFiles = {")
+--  for i, aSrcFile in ipairs(cCode) do
+--    tInsert(lmsfile, "    '"..aSrcFile.."',")
+--  end
+--  tInsert(lmsfile, "  },")
 
   tInsert(lmsfile, "  testLibDirs = {")
   if tests.cLibDirs and tests.cLibDirs[aCodeStream] then
@@ -551,7 +551,7 @@ local function addCTestTargets(aCodeStream)
   end
   tInsert(lmsfile, "  },")
   tInsert(lmsfile, "})")
-  litProgs.setPrepend('Lmsfile', aCodeStream, true)
+--  litProgs.setPrepend('Lmsfile', aCodeStream, true)
   litProgs.addCode.default('Lmsfile', tConcat(lmsfile, '\n'))
 end
 
