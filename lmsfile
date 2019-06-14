@@ -24,17 +24,16 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 -- OTHER DEALINGS IN THE SOFTWARE.
 
-require 'lms.litProgs'
+require 'lms.contextDoc'
 
-lpTargets = litProgs.targets{
+ctxTargets = contextDoc.targets{
   mainDoc  = 'contests.tex',
   docDir    = 't-contests/doc/context/third/contests',
 }
 
-require 'lms.contextDoc'
+require 'lms.litProgs'
 
-contextDoc.targets(lpTargets)
-
+lpTargets = litProgs.targets(ctxTargets)
 
 require 'lms.contextMod'
 
@@ -47,11 +46,10 @@ contextMod.targets(lpTargets, {
   moduleDir = 't-contests/tex/context/third/contests',
 })
 
-require 'lms.cTests'
+require 'lms.c'
 
-cTests.targets(cTargets, {
-  testExecs = {
-    'allCTests',
+cTargets = c.targets(lpTargets, {
+  programs = {
   },
   cHeaderFiles = {
     't-contests.h',
@@ -59,13 +57,17 @@ cTests.targets(cTargets, {
   cCodeFiles = {
     't-contests.c',
   },
+})
+
+require 'lms.cTests'
+
+cTests.targets(cTargets, {
+  testExecs = {
+    'allCTests',
+  },
   testLibDirs = {
   },
   testLibs = {
   },
 })
-
-require 'lms.contextDoc'
-
-contextDoc.targets(lpTargets)
 

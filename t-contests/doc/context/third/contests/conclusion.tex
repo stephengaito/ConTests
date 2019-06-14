@@ -23,7 +23,6 @@
   {t-contests.lua}%
   {-- A Lua file}
 
-
 \prependCHeader{default}
 \addMITLicense{CHeader}{//}{PerceptiSys Ltd (Stephen Gaito)}
 \createCHeaderFile%
@@ -60,28 +59,15 @@
   {-- A Lua template file}
 
 \addMainDocument{contests.tex}
-\addSubDocument{overview.tex}
-\addSubDocument{preamble.tex}
-\addSubDocument{testSuites.tex}
-\addSubDocument{mkivTests.tex}
-\addSubDocument{luaTests.tex}
-\addSubDocument{cTests.tex}
-\addSubDocument{conclusion.tex}
 
 \addConTeXtModuleDirectory%
   {t-contests/tex/context/third/contests}
 
+\addCCodeTargets{default}
+  
 \addCTestTargets{default}
   
 \compileLmsfile{default}
-
-\startLmsfile
-
-require 'lms.contextDoc'
-
-contextDoc.targets(lpTargets)
-
-\stopLmsfile
 
 \prependLmsfile{default}
 \addMITLicense{Lmsfile}{--}{PerceptiSys Ltd (Stephen Gaito)}
