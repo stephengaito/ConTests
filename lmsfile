@@ -41,6 +41,8 @@ contextMod.targets(lpTargets, {
   moduleFiles = {
     't-contests.mkiv',
     't-contests.lua',
+    't-contests.h',
+    't-contests.c',
     't-contests-cTests.lua',
   },
   moduleDir = 't-contests/tex/context/third/contests',

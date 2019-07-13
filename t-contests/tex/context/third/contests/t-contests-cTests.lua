@@ -145,9 +145,9 @@ local function logFailure(reason, suiteDesc, caseDesc,
   failure.errMsg    = errMsg
   failure.fileInfo  = fileInfo
   io.stdout:write(sFmt('    %s\n', reason))
-  if 0 < #testMsg then
+  --if 0 < #testMsg then
     io.stdout:write(sFmt('    %s\n', testMsg))
-  end
+  --end
   io.stdout:write(sFmt('    %s\n', errMsg))
   io.stdout:write(sFmt('    %s\n', fileInfo))
   io.stdout:write('\n\n')

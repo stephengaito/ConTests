@@ -755,9 +755,9 @@ local function logFailure(reason, suiteDesc, caseDesc,
   failure.errMsg    = errMsg
   failure.fileInfo  = fileInfo
   io.stdout:write(sFmt('    %s\n', reason))
-  if 0 < #testMsg then
+  --if 0 < #testMsg then
     io.stdout:write(sFmt('    %s\n', testMsg))
-  end
+  --end
   io.stdout:write(sFmt('    %s\n', errMsg))
   io.stdout:write(sFmt('    %s\n', fileInfo))
   io.stdout:write('\n\n')
@@ -1008,10 +1008,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertIntTrueStop(anInt)    \
-  AssertIntTrueMsg(anInt, "", TRUE)
+  AssertIntTrueMsg(anInt, #anInt, TRUE)
 
 #define AssertIntTrue(anInt)         \
-  AssertIntTrueMsg(anInt, "", FALSE)
+  AssertIntTrueMsg(anInt, #anInt, FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if true]
@@ -1043,10 +1043,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertIntFalseStop(anInt)    \
-  AssertIntFalseMsg(anInt, "", TRUE)
+  AssertIntFalseMsg(anInt, #anInt, TRUE)
 
 #define AssertIntFalse(anInt)         \
-  AssertIntFalseMsg(anInt, "", FALSE)
+  AssertIntFalseMsg(anInt, #anInt, FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if false]
@@ -1081,10 +1081,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertIntZeroStop(anInt)    \
-  AssertIntZeroMsg(anInt, "", TRUE)
+  AssertIntZeroMsg(anInt, #anInt, TRUE)
 
 #define AssertIntZero(anInt)         \
-  AssertIntZeroMsg(anInt, "", FALSE)
+  AssertIntZeroMsg(anInt, #anInt, FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if zero]
@@ -1116,10 +1116,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertIntNotZeroStop(anInt) \
-  AssertIntNotZeroMsg(anInt, "", TRUE)
+  AssertIntNotZeroMsg(anInt, #anInt, TRUE)
 
 #define AssertIntNotZero(anInt)     \
-  AssertIntNotZeroMsg(anInt, "", FALSE)
+  AssertIntNotZeroMsg(anInt, #anInt, FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if not zero]
@@ -1152,10 +1152,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertIntEqualsStop(intA, intB)    \
-  AssertIntEqualsMsg(intA, intB, "", TRUE)
+  AssertIntEqualsMsg(intA, intB, #intA " == " #intB, TRUE)
 
 #define AssertIntEquals(intA, intB)         \
-  AssertIntEqualsMsg(intA, intB, "", FALSE)
+  AssertIntEqualsMsg(intA, intB, #intA " == " #intB, FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if two integers are equal]
@@ -1188,10 +1188,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertIntNotEqualsStop(intA, intB)    \
-  AssertIntNotEqualsMsg(intA, intB, "", TRUE)
+  AssertIntNotEqualsMsg(intA, intB, #intA " != " #intB, TRUE)
 
 #define AssertIntNotEquals(intA, intB)         \
-  AssertIntNotEqualsMsg(intA, intB, "", FALSE)
+  AssertIntNotEqualsMsg(intA, intB, #intA " != " #intB, FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if two integers are not equal]
@@ -1223,10 +1223,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertPtrNullStop(aPtr)    \
-  AssertPtrNullMsg(aPtr, "", TRUE)
+  AssertPtrNullMsg(aPtr, #aPtr, TRUE)
 
 #define AssertPtrNull(aPtr)         \
-  AssertPtrNullMsg(aPtr, "", FALSE)
+  AssertPtrNullMsg(aPtr, #aPtr, FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if pointer is NULL]
@@ -1258,10 +1258,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertPtrNotNull(aPtr)        \
-  AssertPtrNotNullMsg(aPtr, "", TRUE)
+  AssertPtrNotNullMsg(aPtr, #aPtr, TRUE)
 
 #define AssertPtrNotNullCont(aPtr)     \
-  AssertPtrNotNullMsg(aPtr, "", FALSE)
+  AssertPtrNotNullMsg(aPtr, #aPtr, FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if a pointer is not NULL]
@@ -1294,10 +1294,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertPtrEqualsStop(ptrA, ptrB)    \
-  AssertPtrEqualsMsg(ptrA, ptrB, "", TRUE)
+  AssertPtrEqualsMsg(ptrA, ptrB, #ptrA " == " #ptrB, TRUE)
 
 #define AssertPtrEquals(ptrA, ptrB)         \
-  AssertPtrEqualsMsg(ptrA, ptrB, "", FALSE)
+  AssertPtrEqualsMsg(ptrA, ptrB, #ptrA " == " #ptrB, FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if two pointers are equal]
@@ -1331,10 +1331,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertPtrNotEqualsStop(ptrA, ptrB)    \
-  AssertPtrNotEqualsMsg(ptrA, ptrB, "", TRUE)
+  AssertPtrNotEqualsMsg(ptrA, ptrB, #ptrA " != " #ptrB, TRUE)
 
 #define AssertPtrNotEquals(ptrA, ptrB)         \
-  AssertPtrNotEqualsMsg(ptrA, ptrB, "", FALSE)
+  AssertPtrNotEqualsMsg(ptrA, ptrB, #ptrA " != " #ptrB, FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if two pointers are not equal]
@@ -1367,9 +1367,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertStrEmptyStop(aStr)    \
-  AssertStrEmptyMsg(aStr, "", TRUE)
+  AssertStrEmptyMsg(aStr, "[" #aStr "]", TRUE)
+  
 #define AssertStrEmpty(aStr)         \
-  AssertStrEmptyMsg(aStr, "", FALSE)
+  AssertStrEmptyMsg(aStr, "[" #aStr "]", FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if a string is empty]
@@ -1401,10 +1402,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertStrNotEmptyStop(aStr)    \
-  AssertStrNotEmptyMsg(aStr, "", TRUE)
+  AssertStrNotEmptyMsg(aStr, "[" #aStr "]", TRUE)
   
 #define AssertStrNotEmpty(aStr)         \
-  AssertStrNotEmptyMsg(aStr, "", FALSE)
+  AssertStrNotEmptyMsg(aStr, "[" #aStr "]", FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if a string is not empty]
@@ -1438,10 +1439,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertStrEqualsStop(strA, strB)    \
-  AssertStrEqualsMsg(strA, strB, "", TRUE)
+  AssertStrEqualsMsg(strA, strB, "[" #strA "] = [" #strB "]", TRUE)
   
 #define AssertStrEquals(strA, strB)         \
-  AssertStrEqualsMsg(strA, strB, "", FALSE)
+  AssertStrEqualsMsg(strA, strB, "[" #strA "] = [" #strB "]", FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if two strings are equal]
@@ -1480,10 +1481,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertStrNotEqualsStop(strA, strB)    \
-  AssertStrNotEqualsMsg(strA, strB, "", TRUE)
+  AssertStrNotEqualsMsg(strA, strB, "[" #strA "] != [" #strB "]", TRUE)
   
 #define AssertStrNotEquals(strA, strB)         \
-  AssertStrNotEqualsMsg(strA, strB, "", FALSE)
+  AssertStrNotEqualsMsg(strA, strB, "[" #strA "] != [" #strB "]", FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if two strings are not equal]
@@ -1532,10 +1533,10 @@ StopAssertShouldFail();
 }
 
 #define AssertStrMatchesStop(aStr, aPattern)    \
-  AssertStrMatchesMsg(aStr, aPattern, "", TRUE)
+  AssertStrMatchesMsg(aStr, aPattern, "[" #aStr "] =~ /" #aPattern "/", TRUE)
 
 #define AssertStrMatches(aStr, aPattern)         \
-  AssertStrMatchesMsg(aStr, aPattern, "", FALSE)
+  AssertStrMatchesMsg(aStr, aPattern, "[" #aStr "] =~ /" #aPattern "/", FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if a string mathces a pattern]
@@ -1580,10 +1581,10 @@ StopAssertShouldFail();
 }
 
 #define AssertStrDoesNotMatchStop(aStr, aPattern)    \
-  AssertStrDoesNotMatchMsg(aStr, aPattern, "", TRUE)
+  AssertStrDoesNotMatchMsg(aStr, aPattern, "[" #aStr "] !~ /" #aPattern "/", TRUE)
   
 #define AssertStrDoesNotMatch(aStr, aPattern)         \
-  AssertStrDoesNotMatchMsg(aStr, aPattern, "", FALSE)
+  AssertStrDoesNotMatchMsg(aStr, aPattern, "[" #aStr "] !~ /" #aPattern "/", FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if a string does not match a pattern]
@@ -1618,10 +1619,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertDblEqualsStop(dblA, dblB, tol)    \
-  AssertDblEqualsMsg(dblA, dblB, tol, "", TRUE)
+  AssertDblEqualsMsg(dblA, dblB, tol, #dblA " == " #dblB "(" #tol ")", TRUE)
 
 #define AssertDblEquals(dblA, dblB, tol)         \
-  AssertDblEqualsMsg(dblA, dblB, tol, "", FALSE)
+  AssertDblEqualsMsg(dblA, dblB, tol, #dblA " == " #dblB "(" #tol ")", FALSE)
 \stopCHeader
 
 \startTestCase[should succeed if two doubles are equal]
@@ -1656,10 +1657,10 @@ StopAssertShouldFail();
   lua_CTestCall(3, sStop)
 
 #define AssertDblNotEqualsStop(dblA, dblB, tol) \
-  AssertDblNotEqualsMsg(dblA, dblB, tol, "", TRUE)
+  AssertDblNotEqualsMsg(dblA, dblB, tol, #dblA " != " #dblB "(" #tol ")", TRUE)
 
 #define AssertDblNotEquals(dblA, dblB, tol)    \
-  AssertDblNotEqualsMsg(dblA, dblB, tol, "", FALSE)
+  AssertDblNotEqualsMsg(dblA, dblB, tol, #dblA " != " #dblB "(" #tol ")", FALSE)
 
 // end of t-contests.h
 \stopCHeader
