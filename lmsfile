@@ -27,8 +27,10 @@
 require 'lms.contextDoc'
 
 ctxTargets = contextDoc.targets{
-  mainDoc  = 'contests.tex',
-  docDir    = 't-contests/doc/context/third/contests',
+  mainDoc        = 'contests.tex',
+  docDir         = 't-contests/doc/context/third/contests',
+  lmsfileSubDirs = {
+  },
 }
 
 require 'lms.litProgs'
@@ -43,15 +45,13 @@ lpTargets = litProgs.targets(ctxTargets, {
       't-contests.h',
       't-contests.c',
       't-contests-cTests.lua',
+      't-contests-templates.lua',
     },
     cCodeFiles = {
       't-contests.c',
     },
     cHeaderFiles = {
       't-contests.h',
-    },
-    defaultFiles = {
-      't-contests-templates.lua',
     },
     cTestFiles = {
       'allCTests.c',

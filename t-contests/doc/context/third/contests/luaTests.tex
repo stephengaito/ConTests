@@ -303,7 +303,11 @@ function reportLuaAssertion(theCondition, aMessage, theReason)
     test.message   = aMessage
     test.reason    = theReason
     test.condition = theCondition
-    local info     = debug.getinfo(2,'l')
+    local info     = { }
+    info['currentline'] = 'no information -- run with --debug'
+    if debug.getinfo then
+      info     = debug.getinfo(2,'l')
+    end
     test.line      = info.currentline
     assertionStats.failed = assertionStats.failed + 1
     error(test, 0) -- throw an error to be captured by an error_handler
