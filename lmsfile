@@ -47,11 +47,11 @@ lpTargets = litProgs.targets(ctxTargets, {
       't-contests-cTests.lua',
       't-contests-templates.lua',
     },
-    cCodeFiles = {
-      't-contests.c',
-    },
     cHeaderFiles = {
       't-contests.h',
+    },
+    cCodeFiles = {
+      't-contests.c',
     },
     cTestFiles = {
       'allCTests.c',

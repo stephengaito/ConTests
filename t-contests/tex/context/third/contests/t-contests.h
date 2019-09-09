@@ -1,6 +1,6 @@
 // An ANSI-C header file
 
-// from file: conclusion.tex after line: 0
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/conclusion.tex after line: 0
 
 // Copyright 2019 PerceptiSys Ltd (Stephen Gaito)
 //
@@ -26,7 +26,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// from file: cTests.tex after line: 550
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 500
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -102,7 +102,7 @@
     if (shouldStop & (!theCondition)) break;     \
   }
 
-// from file: cTests.tex after line: 850
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 800
 
 #define StartAssertShouldFail(messagePattern, reasonPattern, aMessage) \
   lua_getglobal(lstate, "startCShouldFail");                           \
@@ -115,7 +115,7 @@
   lua_getglobal(lstate, "stopCShouldFail"); \
   lua_fileCall(0, 0)
 
-// from file: cTests.tex after line: 950
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 900
 
 #define AssertFailMsg(aMessage)              \
   lua_getglobal(lstate, "reportCAssertion"); \
@@ -127,7 +127,7 @@
 #define AssertFail() \
   AssertFailMsg("")
 
-// from file: cTests.tex after line: 950
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 900
 
 #define AssertSucceedMsg(aMessage)           \
   lua_getglobal(lstate, "reportCAssertion"); \
@@ -139,7 +139,7 @@
 #define AssertSucceed() \
   AssertSucceedMsg("")
 
-// from file: cTests.tex after line: 950
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 950
 
 #define AssertIntTrueMsg(anInt, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");     \
@@ -157,7 +157,7 @@
 #define AssertIntTrue(anInt)         \
   AssertIntTrueMsg(anInt, #anInt, FALSE)
 
-// from file: cTests.tex after line: 1000
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1000
 
 #define AssertIntFalseMsg(anInt, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");      \
@@ -175,7 +175,7 @@
 #define AssertIntFalse(anInt)         \
   AssertIntFalseMsg(anInt, #anInt, FALSE)
 
-// from file: cTests.tex after line: 1050
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1000
 
 #define AssertIntZeroMsg(anInt, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");     \
@@ -193,7 +193,7 @@
 #define AssertIntZero(anInt)         \
   AssertIntZeroMsg(anInt, #anInt, FALSE)
 
-// from file: cTests.tex after line: 1100
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1050
 
 #define AssertIntNotZeroMsg(anInt, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");     \
@@ -211,7 +211,7 @@
 #define AssertIntNotZero(anInt)     \
   AssertIntNotZeroMsg(anInt, #anInt, FALSE)
 
-// from file: cTests.tex after line: 1100
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1100
 
 #define AssertIntEqualsMsg(intA, intB, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");            \
@@ -230,7 +230,7 @@
 #define AssertIntEquals(intA, intB)         \
   AssertIntEqualsMsg(intA, intB, #intA " == " #intB, FALSE)
 
-// from file: cTests.tex after line: 1150
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1100
 
 #define AssertIntNotEqualsMsg(intA, intB, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");               \
@@ -249,7 +249,7 @@
 #define AssertIntNotEquals(intA, intB)         \
   AssertIntNotEqualsMsg(intA, intB, #intA " != " #intB, FALSE)
 
-// from file: cTests.tex after line: 1200
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1150
 
 #define AssertPtrNullMsg(aPtr, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");    \
@@ -267,7 +267,7 @@
 #define AssertPtrNull(aPtr)         \
   AssertPtrNullMsg(aPtr, #aPtr, FALSE)
 
-// from file: cTests.tex after line: 1200
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1200
 
 #define AssertPtrNotNullMsg(aPtr, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");       \
@@ -285,7 +285,7 @@
 #define AssertPtrNotNullCont(aPtr)     \
   AssertPtrNotNullMsg(aPtr, #aPtr, FALSE)
 
-// from file: cTests.tex after line: 1250
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1250
 
 #define AssertPtrEqualsMsg(ptrA, ptrB, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");            \
@@ -304,7 +304,7 @@
 #define AssertPtrEquals(ptrA, ptrB)         \
   AssertPtrEqualsMsg(ptrA, ptrB, #ptrA " == " #ptrB, FALSE)
 
-// from file: cTests.tex after line: 1300
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1250
 
 #define AssertPtrNotEqualsMsg(ptrA, ptrB, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");               \
@@ -323,7 +323,7 @@
 #define AssertPtrNotEquals(ptrA, ptrB)         \
   AssertPtrNotEqualsMsg(ptrA, ptrB, #ptrA " != " #ptrB, FALSE)
 
-// from file: cTests.tex after line: 1350
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1300
 
 #define AssertStrEmptyMsg(aStr, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");     \
@@ -341,7 +341,7 @@
 #define AssertStrEmpty(aStr)         \
   AssertStrEmptyMsg(aStr, "[" #aStr "]", FALSE)
 
-// from file: cTests.tex after line: 1350
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1350
 
 #define AssertStrNotEmptyMsg(aStr, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");        \
@@ -359,7 +359,7 @@
 #define AssertStrNotEmpty(aStr)         \
   AssertStrNotEmptyMsg(aStr, "[" #aStr "]", FALSE)
 
-// from file: cTests.tex after line: 1400
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1400
 
 #define AssertStrEqualsMsg(strA, strB, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");            \
@@ -378,7 +378,7 @@
 #define AssertStrEquals(strA, strB)         \
   AssertStrEqualsMsg(strA, strB, "[" #strA "] = [" #strB "]", FALSE)
 
-// from file: cTests.tex after line: 1450
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1400
 
 #define AssertStrNotEqualsMsg(strA, strB, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");               \
@@ -397,7 +397,7 @@
 #define AssertStrNotEquals(strA, strB)         \
   AssertStrNotEqualsMsg(strA, strB, "[" #strA "] != [" #strB "]", FALSE)
 
-// from file: cTests.tex after line: 1500
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1450
 
 #define AssertStrMatchesMsg(aStr, aPattern, aMessage, sStop) \
 {                                                            \
@@ -426,7 +426,7 @@
 #define AssertStrMatches(aStr, aPattern)         \
   AssertStrMatchesMsg(aStr, aPattern, "[" #aStr "] =~ /" #aPattern "/", FALSE)
 
-// from file: cTests.tex after line: 1550
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1500
 
 #define AssertStrDoesNotMatchMsg(aStr, aPattern, aMessage, sStop) \
 {                                                                 \
@@ -455,7 +455,7 @@
 #define AssertStrDoesNotMatch(aStr, aPattern)         \
   AssertStrDoesNotMatchMsg(aStr, aPattern, "[" #aStr "] !~ /" #aPattern "/", FALSE)
 
-// from file: cTests.tex after line: 1600
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1550
 
 #define AssertDblEqualsMsg(dblA, dblB, tol, aMessage, sStop) \
   lua_getglobal(lstate, "reportCAssertion");                 \
@@ -475,7 +475,7 @@
 #define AssertDblEquals(dblA, dblB, tol)         \
   AssertDblEqualsMsg(dblA, dblB, tol, #dblA " == " #dblB "(" #tol ")", FALSE)
 
-// from file: cTests.tex after line: 1600
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 1600
 
 #define AssertDblNotEqualsMsg(dblA, dblB, tol, aMessage, sStop)  \
   lua_getglobal(lstate, "reportCAssertion");                     \

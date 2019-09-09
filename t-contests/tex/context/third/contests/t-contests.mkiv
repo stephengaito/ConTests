@@ -1,6 +1,6 @@
 % A ConTeXt MkIV module
 
-% from file: conclusion.tex after line: 0
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/conclusion.tex after line: 0
 
 %C Copyright 2019 PerceptiSys Ltd (Stephen Gaito)
 %C
@@ -26,7 +26,7 @@
 %C FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 %C OTHER DEALINGS IN THE SOFTWARE.
 
-% from file: preamble.tex after line: 0
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/preamble.tex after line: 0
 
 %D \module
 %D   [     file=t-contests,
@@ -47,7 +47,7 @@
 %
 % end info
 
-% from file: preamble.tex after line: 0
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/preamble.tex after line: 0
 
 \usemodule[literate-progs]
 
@@ -57,7 +57,7 @@
 \ctxloadluafile{t-contests-templates}
 \ctxloadluafile{t-contests-config}
 
-% from file: testSuites.tex after line: 0
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/testSuites.tex after line: 0
 
 \def\startTestSuite[#1]{
   \subsubsection[title=Test Suite: #1]
@@ -69,7 +69,7 @@
   \directlua{thirddata.contests.stopTestSuite()}
 }
 
-% from file: testSuites.tex after line: 100
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/testSuites.tex after line: 100
 
 \def\startTestCase[#1]{
   \starttextrule{Test case}
@@ -92,13 +92,13 @@
   \stoptextrule%
 }
 
-% from file: testSuites.tex after line: 250
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/testSuites.tex after line: 250
 
 \def\reportFailures{
   \directlua{thirddata.contests.reportFailures()}
 }
 
-% from file: testSuites.tex after line: 300
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/testSuites.tex after line: 300
 
 \def\reportMkIVStats{
   \directlua{thirddata.contests.reportStats('mkiv')}
@@ -108,7 +108,7 @@
   \directlua{thirddata.contests.reportStats('lua')}
 }
 
-% from file: mkivTests.tex after line: 0
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 0
 
 \definetyping[ConTest]
 \setuptyping[ConTest][option=context]
@@ -119,7 +119,7 @@
   \directlua{thirddata.contests.addConTest('_typing_')}
 }
 
-% from file: mkivTests.tex after line: 100
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 100
 
 \def\assertionFailed#1#2{
   \directlua{thirddata.contests.reportMkIVAssertion(false, '#1', '#2')}
@@ -129,7 +129,7 @@
   \directlua{thirddata.contests.reportMkIVAssertion(true, '#1', '')}
 }
 
-% from file: mkivTests.tex after line: 150
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 150
 
 \def\startAssertShouldFail#1#2#3{
   \directlua{thirddata.contests.mkivAssertShouldFail('#1', '#2', '#3')}
@@ -137,15 +137,15 @@
 
 \def\stopAssertShouldFail{\relax}
 
-% from file: mkivTests.tex after line: 250
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 250
 
 \def\assertFail#1{\assertionFailed{#1}{(Failed)}}
 
-% from file: mkivTests.tex after line: 250
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 250
 
 \def\assertSucceed#1{\assertionSucceeded{#1}}
 
-% from file: mkivTests.tex after line: 300
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 300
 
 \def\assertDefined#1#2{
   \expandafter\ifx\csname#1\endcsname\relax%
@@ -155,7 +155,7 @@
   \fi
 }
 
-% from file: mkivTests.tex after line: 300
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 300
 
 \def\assertNotDefined#1#2{
   \expandafter\ifx\csname#1\endcsname\relax%
@@ -165,7 +165,7 @@
   \fi
 }
 
-% from file: mkivTests.tex after line: 350
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 350
 
 \def\assertStringMatches#1#2#3{
   \edef\aString{#1}
@@ -178,7 +178,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 400
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 400
 
 \def\assertStringDoesNotMatch#1#2#3{
   \edef\aString{#1}
@@ -191,7 +191,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 450
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 450
 
 \def\assertFirstArgument#1{
   \iffirstargument%
@@ -201,7 +201,7 @@
   \fi
 }
 
-% from file: mkivTests.tex after line: 450
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 450
 
 \def\assertNoFirstArgument#1{
   \iffirstargument%
@@ -211,7 +211,7 @@
   \fi
 }
 
-% from file: mkivTests.tex after line: 500
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 500
 
 \def\assertSecondArgument#1{
   \ifsecondargument%
@@ -221,7 +221,7 @@
   \fi
 }
 
-% from file: mkivTests.tex after line: 550
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 550
 
 \def\assertNoSecondArgument#1{
   \ifsecondargument%
@@ -231,7 +231,7 @@
   \fi
 }
 
-% from file: mkivTests.tex after line: 600
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 600
 
 \def\assertThirdArgument#1{
   \ifthirdargument%
@@ -241,7 +241,7 @@
   \fi
 }
 
-% from file: mkivTests.tex after line: 650
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 650
 
 \def\assertNoThirdArgument#1{
   \ifthirdargument%
@@ -251,7 +251,7 @@
   \fi
 }
 
-% from file: mkivTests.tex after line: 700
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 700
 
 \def\clearAllExpansionInfo{
   \directlua{
@@ -259,7 +259,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 750
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 750
 
 \def\clearExpansionInfoFor#1{
   \directlua{
@@ -267,7 +267,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 750
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 750
 
 \def\startLoggingExpansions{
   \directlua{thirddata.contests.setExpansionLogging(true)}
@@ -281,7 +281,7 @@
   \writestatus{contests}{#1}#1\\
 }
 
-% from file: mkivTests.tex after line: 850
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 850
 
 \def\addMockResult#1#2{
   \directlua{
@@ -289,7 +289,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 900
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 900
 
 \def\traceTexMacro#1#2{
   \directlua{
@@ -315,7 +315,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 1250
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 1250
 
 \def\assertMacroExpanded#1#2{
   \directlua{
@@ -341,7 +341,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 1350
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 1350
 
 \def\assertMacroNthArgumentOnMthExpansionMatches#1#2#3#4#5{
   \directlua{
@@ -351,7 +351,7 @@
   }
 }
 
-% from file: mkivTests.tex after line: 1500
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 1500
 
 \def\mockErrMessage{
   \mockTexMacro{errmessage}{1}
@@ -360,7 +360,7 @@
   \assertMacroExpanded{errmessage}{#1}
 }
 
-% from file: luaTests.tex after line: 0
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 0
 
 \def\showLuaValue#1#2{
   \directlua{
@@ -368,7 +368,7 @@
   }
 }
 
-% from file: luaTests.tex after line: 0
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 0
 
 \definetyping[LuaTest]
 \setuptyping[LuaTest][option=lua]
@@ -383,7 +383,7 @@
   \directlua{thirddata.contests.showLuaTest()}
 }
 
-% from file: luaTests.tex after line: 200
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 200
 
 \appendtoks
   \setevalue{\e!get\currentbuffer Name}{\currentdefinedbuffer}%
@@ -395,7 +395,7 @@
   \directlua{thirddata.contests.runLuaConTest('\getLuaConTestName')}
 }
 
-% from file: cTests.tex after line: 0
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 0
 
 \definetyping[CTest]
 \setuptyping[CTest][option=cpp]
@@ -484,7 +484,7 @@
   }
 }
 
-% from file: conclusion.tex after line: 0
+% from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/conclusion.tex after line: 0
 
 \protect \endinput
 

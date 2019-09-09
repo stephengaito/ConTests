@@ -1,6 +1,6 @@
 -- A Lua file for CTests
 
--- from file: conclusion.tex after line: 0
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/conclusion.tex after line: 0
 
 -- Copyright 2019 PerceptiSys Ltd (Stephen Gaito)
 --
@@ -26,7 +26,7 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 -- OTHER DEALINGS IN THE SOFTWARE.
 
--- from file: cTests.tex after line: 600
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 600
 
 -- This is the lua code associated with the t-contests-cTests
 
@@ -87,7 +87,7 @@ function stopTestCase(testFileName, testFileLine)
   curSuite.curCase = { }
 end
 
--- from file: cTests.tex after line: 700
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 650
 
 local function compareKeyValues(a, b)
   return (a[1] < b[1])
@@ -244,7 +244,7 @@ function getNumFailures()
   return cTests.numFailures
 end
 
--- from file: cTests.tex after line: 850
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 850
 
 function startCShouldFail(
   messagePattern, reasonPattern, aMessage,

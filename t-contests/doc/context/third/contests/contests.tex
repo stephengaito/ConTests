@@ -3,6 +3,10 @@
 \usemodule[t-literate-programming]
 \usemodule[t-contests]
 
+\showLitProgsMessages
+
+\startLitProgsComponent contests
+
 \setupinteraction[
   state=start,
   color=green,
@@ -35,21 +39,21 @@
 
 \starttext
 
-\component titlePages
+\litProgsComponent titlePages
 
-\component overview
+\litProgsComponent overview
 
-\component preamble
+\litProgsComponent preamble
 
-\component testSuites
+\litProgsComponent testSuites
 
-\component mkivTests
+\litProgsComponent mkivTests
 
-\component luaTests
+\litProgsComponent luaTests
 
-\component cTests
+\litProgsComponent cTests
 
-\component conclusion
+\litProgsComponent conclusion
 
 \startbackmatter
   \startchapter[title=Bibliography]
@@ -58,3 +62,5 @@
 \stopbackmatter
 
 \stoptext
+
+\stopLitProgsComponent

@@ -1,6 +1,6 @@
 -- A Lua template file
 
--- from file: conclusion.tex after line: 50
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/conclusion.tex after line: 50
 
 -- Copyright 2019 PerceptiSys Ltd (Stephen Gaito)
 --
@@ -26,7 +26,7 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 -- OTHER DEALINGS IN THE SOFTWARE.
 
--- from file: preamble.tex after line: 100
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/preamble.tex after line: 100
 
 -- t-contests templates
 
@@ -50,7 +50,7 @@ local tConcat = table.concat
 
 local addTemplate = litProgs.addTemplate
 
--- from file: mkivTests.tex after line: 950
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 950
 
 addTemplate(
   'cmTexFormalArgs',
@@ -70,7 +70,7 @@ addTemplate(
   '[#{{= anArg}}]'
 )
 
--- from file: mkivTests.tex after line: 1000
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 1000
 
 addTemplate(
   'cmFormalArgs',
@@ -78,7 +78,7 @@ addTemplate(
   '{{! *argTemplate, anArg }}'
 )
 
--- from file: mkivTests.tex after line: 1000
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 1000
 
 addTemplate(
   'cmLuaArgUse',
@@ -86,7 +86,7 @@ addTemplate(
   "        '#{{= anArg}}'"
 )
 
--- from file: mkivTests.tex after line: 1000
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 1000
 
 addTemplate(
   'ctmMain',
@@ -113,7 +113,7 @@ addTemplate(
 ]=]
 )
 
--- from file: mkivTests.tex after line: 1050
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 1050
 
 addTemplate(
   'cmmMain',

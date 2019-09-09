@@ -282,11 +282,6 @@ contests.addCTestApacheLicense = addCTestApacheLicense
 
 
 local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
-  if not build.buildDir then
-    texio.write('\nERROR: document directory NOT yet defined\n')
-    texio.write('       NOT creating code file ['..aFilePath..']\n\n')
-    return
-  end
 
   if type(aFilePath) ~= 'string'
     or #aFilePath < 1 then
@@ -298,7 +293,6 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   local aTestExec = aFilePath:gsub('%..+$','')
   tInsert(build.cTestTargets, aTestExec)
 
-  aFilePath = build.buildDir .. '/buildDir/' .. aFilePath
   local outFile = io.open(aFilePath, 'w')
   if not outFile then
     return
@@ -496,35 +490,12 @@ local function addCTestTargets(aCodeStream)
   tInsert(lmsfile, "require 'lms.cTests'\n")
   tInsert(lmsfile, "cTests.targets(cTargets, {")
   tInsert(lmsfile, "  testExecs = {")
-  for i, aTestExec in ipairs(build.cTestTargets) do
-    tInsert(lmsfile, "    '"..aTestExec.."',")
+  if build.cTestTargets then
+    for i, aTestExec in ipairs(build.cTestTargets) do
+      tInsert(lmsfile, "    '"..aTestExec.."',")
+    end
   end
   tInsert(lmsfile, "  },")
---  tInsert(lmsfile, "  mainDoc = '"..build.mainDoc.."',")
---  tInsert(lmsfile, "  docFiles = {")
---  for i, aSubDoc in ipairs(build.subDocs) do
---    tInsert(lmsfile, "    '"..aSubDoc.."',")
---  end
---  tInsert(lmsfile, "  },")
-
---  build.srcTargets = build.srcTargets or { }
---  local srcTargets = build.srcTargets
-  
---  srcTargets.cHeader = srcTargets.cHeader or { }
---  local cHeader      = srcTargets.cHeader
---  tInsert(lmsfile, "  cHeaderFiles = {")
---  for i, aSrcFile in ipairs(cHeader) do
---    tInsert(lmsfile, "    '"..aSrcFile.."',")
---  end
---  tInsert(lmsfile, "  },")
-  
---  srcTargets.cCode = srcTargets.cCode or { }
---  local cCode      = srcTargets.cCode
---  tInsert(lmsfile, "  cCodeFiles = {")
---  for i, aSrcFile in ipairs(cCode) do
---    tInsert(lmsfile, "    '"..aSrcFile.."',")
---  end
---  tInsert(lmsfile, "  },")
 
   tInsert(lmsfile, "  testLibDirs = {")
   if tests.cLibDirs and tests.cLibDirs[aCodeStream] then

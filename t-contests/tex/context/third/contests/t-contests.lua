@@ -1,6 +1,6 @@
 -- A Lua file
 
--- from file: conclusion.tex after line: 0
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/conclusion.tex after line: 0
 
 -- Copyright 2019 PerceptiSys Ltd (Stephen Gaito)
 --
@@ -26,7 +26,7 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 -- OTHER DEALINGS IN THE SOFTWARE.
 
--- from file: preamble.tex after line: 0
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/preamble.tex after line: 0
 
 -- This is the lua code associated with t-contests.mkiv
 
@@ -92,7 +92,7 @@ local sFmt    = string.format
 local sMatch  = string.match
 local toStr   = tostring
 
--- from file: testSuites.tex after line: 50
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/testSuites.tex after line: 50
 
 local function initSuite()
   tests.stage     = ''
@@ -112,7 +112,7 @@ function contests.stopTestSuite()
   tests.curSuite = initSuite()
 end
 
--- from file: testSuites.tex after line: 150
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/testSuites.tex after line: 150
 
 function contests.startTestCase(aDesc)
   local suite       = tests.curSuite
@@ -162,7 +162,7 @@ function contests.ignoreTestCase()
   tex.print('{\\magenta IGNORED}')
 end
 
--- from file: testSuites.tex after line: 200
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/testSuites.tex after line: 200
 
 local function logFailure(reason, suiteDesc, caseDesc,
                           testMsg, errMsg, fileInfo)
@@ -176,7 +176,7 @@ local function logFailure(reason, suiteDesc, caseDesc,
   return failure
 end
 
--- from file: testSuites.tex after line: 250
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/testSuites.tex after line: 250
 
 local function reportFailure(aFailure, fullReport)
   tex.print("\\noindent{\\red "..aFailure.reason.."}:\\\\")
@@ -191,7 +191,7 @@ local function reportFailure(aFailure, fullReport)
   tex.print("\\\\"..aFailure.fileInfo)
 end
 
--- from file: testSuites.tex after line: 250
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/testSuites.tex after line: 250
 
 function contests.reportFailures()
   if 0 < #tests.failures then
@@ -206,7 +206,7 @@ function contests.reportFailures()
   end
 end
 
--- from file: testSuites.tex after line: 300
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/testSuites.tex after line: 300
 
 function contests.reportStats(statsType)
   local stats = tests.stats[statsType]
@@ -231,7 +231,7 @@ function contests.reportStats(statsType)
   tex.print("}")
 end
 
--- from file: mkivTests.tex after line: 0
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 0
 
 local function addConTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
@@ -243,7 +243,7 @@ end
 
 contests.addConTest = addConTest
 
--- from file: mkivTests.tex after line: 50
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 50
 
 local function runCurMkIVTestCase(suite, case)
   case.passed = case.passed or true
@@ -284,7 +284,7 @@ end
 
 contests.stopConTestImplementation = stopConTestImplementation
 
--- from file: mkivTests.tex after line: 100
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 100
 
 function reportMkIVAssertion(theCondition, aMessage, theReason)
   local curSuite  = tests.curSuite
@@ -351,7 +351,7 @@ end
 
 contests.reportMkIVAssertion = reportMkIVAssertion
 
--- from file: mkivTests.tex after line: 200
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 200
 
 function contests.mkivAssertShouldFail(messagePattern, reasonPattern, aMessage)
   local curCase = tests.curSuite.curCase
@@ -362,7 +362,7 @@ function contests.mkivAssertShouldFail(messagePattern, reasonPattern, aMessage)
   shouldFail.message        = aMessage
 end
 
--- from file: mkivTests.tex after line: 700
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 700
 
 local function clearAllExpansionInfo()
   contests.expansionInfo = { }
@@ -372,7 +372,7 @@ end
 
 contests.clearAllExpansionInfo = clearAllExpansionInfo
 
--- from file: mkivTests.tex after line: 700
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 700
 
 local function clearExpansionInfoFor(expandedMacro)
   expandedMacro = expandedMacro:gsub('^%s+', ''):gsub('%s+$', '')
@@ -381,7 +381,7 @@ end
 
 contests.clearExpansionInfoFor = clearExpansionInfoFor
 
--- from file: mkivTests.tex after line: 750
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 750
 
 local function setExpansionLogging(logExpansion)
   expInfo.loggingOn = logExpansion
@@ -398,7 +398,7 @@ end
 
 contests.setExpansionLogging = setExpansionLogging
 
--- from file: mkivTests.tex after line: 800
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 800
 
 local function recordExpansion(macroName,
                                callType,
@@ -424,7 +424,7 @@ end
 
 contests.recordExpansion = recordExpansion
 
--- from file: mkivTests.tex after line: 800
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 800
 
 local function returnMockedResults(expandedMacro)
   expandedMacro.returns = expandedMacro.returns or { }
@@ -438,7 +438,7 @@ end
 
 contests.returnMockedResults = returnMockedResults
 
--- from file: mkivTests.tex after line: 850
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 850
 
 local function addMockResult(mockedMacro, returnValue)
   mockedMacro = mockedMacro:gsub('^%s+', ''):gsub('%s+$', '')
@@ -449,7 +449,7 @@ end
 
 contests.addMockResult = addMockResult
 
--- from file: mkivTests.tex after line: 850
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 850
 
 local function mockExpansion(expandedMacro,
                                macroArguments,
@@ -462,7 +462,7 @@ end
 
 contests.mockExpansion = mockExpansion
 
--- from file: mkivTests.tex after line: 1100
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 1100
 
 local function createMacro(theMacroName,
                            numArgs,
@@ -508,7 +508,7 @@ end
 
 contests.createMacro = createMacro
 
--- from file: mkivTests.tex after line: 1250
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 1250
 
 function assertMacroExpanded(macroName, callNum, aMessage)
   local expectedMsg = 'Expected ['..macroName..']'
@@ -540,7 +540,7 @@ end
 
 contests.assertMacroNeverExpanded = assertMacroNeverExpanded
 
--- from file: mkivTests.tex after line: 1350
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/mkivTests.tex after line: 1350
 
 function assertMacroArguments(macroName,
                               callNum,
@@ -588,7 +588,7 @@ end
 
 contests.assertMacroArguments = assertMacroArguments
 
--- from file: luaTests.tex after line: 0
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 0
 
 function showValue(aValue, aMessage)
   texio.write_nl('-----------------------------------------------')
@@ -602,7 +602,7 @@ end
 
 contests.showValue = showValue
 
--- from file: luaTests.tex after line: 50
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 50
 
 local function addLuaTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
@@ -656,7 +656,7 @@ end
 
 contests.showLuaTest = showLuaTest
 
--- from file: luaTests.tex after line: 100
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 100
 
 local function runALuaTest(luaTest, suite, case)
   case.passed = case.passed or true
@@ -740,7 +740,7 @@ end
 
 contests.testRunners.runCurLuaTestCase = runCurLuaTestCase
 
--- from file: luaTests.tex after line: 250
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 250
 
 local function runLuaConTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
@@ -756,7 +756,7 @@ end
 
 contests.runLuaConTest = runLuaConTest
 
--- from file: luaTests.tex after line: 250
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 250
 
 function reportLuaAssertion(theCondition, aMessage, theReason)
   local assertionStats = tests.stats.lua.assertions
@@ -780,7 +780,7 @@ function reportLuaAssertion(theCondition, aMessage, theReason)
   assertionStats.passed = assertionStats.passed + 1
 end
 
--- from file: luaTests.tex after line: 300
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 300
 
 function assert.throwsError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
@@ -798,7 +798,7 @@ function assert.throwsError(aFunction, aMessage, ...)
   )
 end
 
--- from file: luaTests.tex after line: 400
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 400
 
 function assert.throwsNoError(aFunction, aMessage, ...)
   local ok, err = pcall(aFunction, ...)
@@ -817,7 +817,7 @@ function assert.throwsNoError(aFunction, aMessage, ...)
   )
 end
 
--- from file: luaTests.tex after line: 450
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 450
 
 function assert.fail(aMessage)
   return reportLuaAssertion(
@@ -827,7 +827,7 @@ function assert.fail(aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 500
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 500
 
 function assert.succeed(aMessage)
   return reportLuaAssertion(
@@ -837,7 +837,7 @@ function assert.succeed(aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 500
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 500
 
 function assert.isBoolean(anObj, aMessage)
   return reportLuaAssertion(
@@ -847,7 +847,7 @@ function assert.isBoolean(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 550
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 550
 
 function assert.isNotBoolean(anObj, aMessage)
   return reportLuaAssertion(
@@ -857,7 +857,7 @@ function assert.isNotBoolean(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 600
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 600
 
 function assert.isTrue(aBoolean, aMessage)
   return reportLuaAssertion(
@@ -867,7 +867,7 @@ function assert.isTrue(aBoolean, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 650
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 650
 
 function assert.isFalse(aBoolean, aMessage)
   return reportLuaAssertion(
@@ -877,7 +877,7 @@ function assert.isFalse(aBoolean, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 700
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 700
 
 function assert.isNil(anObj, aMessage)
   return reportLuaAssertion(
@@ -887,7 +887,7 @@ function assert.isNil(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 700
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 700
 
 function assert.isNotNil(anObj, aMessage)
   return reportLuaAssertion(
@@ -897,7 +897,7 @@ function assert.isNotNil(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 750
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 750
 
 function assert.isEqual(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -908,7 +908,7 @@ function assert.isEqual(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 800
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 800
 
 function assert.isEqualWithIn(numA, numB,
   tolerance, aMessage)
@@ -921,7 +921,7 @@ function assert.isEqualWithIn(numA, numB,
   )
 end
 
--- from file: luaTests.tex after line: 850
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 850
 
 function assert.isNotEqual(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -932,7 +932,7 @@ function assert.isNotEqual(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 900
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 900
 
 function assert.isNotEqualWithIn(numA, numB, tolerance, aMessage)
   return reportLuaAssertion(
@@ -944,7 +944,7 @@ function assert.isNotEqualWithIn(numA, numB, tolerance, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 950
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 950
 
 function assert.isNumber(anObj, aMessage)
   return reportLuaAssertion(
@@ -954,7 +954,7 @@ function assert.isNumber(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1000
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1000
 
 function assert.isGT(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -964,7 +964,7 @@ function assert.isGT(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1050
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1050
 
 function assert.isGTE(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -974,7 +974,7 @@ function assert.isGTE(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1100
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1100
 
 function assert.isLT(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -984,7 +984,7 @@ function assert.isLT(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1150
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1150
 
 function assert.isLTE(objA, objB, aMessage)
   return reportLuaAssertion(
@@ -994,7 +994,7 @@ function assert.isLTE(objA, objB, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1200
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1200
 
 function assert.isNotNumber(anObj, aMessage)
   return reportLuaAssertion(
@@ -1004,7 +1004,7 @@ function assert.isNotNumber(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1250
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1250
 
 function assert.isString(anObj, aMessage)
   return reportLuaAssertion(
@@ -1014,7 +1014,7 @@ function assert.isString(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1300
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1300
 
 function assert.matches(anObj, aPattern, aMessage)
   return reportLuaAssertion(
@@ -1026,7 +1026,7 @@ function assert.matches(anObj, aPattern, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1350
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1350
 
 function assert.doesNotMatch(anObj, aPattern, aMessage)
   return reportLuaAssertion(
@@ -1038,7 +1038,7 @@ function assert.doesNotMatch(anObj, aPattern, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1400
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1400
 
 function assert.length(anObj, aLength, aMessage)
   return reportLuaAssertion(
@@ -1049,7 +1049,7 @@ function assert.length(anObj, aLength, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1450
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1450
 
 function assert.isNotLength(anObj, aLength, aMessage)
   return reportLuaAssertion(
@@ -1060,7 +1060,7 @@ function assert.isNotLength(anObj, aLength, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1500
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1500
 
 function assert.isNotString(anObj, aMessage)
   return reportLuaAssertion(
@@ -1070,7 +1070,7 @@ function assert.isNotString(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1500
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1500
 
 function assert.isTable(anObj, aMessage)
   return reportLuaAssertion(
@@ -1080,7 +1080,7 @@ function assert.isTable(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1550
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1550
 
 function assert.hasKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
@@ -1091,7 +1091,7 @@ function assert.hasKey(anObj, aKey, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1600
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1600
 
 function assert.doesNotHaveKey(anObj, aKey, aMessage)
   return reportLuaAssertion(
@@ -1102,7 +1102,7 @@ function assert.doesNotHaveKey(anObj, aKey, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1650
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1650
 
 function assert.isNotTable(anObj, aMessage)
   return reportLuaAssertion(
@@ -1112,7 +1112,7 @@ function assert.isNotTable(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1700
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1700
 
 function assert.isFunction(anObj, aMessage)
   return reportLuaAssertion(
@@ -1122,7 +1122,7 @@ function assert.isFunction(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1750
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1750
 
 function assert.isNotFunction(anObj, aMessage)
   return reportLuaAssertion(
@@ -1132,7 +1132,7 @@ function assert.isNotFunction(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1750
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1750
 
 function assert.hasMetaTable(anObj, aMessage)
   return reportLuaAssertion(
@@ -1142,7 +1142,7 @@ function assert.hasMetaTable(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1800
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1800
 
 function assert.metaTableEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
@@ -1153,7 +1153,7 @@ function assert.metaTableEqual(anObj, aMetaTable, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1850
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1850
 
 function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   return reportLuaAssertion(
@@ -1164,7 +1164,7 @@ function assert.metaTableNotEqual(anObj, aMetaTable, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1900
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1900
 
 function assert.doesNotHaveMetaTable(anObj, aMessage)
   return reportLuaAssertion(
@@ -1174,7 +1174,7 @@ function assert.doesNotHaveMetaTable(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1900
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1900
 
 function assert.isThread(anObj, aMessage)
   return reportLuaAssertion(
@@ -1184,7 +1184,7 @@ function assert.isThread(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 1950
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 1950
 
 function assert.isNotThread(anObj, aMessage)
   return reportLuaAssertion(
@@ -1194,7 +1194,7 @@ function assert.isNotThread(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 2000
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 2000
 
 function assert.isUserData(anObj, aMessage)
   return reportLuaAssertion(
@@ -1204,7 +1204,7 @@ function assert.isUserData(anObj, aMessage)
   )
 end
 
--- from file: luaTests.tex after line: 2050
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/luaTests.tex after line: 2050
 
 function assert.isNotUserData(anObj, aMessage)
   return reportLuaAssertion(
@@ -1214,7 +1214,7 @@ function assert.isNotUserData(anObj, aMessage)
   )
 end
 
--- from file: cTests.tex after line: 50
+-- from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/cTests.tex after line: 50
 
 local function addCTest(bufferName)
   local bufferContents = buffers.getcontent(bufferName):gsub("\13", "\n")
@@ -1404,11 +1404,6 @@ contests.addCTestApacheLicense = addCTestApacheLicense
 
 
 local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
-  if not build.buildDir then
-    texio.write('\nERROR: document directory NOT yet defined\n')
-    texio.write('       NOT creating code file ['..aFilePath..']\n\n')
-    return
-  end
 
   if type(aFilePath) ~= 'string'
     or #aFilePath < 1 then
@@ -1420,7 +1415,6 @@ local function createCTestFile(aCodeStream, aFilePath, aFileHeader)
   local aTestExec = aFilePath:gsub('%..+$','')
   tInsert(build.cTestTargets, aTestExec)
 
-  aFilePath = build.buildDir .. '/buildDir/' .. aFilePath
   local outFile = io.open(aFilePath, 'w')
   if not outFile then
     return
@@ -1618,35 +1612,12 @@ local function addCTestTargets(aCodeStream)
   tInsert(lmsfile, "require 'lms.cTests'\n")
   tInsert(lmsfile, "cTests.targets(cTargets, {")
   tInsert(lmsfile, "  testExecs = {")
-  for i, aTestExec in ipairs(build.cTestTargets) do
-    tInsert(lmsfile, "    '"..aTestExec.."',")
+  if build.cTestTargets then
+    for i, aTestExec in ipairs(build.cTestTargets) do
+      tInsert(lmsfile, "    '"..aTestExec.."',")
+    end
   end
   tInsert(lmsfile, "  },")
---  tInsert(lmsfile, "  mainDoc = '"..build.mainDoc.."',")
---  tInsert(lmsfile, "  docFiles = {")
---  for i, aSubDoc in ipairs(build.subDocs) do
---    tInsert(lmsfile, "    '"..aSubDoc.."',")
---  end
---  tInsert(lmsfile, "  },")
-
---  build.srcTargets = build.srcTargets or { }
---  local srcTargets = build.srcTargets
- 
---  srcTargets.cHeader = srcTargets.cHeader or { }
---  local cHeader      = srcTargets.cHeader
---  tInsert(lmsfile, "  cHeaderFiles = {")
---  for i, aSrcFile in ipairs(cHeader) do
---    tInsert(lmsfile, "    '"..aSrcFile.."',")
---  end
---  tInsert(lmsfile, "  },")
- 
---  srcTargets.cCode = srcTargets.cCode or { }
---  local cCode      = srcTargets.cCode
---  tInsert(lmsfile, "  cCodeFiles = {")
---  for i, aSrcFile in ipairs(cCode) do
---    tInsert(lmsfile, "    '"..aSrcFile.."',")
---  end
---  tInsert(lmsfile, "  },")
 
   tInsert(lmsfile, "  testLibDirs = {")
   if tests.cLibDirs and tests.cLibDirs[aCodeStream] then

@@ -1,6 +1,6 @@
 // An ANSI-C code file
 
-// from file: conclusion.tex after line: 0
+// from file: ~/ExpositionGit/tools/conTeXt/ConTests/t-contests/doc/context/third/contests/conclusion.tex after line: 0
 
 // Copyright 2019 PerceptiSys Ltd (Stephen Gaito)
 //
