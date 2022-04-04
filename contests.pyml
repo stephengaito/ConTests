@@ -1,0 +1,6 @@
+# This is a YAML description of the ConTests project.
+
+projects:
+  literate-progs:
+    description: ConTeXt macros for testing ConTeXt macros and extensions.
+
