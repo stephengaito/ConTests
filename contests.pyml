@@ -12,6 +12,7 @@ projects:
         dependencies:
           - t-contests/doc/context/third/contests/contests.tex
         outputDir: buildDir
+        worker: context
 
       doc:
         help: Typeset the ConTests module documentation
