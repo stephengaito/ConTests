@@ -1,6 +1,31 @@
 # This is a YAML description of the ConTests project.
 
 projects:
-  literate-progs:
+  contests:
     description: ConTeXt macros for testing ConTeXt macros and extensions.
 
+    targets:
+      defaults:
+        uses:
+          - literate-prog
+          - contests
+        dependencies:
+          - t-contests/doc/context/third/contests/contests.tex
+        outputDir: buildDir
+
+      doc:
+        help: Typeset the ConTests module documentation
+
+        outputs:
+          - contests.pdf
+
+      module:
+        help: Typeset the ConTests module
+
+        outputs:
+          - t-contests.c
+          - t-contests-cTests.lua
+          - t-contests.h
+          - t-contests.lua
+          - t-contests.mkiv
+          - t-contests-templates.lua
