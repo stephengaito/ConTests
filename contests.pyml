@@ -30,3 +30,7 @@ projects:
           - t-contests.lua
           - t-contests.mkiv
           - t-contests-templates.lua
+
+        install:
+          dir: t-contests/tex/context/third/contests
+          manualUpdate: True
