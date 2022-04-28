@@ -9,6 +9,8 @@ projects:
         uses:
           - literate-progs:module
           - contests:module
+        srcDir: t-contests/doc/context/third/contests
+        mainFile: contests.tex
         dependencies:
           - t-contests/doc/context/third/contests/contests.tex
         outputDir: buildDir
