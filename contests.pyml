@@ -36,3 +36,20 @@ projects:
         install:
           dir: t-contests/tex/context/third/contests
           manualUpdate: True
+
+      allCTestsCode:
+        help: Generate the allCTests ANSI-C code
+
+        outputs:
+          - allCTests.c
+
+      allCTests:
+        help: Compile the ConTests allCTests ANSI-C code
+
+        srcDir: buildDir
+        outputDir: buildDir
+        worker: gcc
+        #worker: clang
+        mainFile: allCTests.c
+        outputs:
+          - allCTests
